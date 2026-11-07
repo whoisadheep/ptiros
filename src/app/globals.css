@@ -1,0 +1,114 @@
+@import "tailwindcss";
+
+@theme {
+  /* Brand Colors - PTIROS */
+  --color-primary: #F97316;
+  --color-primary-dark: #EA580C;
+  --color-primary-light: #FB923C;
+  --color-secondary: #FDBA74;
+  --color-accent: #1A1A2E;
+  --color-accent-light: #2D2D4A;
+  
+  /* Backgrounds */
+  --color-bg: #FFFBF5;
+  --color-bg-card: #FFFFFF;
+  --color-bg-muted: #FFF7ED;
+  --color-bg-orange: #FFF0E0;
+  
+  /* Text */
+  --color-text: #1A1A2E;
+  --color-text-muted: #64748B;
+  --color-text-light: #94A3B8;
+  --color-text-on-primary: #FFFFFF;
+  
+  /* Borders */
+  --color-border: #FED7AA;
+  --color-border-light: #FFF0E0;
+  
+  /* Semantic */
+  --color-success: #059669;
+  --color-destructive: #DC2626;
+  
+  /* Fonts */
+  --font-display: 'Outfit', sans-serif;
+  --font-body: 'Work Sans', sans-serif;
+  
+  /* Spacing */
+  --spacing-section: 6rem;
+  --spacing-container: 1.25rem;
+  
+  /* Border Radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
+  --radius-full: 9999px;
+  
+  /* Animation */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-quick: 150ms;
+  --duration-standard: 300ms;
+  --duration-slow: 500ms;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    font-family: var(--font-body);
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    line-height: 1.1;
+  }
+  
+  ::selection {
+    background-color: var(--color-primary);
+    color: white;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .bg-mesh {
+    background: 
+      radial-gradient(ellipse at 20% 50%, rgba(249, 115, 22, 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(251, 146, 60, 0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 80%, rgba(253, 186, 116, 0.04) 0%, transparent 50%),
+      var(--color-bg);
+  }
+  
+  .glass {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
