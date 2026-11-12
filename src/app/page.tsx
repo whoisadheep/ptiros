@@ -9,6 +9,7 @@ import Statistics from "@/components/Statistics";
 import CareerTestCTA from "@/components/CareerTestCTA";
 import Roadmaps from "@/components/Roadmaps";
 import Contact from "@/components/Contact";
+import CareerSimulator from "@/components/CareerSimulator";
 import Footer from "@/components/Footer";
 
 export default function Home() {
@@ -24,6 +25,10 @@ export default function Home() {
 
       <section id="career-test">
         <CareerTestCTA />
+      </section>
+
+      <section id="simulator">
+        <CareerSimulator />
       </section>
 
       <section id="about">

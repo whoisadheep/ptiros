@@ -15,6 +15,7 @@ import {
   Phone,
   ChevronRight,
   ArrowRight,
+  Gamepad2,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -22,6 +23,7 @@ const navLinks = [
   { label: "Home", href: "/#home", icon: Home },
   { label: "About", href: "/#about", icon: Info },
   { label: "Why PTIROS", href: "/#why-ptiros", icon: Sparkles },
+  { label: "Simulator", href: "/#simulator", icon: Gamepad2 },
   { label: "Roadmaps", href: "/#roadmaps", icon: Map },
   { label: "Career Test", href: "/career-test", icon: Brain },
   { label: "Student Portal", href: "/dashboard", icon: LayoutDashboard },
