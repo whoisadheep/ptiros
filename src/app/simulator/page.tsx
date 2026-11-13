@@ -33,6 +33,7 @@ import {
   Layers,
   Flame,
   Check,
+  Users,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import {
@@ -45,6 +46,7 @@ import {
 } from "@/components/simulator/TactileWidgets";
 import WorkplaceFeed from "@/components/simulator/WorkplaceFeed";
 import ConsequenceBranching from "@/components/simulator/ConsequenceBranching";
+import ParentDossier from "@/components/simulator/ParentDossier";
 
 const easeOutExpo = [0.16, 1, 0.3, 1] as const;
 
@@ -870,6 +872,7 @@ function SimulatorContent() {
   const [isCompleted, setIsCompleted] = useState<boolean>(false);
   const [showCertificateModal, setShowCertificateModal] = useState<boolean>(false);
   const [studentName, setStudentName] = useState<string>("PTIROS Explorer");
+  const [completionTab, setCompletionTab] = useState<"student" | "parent">("student");
 
   // Sync trackParam with activeTrack on mount
   useEffect(() => {
@@ -890,6 +893,7 @@ function SimulatorContent() {
     setResiliencePoints(0);
     setIsCompleted(false);
     setShowCertificateModal(false);
+    setCompletionTab("student");
   };
 
   const handleLaunchTrack = (track: CareerTrack) => {
@@ -1430,144 +1434,220 @@ function SimulatorContent() {
             <div className="space-y-8">
               <SimulatorConfetti />
 
-              {/* Congratulatory Header Card */}
-              <div className="overflow-hidden rounded-3xl border border-orange-200/80 bg-white p-8 sm:p-12 text-center shadow-lg">
-                <div
-                  className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl shadow-lg"
-                  style={{ backgroundColor: `${activeTrack.color}15` }}
-                >
-                  <Trophy className="h-10 w-10" style={{ color: activeTrack.color }} />
+              {/* ─── View Switcher: Student Diagnostic vs Parent Dialogue Dossier ─── */}
+              <div className="flex justify-center">
+                <div className="inline-flex rounded-full bg-orange-100/90 p-1 border border-orange-200 shadow-xs">
+                  <button
+                    onClick={() => setCompletionTab("student")}
+                    className={`flex cursor-pointer items-center gap-2 rounded-full px-5 py-2.5 text-xs font-bold transition-all ${
+                      completionTab === "student"
+                        ? "bg-white text-gray-900 shadow-sm"
+                        : "text-gray-600 hover:text-gray-900"
+                    }`}
+                  >
+                    <Trophy className="h-4 w-4 text-orange-500" />
+                    <span>Student Diagnostic</span>
+                  </button>
+                  <button
+                    onClick={() => setCompletionTab("parent")}
+                    className={`flex cursor-pointer items-center gap-2 rounded-full px-5 py-2.5 text-xs font-bold transition-all ${
+                      completionTab === "parent"
+                        ? "bg-primary text-white shadow-sm"
+                        : "text-gray-600 hover:text-gray-900"
+                    }`}
+                  >
+                    <Users className="h-4 w-4" />
+                    <span>Parent-Student Dialogue Dossier</span>
+                    <span className="hidden sm:inline-block rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-bold">Recommended</span>
+                  </button>
                 </div>
+              </div>
 
-                <h2 className="mt-6 font-display text-3xl sm:text-4xl font-black text-gray-900">
-                  Simulation Lab Completed!
-                </h2>
-                <p className="mt-2 text-sm text-gray-500">
-                  You successfully navigated real-world assignments in {activeTrack.title}
-                </p>
+              {/* ─── TAB A: PARENT-STUDENT DIALOGUE DOSSIER ─── */}
+              {completionTab === "parent" ? (
+                <ParentDossier
+                  trackId={activeTrack.id}
+                  trackTitle={activeTrack.title}
+                  categoryLabel={activeTrack.categoryLabel}
+                  color={activeTrack.color}
+                  fitPercent={fitPercent}
+                  score={score}
+                  totalMissions={activeTrack.missions.length}
+                  resiliencePoints={resiliencePoints}
+                  studentName={studentName}
+                />
+              ) : (
+                /* ─── TAB B: STUDENT PERFORMANCE REPORT ─── */
+                <div className="overflow-hidden rounded-3xl border border-orange-200/80 bg-white p-8 sm:p-12 text-center shadow-lg">
+                  <div
+                    className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl shadow-lg"
+                    style={{ backgroundColor: `${activeTrack.color}15` }}
+                  >
+                    <Trophy className="h-10 w-10" style={{ color: activeTrack.color }} />
+                  </div>
 
-                {/* Score & Fit Ring */}
-                <div className="mt-8 flex flex-col items-center justify-center">
-                  <div className="relative flex h-36 w-36 items-center justify-center">
-                    <svg className="absolute inset-0 -rotate-90" viewBox="0 0 100 100">
-                      <circle cx="50" cy="50" r="42" fill="none" stroke="#f1f5f9" strokeWidth="8" />
-                      <circle
-                        cx="50"
-                        cy="50"
-                        r="42"
-                        fill="none"
-                        stroke={activeTrack.color}
-                        strokeWidth="8"
-                        strokeLinecap="round"
-                        strokeDasharray="264"
-                        strokeDashoffset={264 - (264 * fitPercent) / 100}
-                        className="transition-all duration-1000 ease-out"
-                      />
-                    </svg>
-                    <div className="flex flex-col items-center">
-                      <span
-                        className="font-display text-3xl font-black"
-                        style={{ color: activeTrack.color }}
-                      >
-                        {fitPercent}%
+                  <h2 className="mt-6 font-display text-3xl sm:text-4xl font-black text-gray-900">
+                    Simulation Lab Completed!
+                  </h2>
+                  <p className="mt-2 text-sm text-gray-500">
+                    You successfully navigated real-world assignments in {activeTrack.title}
+                  </p>
+
+                  {/* Score & Fit Ring */}
+                  <div className="mt-8 flex flex-col items-center justify-center">
+                    <div className="relative flex h-36 w-36 items-center justify-center">
+                      <svg className="absolute inset-0 -rotate-90" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="42" fill="none" stroke="#f1f5f9" strokeWidth="8" />
+                        <circle
+                          cx="50"
+                          cy="50"
+                          r="42"
+                          fill="none"
+                          stroke={activeTrack.color}
+                          strokeWidth="8"
+                          strokeLinecap="round"
+                          strokeDasharray="264"
+                          strokeDashoffset={264 - (264 * fitPercent) / 100}
+                          className="transition-all duration-1000 ease-out"
+                        />
+                      </svg>
+                      <div className="flex flex-col items-center">
+                        <span
+                          className="font-display text-3xl font-black"
+                          style={{ color: activeTrack.color }}
+                        >
+                          {fitPercent}%
+                        </span>
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
+                          Career Fit
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 flex flex-wrap items-center justify-center gap-2.5">
+                      <span className="text-xs font-bold text-gray-600">
+                        Solved {score} of {activeTrack.missions.length} Workplace Dilemmas Correctly
                       </span>
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
-                        Career Fit
-                      </span>
+                      {resiliencePoints > 0 && (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-100 px-3 py-1 text-xs font-bold text-orange-800 border border-orange-200 shadow-xs">
+                          <Flame className="h-3.5 w-3.5 text-orange-600" />
+                          +{resiliencePoints} Resilience Mastery Pts
+                        </span>
+                      )}
                     </div>
                   </div>
 
-                  <div className="mt-4 flex flex-wrap items-center justify-center gap-2.5">
-                    <span className="text-xs font-bold text-gray-600">
-                      Solved {score} of {activeTrack.missions.length} Workplace Dilemmas Correctly
-                    </span>
-                    {resiliencePoints > 0 && (
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-100 px-3 py-1 text-xs font-bold text-orange-800 border border-orange-200 shadow-xs">
-                        <Flame className="h-3.5 w-3.5 text-orange-600" />
-                        +{resiliencePoints} Resilience Mastery Pts
+                  {/* Competency Score Bars */}
+                  <div className="mt-10 mx-auto max-w-xl text-left border-t border-gray-100 pt-8">
+                    <h4 className="font-display text-sm font-bold uppercase tracking-wider text-gray-500 mb-4">
+                      Assessed Real-World Competencies:
+                    </h4>
+                    <div className="space-y-4">
+                      {activeTrack.competencies.map((comp) => {
+                        const calculatedScore = Math.min(
+                          100,
+                          Math.max(45, Math.round(comp.weight * (fitPercent / 100) + 15))
+                        );
+                        return (
+                          <div key={comp.name}>
+                            <div className="flex justify-between text-xs font-semibold text-gray-700 mb-1">
+                              <span>{comp.name}</span>
+                              <span className="font-bold">{calculatedScore}%</span>
+                            </div>
+                            <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
+                              <div
+                                className="h-full rounded-full transition-all duration-1000 ease-out"
+                                style={{
+                                  width: `${calculatedScore}%`,
+                                  backgroundColor: activeTrack.color,
+                                }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Parent-Student Dialogue Callout Banner */}
+                  <div className="mt-8 mx-auto max-w-xl rounded-2xl border-2 border-dashed border-orange-300 bg-orange-50/70 p-5 text-left">
+                    <div className="flex items-start gap-3.5">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-orange-500 text-white shadow-xs">
+                        <Users className="h-5 w-5" />
                       </span>
-                    )}
+                      <div>
+                        <p className="font-display text-sm font-bold text-gray-900">
+                          Reviewing this career with Mom & Dad?
+                        </p>
+                        <p className="mt-0.5 text-xs text-gray-600 leading-relaxed">
+                          We prepared a specialized <strong>Parent-Student Alignment Dossier</strong> featuring 10-year Indian salary ladders, top government colleges (IITs, NLUs, AIIMS), and 3 constructive dinner table discussion questions.
+                        </p>
+                        <button
+                          onClick={() => setCompletionTab("parent")}
+                          className="mt-3 inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-primary px-4 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-primary-dark transition-all"
+                        >
+                          <span>Open Parent Dialogue Dossier</span>
+                          <ArrowRight className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Educational Action Plan */}
+                  <div className="mt-8 mx-auto max-w-xl rounded-2xl bg-orange-50/70 border border-orange-200/80 p-5 text-left text-xs leading-relaxed text-gray-700">
+                    <p className="font-bold text-orange-900 mb-1 text-sm">
+                      Recommended 10th-to-11th Stream & Roadmap:
+                    </p>
+                    <p>
+                      <span className="font-semibold">Suggested Class 11-12 Focus: </span>
+                      {activeTrack.recommendedStreams.join(", ")}
+                    </p>
+                    <p className="mt-1">
+                      <span className="font-semibold">Key Indian Entrance Milestones: </span>
+                      {activeTrack.keyExams.join(", ")}
+                    </p>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                    <button
+                      onClick={() => setCompletionTab("parent")}
+                      className="flex w-full sm:w-auto cursor-pointer items-center justify-center gap-2 rounded-full border border-orange-400 bg-orange-50 px-6 py-3 text-xs font-bold text-orange-800 shadow-sm transition-all hover:bg-orange-100 active:scale-95"
+                    >
+                      <Users className="h-4 w-4 text-orange-600" />
+                      <span>Parent Dossier</span>
+                    </button>
+
+                    <button
+                      onClick={() => setShowCertificateModal(true)}
+                      className="flex w-full sm:w-auto cursor-pointer items-center justify-center gap-2 rounded-full border border-orange-300 bg-white px-6 py-3 text-xs font-bold text-orange-700 shadow-sm transition-all hover:bg-orange-50 active:scale-95"
+                    >
+                      <Award className="h-4 w-4 text-orange-500" />
+                      <span>View Verified Credential</span>
+                    </button>
+
+                    <button
+                      onClick={resetSimulationState}
+                      className="flex w-full sm:w-auto cursor-pointer items-center justify-center gap-2 rounded-full border border-gray-300 bg-white px-6 py-3 text-xs font-bold text-gray-700 shadow-sm transition-all hover:bg-gray-50 active:scale-95"
+                    >
+                      <RotateCcw className="h-4 w-4" />
+                      <span>Retry Track</span>
+                    </button>
+
+                    <Link
+                      href="/career-test"
+                      className="flex w-full sm:w-auto cursor-pointer items-center justify-center gap-2 rounded-full bg-primary px-7 py-3 text-xs font-bold uppercase tracking-wider text-white shadow-lg shadow-primary/25 transition-all hover:bg-primary-dark active:scale-95"
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      <span>Get Full 360° Roadmap</span>
+                    </Link>
                   </div>
                 </div>
-
-                {/* Competency Score Bars */}
-                <div className="mt-10 mx-auto max-w-xl text-left border-t border-gray-100 pt-8">
-                  <h4 className="font-display text-sm font-bold uppercase tracking-wider text-gray-500 mb-4">
-                    Assessed Real-World Competencies:
-                  </h4>
-                  <div className="space-y-4">
-                    {activeTrack.competencies.map((comp) => {
-                      const calculatedScore = Math.min(
-                        100,
-                        Math.max(45, Math.round(comp.weight * (fitPercent / 100) + 15))
-                      );
-                      return (
-                        <div key={comp.name}>
-                          <div className="flex justify-between text-xs font-semibold text-gray-700 mb-1">
-                            <span>{comp.name}</span>
-                            <span className="font-bold">{calculatedScore}%</span>
-                          </div>
-                          <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
-                            <div
-                              className="h-full rounded-full transition-all duration-1000 ease-out"
-                              style={{
-                                width: `${calculatedScore}%`,
-                                backgroundColor: activeTrack.color,
-                              }}
-                            />
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Educational Action Plan */}
-                <div className="mt-10 mx-auto max-w-xl rounded-2xl bg-orange-50/70 border border-orange-200/80 p-5 text-left text-xs leading-relaxed text-gray-700">
-                  <p className="font-bold text-orange-900 mb-1 text-sm">
-                    Recommended 10th-to-11th Stream & Roadmap:
-                  </p>
-                  <p>
-                    <span className="font-semibold">Suggested Class 11-12 Focus: </span>
-                    {activeTrack.recommendedStreams.join(", ")}
-                  </p>
-                  <p className="mt-1">
-                    <span className="font-semibold">Key Indian Entrance Milestones: </span>
-                    {activeTrack.keyExams.join(", ")}
-                  </p>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                  <button
-                    onClick={() => setShowCertificateModal(true)}
-                    className="flex w-full sm:w-auto cursor-pointer items-center justify-center gap-2 rounded-full border border-orange-300 bg-white px-6 py-3 text-xs font-bold text-orange-700 shadow-sm transition-all hover:bg-orange-50 active:scale-95"
-                  >
-                    <Award className="h-4 w-4 text-orange-500" />
-                    <span>View Certificate Badge</span>
-                  </button>
-
-                  <button
-                    onClick={resetSimulationState}
-                    className="flex w-full sm:w-auto cursor-pointer items-center justify-center gap-2 rounded-full border border-gray-300 bg-white px-6 py-3 text-xs font-bold text-gray-700 shadow-sm transition-all hover:bg-gray-50 active:scale-95"
-                  >
-                    <RotateCcw className="h-4 w-4" />
-                    <span>Retry This Track</span>
-                  </button>
-
-                  <Link
-                    href="/career-test"
-                    className="flex w-full sm:w-auto cursor-pointer items-center justify-center gap-2 rounded-full bg-primary px-7 py-3 text-xs font-bold uppercase tracking-wider text-white shadow-lg shadow-primary/25 transition-all hover:bg-primary-dark active:scale-95"
-                  >
-                    <Sparkles className="h-4 w-4" />
-                    <span>Get Full 360° Roadmap</span>
-                  </Link>
-                </div>
-              </div>
+              )}
             </div>
           )}
 
-          {/* ─── Certificate Badge Modal ─────────────── */}
+          {/* ─── Official NEP 2020 Certificate Record Modal ─── */}
           <AnimatePresence>
             {showCertificateModal && (
               <>
@@ -1576,7 +1656,7 @@ function SimulatorContent() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   onClick={() => setShowCertificateModal(false)}
-                  className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+                  className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm"
                 />
 
                 <motion.div
@@ -1584,51 +1664,79 @@ function SimulatorContent() {
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95, y: 10 }}
                   transition={{ duration: 0.3, ease: easeOutExpo }}
-                  className="fixed inset-x-4 top-[10vh] z-50 mx-auto max-w-lg rounded-3xl bg-white p-6 sm:p-8 shadow-2xl border-4 border-orange-200"
+                  className="fixed inset-x-4 top-[6vh] z-50 mx-auto max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl bg-white p-6 sm:p-8 shadow-2xl border-4 border-amber-200"
                 >
                   <div className="text-center">
-                    <span className="font-display text-xl font-black text-gradient">
-                      PTIROS
+                    {/* Official National Emblem / Top Seal */}
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                      <span className="rounded-full bg-orange-100 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-orange-800 border border-orange-200">
+                        NEP 2020 Experiential Vocational Record
+                      </span>
+                    </div>
+
+                    <span className="font-display text-2xl font-black text-gradient">
+                      PTIROS ACADEMIC NETWORK
                     </span>
-                    <p className="text-[10px] uppercase tracking-widest text-gray-400 mt-0.5">
-                      Certificate of Simulation Completion
+                    <p className="text-[11px] uppercase tracking-wider text-gray-500 mt-0.5">
+                      National Career Assessment & Virtual Simulation Directorate
                     </p>
 
-                    <div className="my-6 rounded-2xl bg-orange-50/70 border border-orange-200/80 p-6">
-                      <p className="text-xs text-gray-500">This certifies that</p>
-                      <input
-                        type="text"
-                        value={studentName}
-                        onChange={(e) => setStudentName(e.target.value)}
-                        placeholder="Enter Student Name"
-                        className="mt-1 text-center font-display text-xl font-bold text-gray-900 border-b border-orange-300 bg-transparent focus:outline-none focus:border-orange-600"
-                      />
-                      <p className="mt-3 text-xs text-gray-600">
-                        has successfully completed the Virtual Workplace Simulation in
+                    <div className="my-6 rounded-2xl bg-gradient-to-br from-amber-50/80 via-white to-orange-50/80 border-2 border-amber-300/80 p-6 shadow-xs text-left relative overflow-hidden">
+                      <div className="absolute -right-10 -bottom-10 h-32 w-32 rounded-full bg-amber-400/10 blur-xl pointer-events-none" />
+
+                      <p className="text-[11px] uppercase tracking-wider text-gray-400 font-bold">Official Credential</p>
+                      <p className="text-xs text-gray-600 mt-1">This certifies that student</p>
+
+                      <div className="mt-1 border-b-2 border-orange-400 pb-1">
+                        <input
+                          type="text"
+                          value={studentName}
+                          onChange={(e) => setStudentName(e.target.value)}
+                          placeholder="Type Your Full Name"
+                          className="w-full font-display text-2xl font-black text-gray-900 bg-transparent focus:outline-none"
+                        />
+                      </div>
+
+                      <p className="mt-3 text-xs text-gray-600 leading-relaxed">
+                        has completed rigorous, industry-grade workplace simulations in the domain of
                       </p>
-                      <p className="font-display text-base font-bold text-orange-600 mt-1">
+                      <p className="font-display text-lg font-black text-orange-600 mt-0.5">
                         {activeTrack.title}
                       </p>
-                      <p className="text-[11px] text-gray-500 mt-1">
-                        Achieved a Career Fit Rating of {fitPercent}%
-                      </p>
+
+                      {/* Micro-Credentials Grid */}
+                      <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
+                        <div className="rounded-xl bg-white/90 border border-amber-200 p-2.5">
+                          <span className="text-[10px] uppercase font-bold text-gray-400">Aptitude Rating</span>
+                          <p className="font-display text-base font-bold text-gray-900">{fitPercent}% Fit</p>
+                        </div>
+                        <div className="rounded-xl bg-white/90 border border-amber-200 p-2.5">
+                          <span className="text-[10px] uppercase font-bold text-gray-400">Decision Stamina</span>
+                          <p className="font-display text-base font-bold text-emerald-700">{score}/{activeTrack.missions.length} Optimal</p>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 pt-3 border-t border-amber-200/60 flex flex-wrap items-center justify-between text-[10px] text-gray-500 font-mono">
+                        <span>ID: PTIROS-EXP-{activeTrack.id.toUpperCase().slice(0, 4)}-2026-V1</span>
+                        <span>Date: 13 Nov 2026</span>
+                      </div>
                     </div>
 
                     <div className="flex items-center justify-between text-[11px] text-gray-400 border-t border-gray-100 pt-3">
-                      <span>NEP 2020 Experiential Lab</span>
+                      <span>Accredited Experiential Discovery</span>
                       <span>Verified Digital Record</span>
                     </div>
 
                     <div className="mt-6 flex gap-3">
                       <button
                         onClick={() => window.print()}
-                        className="flex-1 rounded-full bg-primary py-2.5 text-xs font-bold text-white shadow-md hover:bg-primary-dark"
+                        className="flex-1 rounded-full bg-primary py-3 text-xs font-bold text-white shadow-md hover:bg-primary-dark transition-all"
                       >
-                        Print / Save PDF
+                        Print / Save Official Certificate
                       </button>
                       <button
                         onClick={() => setShowCertificateModal(false)}
-                        className="flex-1 rounded-full border border-gray-200 py-2.5 text-xs font-bold text-gray-700 hover:bg-gray-50"
+                        className="flex-1 rounded-full border border-gray-200 py-3 text-xs font-bold text-gray-700 hover:bg-gray-50 transition-all"
                       >
                         Close
                       </button>
