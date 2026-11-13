@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useLenis } from "lenis/react";
 import {
   Menu,
   X,
@@ -23,7 +22,7 @@ const navLinks = [
   { label: "Home", href: "/#home", icon: Home },
   { label: "About", href: "/#about", icon: Info },
   { label: "Why PTIROS", href: "/#why-ptiros", icon: Sparkles },
-  { label: "Simulator", href: "/#simulator", icon: Gamepad2 },
+  { label: "Simulator", href: "/simulator", icon: Gamepad2 },
   { label: "Roadmaps", href: "/#roadmaps", icon: Map },
   { label: "Career Test", href: "/career-test", icon: Brain },
   { label: "Student Portal", href: "/dashboard", icon: LayoutDashboard },
@@ -35,7 +34,6 @@ const easeOutExpo = [0.16, 1, 0.3, 1] as const;
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const lenis = useLenis();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -65,98 +63,91 @@ export default function Navbar() {
       const targetElement = document.getElementById(targetId);
       if (targetElement) {
         e.preventDefault();
-        // Give time for sidebar animation to begin and body overflow unlock
         setTimeout(() => {
-          if (lenis) {
-            lenis.scrollTo(targetElement, { offset: -70 });
-          } else {
-            targetElement.scrollIntoView({ behavior: "smooth" });
-          }
-        }, 120);
+          const yOffset = -85;
+          const y =
+            targetElement.getBoundingClientRect().top +
+            window.pageYOffset +
+            yOffset;
+          window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+        }, 150);
       }
     }
   };
 
   return (
-    <motion.header
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.5, ease: easeOutExpo }}
-      className={`fixed top-0 left-0 right-0 z-40 transition-all ${
-        scrolled
-          ? "bg-white/80 backdrop-blur-xl border-b border-border/50 shadow-sm"
-          : "bg-transparent"
-      }`}
-      style={{ transitionDuration: "var(--duration-standard)" }}
-    >
-      <nav
-        className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8"
-        aria-label="Primary navigation"
+    <>
+      {/* Top Navigation Bar */}
+      <header
+        className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
+          scrolled
+            ? "bg-white/90 backdrop-blur-xl border-b border-border/50 shadow-xs"
+            : "bg-transparent"
+        }`}
       >
-        {/* Brand */}
-        <Link href="/" className="relative z-40 cursor-pointer">
-          <span className="font-display text-2xl font-bold tracking-tight text-gradient">
-            PTIROS
-          </span>
-        </Link>
-
-        {/* Desktop Links */}
-        <ul className="hidden items-center gap-1 lg:flex" role="list">
-          {navLinks.map((link) => (
-            <li key={link.href}>
-              <Link
-                href={link.href}
-                onClick={(e) => handleNavClick(e, link.href)}
-                className="relative cursor-pointer rounded-lg px-4 py-2 text-sm font-medium text-accent transition-colors hover:text-primary"
-                style={{ transitionDuration: "var(--duration-quick)" }}
-              >
-                {link.label}
-              </Link>
-            </li>
-          ))}
-        </ul>
-
-        {/* Desktop CTA */}
-        <div className="hidden lg:block">
-          <Link
-            href="/career-test"
-            className="cursor-pointer rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-primary/25 transition-all hover:bg-primary-dark hover:shadow-xl hover:shadow-primary/30 active:scale-95"
-            style={{
-              transitionDuration: "var(--duration-quick)",
-              transitionTimingFunction: "var(--ease-out-expo)",
-            }}
-          >
-            Give Career Test
-          </Link>
-        </div>
-
-        {/* Mobile Menu Toggle Button */}
-        <motion.button
-          className="relative z-40 flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl bg-white/60 backdrop-blur-md border border-border/60 shadow-sm text-accent lg:hidden"
-          onClick={() => setIsOpen(!isOpen)}
-          aria-label={isOpen ? "Close menu" : "Open menu"}
-          aria-expanded={isOpen}
-          whileTap={{ scale: 0.92 }}
-          transition={{ duration: 0.15, ease: easeOutExpo }}
+        <nav
+          className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8"
+          aria-label="Primary navigation"
         >
-          <div className="relative h-5 w-6 flex items-center justify-center">
-            {isOpen ? (
-              <X className="h-6 w-6 text-accent" />
-            ) : (
-              <div className="space-y-1.5 w-6">
-                <span className="block h-0.5 w-6 rounded-full bg-accent" />
-                <span className="block h-0.5 w-4 rounded-full bg-primary ml-auto" />
-                <span className="block h-0.5 w-6 rounded-full bg-accent" />
-              </div>
-            )}
-          </div>
-        </motion.button>
-      </nav>
+          {/* Brand */}
+          <Link href="/" className="relative cursor-pointer">
+            <span className="font-display text-2xl font-bold tracking-tight text-gradient">
+              PTIROS
+            </span>
+          </Link>
 
-      {/* Mobile Navigation Sidebar Drawer */}
+          {/* Desktop Links */}
+          <ul className="hidden items-center gap-1 lg:flex" role="list">
+            {navLinks.map((link) => (
+              <li key={link.href}>
+                <Link
+                  href={link.href}
+                  onClick={(e) => handleNavClick(e, link.href)}
+                  className="relative cursor-pointer rounded-lg px-4 py-2 text-sm font-medium text-accent transition-colors hover:text-primary"
+                  style={{ transitionDuration: "var(--duration-quick)" }}
+                >
+                  {link.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+
+          {/* Desktop CTA */}
+          <div className="hidden lg:block">
+            <Link
+              href="/career-test"
+              className="cursor-pointer rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-primary/25 transition-all hover:bg-primary-dark hover:shadow-xl hover:shadow-primary/30 active:scale-95"
+            >
+              Give Career Test
+            </Link>
+          </div>
+
+          {/* Mobile Menu Toggle Button */}
+          <button
+            className="relative flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl bg-white/80 backdrop-blur-md border border-border/70 shadow-sm text-accent lg:hidden transition-transform active:scale-90"
+            onClick={() => setIsOpen(!isOpen)}
+            aria-label={isOpen ? "Close menu" : "Open menu"}
+            aria-expanded={isOpen}
+          >
+            <div className="relative h-5 w-6 flex items-center justify-center">
+              {isOpen ? (
+                <X className="h-6 w-6 text-accent" />
+              ) : (
+                <div className="space-y-1.5 w-6">
+                  <span className="block h-0.5 w-6 rounded-full bg-accent" />
+                  <span className="block h-0.5 w-4 rounded-full bg-primary ml-auto" />
+                  <span className="block h-0.5 w-6 rounded-full bg-accent" />
+                </div>
+              )}
+            </div>
+          </button>
+        </nav>
+      </header>
+
+      {/* Mobile Navigation Sidebar Drawer — Rendered at Top Level with z-[999] */}
       <AnimatePresence>
         {isOpen && (
-          <>
+          <div className="fixed inset-0 z-[999] lg:hidden">
             {/* Backdrop Overlay */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -164,7 +155,7 @@ export default function Navbar() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.25 }}
               onClick={() => setIsOpen(false)}
-              className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm lg:hidden"
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm"
               aria-hidden="true"
             />
 
@@ -174,11 +165,11 @@ export default function Navbar() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ duration: 0.35, ease: easeOutExpo }}
-              className="fixed top-0 right-0 bottom-0 z-50 flex h-full w-[86vw] max-w-sm flex-col justify-between bg-white shadow-2xl overflow-hidden lg:hidden"
+              className="fixed top-0 right-0 bottom-0 flex h-[100dvh] w-[86vw] max-w-sm flex-col justify-between bg-white shadow-2xl overflow-hidden"
               aria-label="Mobile navigation sidebar"
             >
               {/* Sidebar Header */}
-              <div className="flex items-center justify-between border-b border-border/60 px-5 py-4 bg-bg-muted/50">
+              <div className="flex items-center justify-between border-b border-border/60 px-5 py-4 bg-bg-muted/70">
                 <div className="flex items-center gap-2">
                   <span className="font-display text-xl font-black text-gradient">
                     PTIROS
@@ -190,7 +181,7 @@ export default function Navbar() {
 
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg bg-white border border-border/60 text-accent transition-colors hover:bg-neutral-100 hover:text-primary"
+                  className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg bg-white border border-border/60 text-accent transition-colors hover:bg-neutral-100 hover:text-primary active:scale-95"
                   aria-label="Close sidebar"
                 >
                   <X className="h-5 w-5" />
@@ -208,7 +199,7 @@ export default function Navbar() {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{
                         duration: 0.25,
-                        delay: i * 0.04,
+                        delay: i * 0.03,
                         ease: easeOutExpo,
                       }}
                     >
@@ -233,7 +224,7 @@ export default function Navbar() {
               </div>
 
               {/* Sidebar Footer with CTA */}
-              <div className="border-t border-border/60 p-5 bg-bg/80 backdrop-blur-sm">
+              <div className="border-t border-border/60 p-5 bg-bg/90 backdrop-blur-sm">
                 <Link
                   href="/career-test"
                   onClick={() => setIsOpen(false)}
@@ -249,9 +240,9 @@ export default function Navbar() {
                 </div>
               </div>
             </motion.aside>
-          </>
+          </div>
         )}
       </AnimatePresence>
-    </motion.header>
+    </>
   );
 }

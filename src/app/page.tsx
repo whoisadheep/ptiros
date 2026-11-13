@@ -14,24 +14,24 @@ import Footer from "@/components/Footer";
 
 export default function Home() {
   return (
-    <main className="bg-mesh min-h-screen overflow-x-hidden">
+    <main className="bg-mesh min-h-screen overflow-x-clip">
       <Navbar />
       
-      <section id="home">
+      <section id="home" className="scroll-mt-24">
         <Hero />
       </section>
 
       <Stats />
 
-      <section id="career-test">
+      <section id="career-test" className="scroll-mt-24">
         <CareerTestCTA />
       </section>
 
-      <section id="simulator">
+      <section id="simulator" className="scroll-mt-24">
         <CareerSimulator />
       </section>
 
-      <section id="about">
+      <section id="about" className="scroll-mt-24">
         <About />
       </section>
 
@@ -39,17 +39,17 @@ export default function Home() {
 
       <Expertise />
 
-      <section id="why-ptiros">
+      <section id="why-ptiros" className="scroll-mt-24">
         <WhyPtiros />
       </section>
 
       <Statistics />
 
-      <section id="roadmaps">
+      <section id="roadmaps" className="scroll-mt-24">
         <Roadmaps />
       </section>
 
-      <section id="contact">
+      <section id="contact" className="scroll-mt-24">
         <Contact />
       </section>
 

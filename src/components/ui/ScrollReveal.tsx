@@ -1,7 +1,7 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
-import { ReactNode } from "react";
+import { useReducedMotion } from "framer-motion";
+import { ReactNode, useEffect, useState, useRef } from "react";
 
 interface ScrollRevealProps {
   children: ReactNode;
@@ -17,12 +17,63 @@ export default function ScrollReveal({
   children,
   delay = 0,
   direction = "up",
-  distance = 28,
-  duration = 0.55,
+  distance = 18,
+  duration = 0.45,
   className = "",
   once = true,
 }: ScrollRevealProps) {
   const prefersReducedMotion = useReducedMotion();
+  const [isVisible, setIsVisible] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // If user prefers reduced motion, show immediately
+    if (prefersReducedMotion) {
+      setIsVisible(true);
+      return;
+    }
+
+    const el = ref.current;
+    if (!el) {
+      setIsVisible(true);
+      return;
+    }
+
+    // Modern IntersectionObserver with generous margins so it triggers BEFORE entering viewport
+    if (typeof window !== "undefined" && "IntersectionObserver" in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              setIsVisible(true);
+              if (once) {
+                observer.unobserve(entry.target);
+              }
+            }
+          });
+        },
+        {
+          // Pre-trigger 140px before scrolling into viewport, and 100px past top
+          rootMargin: "100px 0px 140px 0px",
+          threshold: 0.01,
+        }
+      );
+
+      observer.observe(el);
+
+      // Safety fallback: NEVER allow content to stay invisible on any mobile browser
+      const safetyTimer = setTimeout(() => {
+        setIsVisible(true);
+      }, 1500);
+
+      return () => {
+        observer.disconnect();
+        clearTimeout(safetyTimer);
+      };
+    } else {
+      setIsVisible(true);
+    }
+  }, [once, prefersReducedMotion]);
 
   if (prefersReducedMotion) {
     return <div className={className}>{children}</div>;
@@ -46,18 +97,19 @@ export default function ScrollReveal({
   const initialOffset = getInitialPosition();
 
   return (
-    <motion.div
-      initial={{ opacity: 0, ...initialOffset }}
-      whileInView={{ opacity: 1, x: 0, y: 0 }}
-      viewport={{ once, amount: 0.12, margin: "0px 0px -30px 0px" }}
-      transition={{
-        duration,
-        delay,
-        ease: [0.16, 1, 0.3, 1], // easeOutExpo
+    <div
+      ref={ref}
+      style={{
+        opacity: isVisible ? 1 : 0,
+        transform: isVisible
+          ? "translate3d(0, 0, 0)"
+          : `translate3d(${initialOffset.x}px, ${initialOffset.y}px, 0)`,
+        transition: `opacity ${duration}s cubic-bezier(0.16, 1, 0.3, 1) ${delay}s, transform ${duration}s cubic-bezier(0.16, 1, 0.3, 1) ${delay}s`,
+        willChange: isVisible ? "auto" : "opacity, transform",
       }}
-      className={className}
+      className={`scroll-reveal-item ${className}`}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }
