@@ -12,15 +12,13 @@ export default function SmoothScroll({
   const [enabled, setEnabled] = useState(false);
 
   useEffect(() => {
-    // Only enable Lenis smooth scrolling on desktop devices with a mouse wheel.
-    // Mobile devices (iOS Safari, Android Chrome) have hardware momentum scrolling.
-    const isTouch =
+    // Only disable Lenis on mobile/tablet devices that strictly rely on coarse touch.
+    // Laptops with touchscreens (which also have a trackpad/mouse) retain Lenis smooth scrolling.
+    const isCoarseTouchOnly =
       typeof window !== "undefined" &&
-      ("ontouchstart" in window ||
-        navigator.maxTouchPoints > 0 ||
-        window.matchMedia("(pointer: coarse)").matches);
+      window.matchMedia("(pointer: coarse) and (hover: none)").matches;
 
-    if (!isTouch) {
+    if (!isCoarseTouchOnly) {
       setEnabled(true);
     }
   }, []);

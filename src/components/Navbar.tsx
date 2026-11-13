@@ -223,8 +223,8 @@ export default function Navbar() {
                 })}
               </div>
 
-              {/* Sidebar Footer with CTA */}
-              <div className="border-t border-border/60 p-5 bg-bg/90 backdrop-blur-sm">
+              {/* Sidebar Footer with CTA (with iOS safe-area inset) */}
+              <div className="border-t border-border/60 p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] bg-bg/90 backdrop-blur-sm">
                 <Link
                   href="/career-test"
                   onClick={() => setIsOpen(false)}

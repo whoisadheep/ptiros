@@ -231,9 +231,12 @@ export function LawTactileWidget({ onSolved }: { onSolved?: () => void }) {
         </p>
 
         {/* Clause 14: Non-Compete */}
-        <div
+        <button
+          type="button"
+          role="button"
+          aria-pressed={redlines.clause14}
           onClick={() => toggleRedline("clause14")}
-          className={`group cursor-pointer rounded-2xl border p-4 transition-all duration-200 ${
+          className={`group w-full text-left cursor-pointer rounded-2xl border p-4 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500/40 ${
             redlines.clause14
               ? "bg-emerald-50/60 border-emerald-300 ring-1 ring-emerald-400"
               : "bg-rose-50/60 border-rose-300 hover:border-rose-400"
@@ -271,12 +274,15 @@ export function LawTactileWidget({ onSolved }: { onSolved?: () => void }) {
               </span>
             </div>
           )}
-        </div>
+        </button>
 
         {/* Clause 15: Indemnity Cap */}
-        <div
+        <button
+          type="button"
+          role="button"
+          aria-pressed={redlines.clause15}
           onClick={() => toggleRedline("clause15")}
-          className={`group cursor-pointer rounded-2xl border p-4 transition-all duration-200 ${
+          className={`group w-full text-left cursor-pointer rounded-2xl border p-4 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500/40 ${
             redlines.clause15
               ? "bg-emerald-50/60 border-emerald-300 ring-1 ring-emerald-400"
               : "bg-rose-50/60 border-rose-300 hover:border-rose-400"
@@ -313,7 +319,7 @@ export function LawTactileWidget({ onSolved }: { onSolved?: () => void }) {
               </span>
             </div>
           )}
-        </div>
+        </button>
 
         {/* Statutory Citation Card */}
         <div className="rounded-2xl bg-sky-50 border border-sky-200/70 p-3.5 text-xs text-sky-950 flex items-start gap-2.5">

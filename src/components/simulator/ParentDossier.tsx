@@ -336,7 +336,7 @@ export default function ParentDossier({
 
   const dossier = PARENT_DOSSIERS[trackId] || PARENT_DOSSIERS["ai-robotics"];
 
-  const handleCopyWhatsAppSummary = () => {
+  const handleCopyWhatsAppSummary = async () => {
     const text = `📋 *PTIROS Career Simulation Dossier for ${studentName}*\n\n` +
       `🎯 *Track Tested:* ${trackTitle} (${categoryLabel})\n` +
       `⭐ *Simulation Fit Score:* ${fitPercent}% (${score}/${totalMissions} workplace decisions correct)\n` +
@@ -347,9 +347,23 @@ export default function ParentDossier({
       `⚠️ *Key Tip to Avoid Pitfalls:* ${dossier.streamStrategy.criticalPitfallToAvoid}\n\n` +
       `Verified by PTIROS Virtual Career Simulator: https://ptiros.in/simulator?track=${trackId}`;
 
-    navigator.clipboard.writeText(text);
-    setCopiedSummary(true);
-    setTimeout(() => setCopiedSummary(false), 2500);
+    try {
+      if (typeof navigator !== "undefined" && navigator.share) {
+        await navigator.share({
+          title: `PTIROS Career Dossier for ${studentName}`,
+          text,
+        });
+      } else if (typeof navigator !== "undefined" && navigator.clipboard) {
+        await navigator.clipboard.writeText(text);
+        setCopiedSummary(true);
+        setTimeout(() => setCopiedSummary(false), 2500);
+      } else {
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, "_blank");
+      }
+    } catch {
+      // In-app webview fallback
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, "_blank");
+    }
   };
 
   return (

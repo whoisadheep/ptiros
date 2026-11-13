@@ -885,6 +885,43 @@ function SimulatorContent() {
     }
   }, [trackParam]);
 
+  // Restore session state on track launch if available
+  useEffect(() => {
+    if (activeTrack && typeof window !== "undefined") {
+      try {
+        const saved = sessionStorage.getItem(`ptiros_sim_${activeTrack.id}`);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (typeof parsed.currentMissionIdx === "number" && !isCompleted) {
+            setCurrentMissionIdx(parsed.currentMissionIdx);
+            setScore(parsed.score || 0);
+            setResiliencePoints(parsed.resiliencePoints || 0);
+          }
+        }
+      } catch {
+        // Ignore session storage errors
+      }
+    }
+  }, [activeTrack]);
+
+  // Persist session state on change to protect against mobile background tab reloads
+  useEffect(() => {
+    if (activeTrack && typeof window !== "undefined") {
+      try {
+        if (!isCompleted) {
+          sessionStorage.setItem(
+            `ptiros_sim_${activeTrack.id}`,
+            JSON.stringify({ currentMissionIdx, score, resiliencePoints })
+          );
+        } else {
+          sessionStorage.removeItem(`ptiros_sim_${activeTrack.id}`);
+        }
+      } catch {
+        // Ignore session storage errors
+      }
+    }
+  }, [activeTrack, currentMissionIdx, score, resiliencePoints, isCompleted]);
+
   const resetSimulationState = () => {
     setCurrentMissionIdx(0);
     setSelectedOptionIdx(null);
@@ -894,6 +931,11 @@ function SimulatorContent() {
     setIsCompleted(false);
     setShowCertificateModal(false);
     setCompletionTab("student");
+    if (activeTrack && typeof window !== "undefined") {
+      try {
+        sessionStorage.removeItem(`ptiros_sim_${activeTrack.id}`);
+      } catch {}
+    }
   };
 
   const handleLaunchTrack = (track: CareerTrack) => {

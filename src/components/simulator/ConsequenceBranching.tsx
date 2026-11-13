@@ -21,13 +21,27 @@ import {
   Check,
 } from "lucide-react";
 
-/* ─── Sound Dispatch Utility ─────────────────────── */
+/* ─── Sound Dispatch Utility (Shared Singleton) ───── */
+let sharedAudioCtx: AudioContext | null = null;
+function getSharedAudioContext(): AudioContext | null {
+  if (typeof window === "undefined") return null;
+  const AudioCtxClass =
+    window.AudioContext ||
+    (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+  if (!AudioCtxClass) return null;
+  if (!sharedAudioCtx || sharedAudioCtx.state === "closed") {
+    sharedAudioCtx = new AudioCtxClass();
+  }
+  if (sharedAudioCtx.state === "suspended") {
+    sharedAudioCtx.resume().catch(() => {});
+  }
+  return sharedAudioCtx;
+}
+
 function playBranchChime(type: "success" | "crisis" | "recovery") {
-  if (typeof window === "undefined") return;
   try {
-    const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-    if (!AudioContextClass) return;
-    const ctx = new AudioContextClass();
+    const ctx = getSharedAudioContext();
+    if (!ctx) return;
 
     if (type === "success") {
       const osc = ctx.createOscillator();
@@ -67,7 +81,7 @@ function playBranchChime(type: "success" | "crisis" | "recovery") {
       osc.stop(ctx.currentTime + 0.3);
     }
   } catch {
-    // Ignore audio autoplay restrictions
+    // Ignore audio restrictions
   }
 }
 
