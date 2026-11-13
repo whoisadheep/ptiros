@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { useUserProfile } from "@/context/UserProfileContext";
 import {
   ArrowLeft,
   ArrowRight,
@@ -111,7 +112,7 @@ export default function CareerTestPage() {
   const [formData, setFormData] = useState<StudentForm>(initialForm);
   const [currentQ, setCurrentQ] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
-  const [showPaidModal, setShowPaidModal] = useState(false);
+  const { openDossierModal } = useUserProfile();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -531,10 +532,10 @@ export default function CareerTestPage() {
                     </p>
                   </div>
                   <button
-                    onClick={() => setShowPaidModal(true)}
+                    onClick={() => openDossierModal()}
                     className="cursor-pointer whitespace-nowrap px-6 py-3.5 rounded-xl bg-white text-primary font-bold text-sm shadow-xl hover:bg-neutral-100 transition-all flex items-center gap-2"
                   >
-                    <Download className="size-4" /> Download Full Dossier
+                    <Download className="size-4" /> Preview Full 10-Page Dossier
                   </button>
                 </div>
               </div>
@@ -542,60 +543,6 @@ export default function CareerTestPage() {
           )}
         </AnimatePresence>
       </div>
-
-      {/* Modal for Paid 10+ page Dossier */}
-      {showPaidModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="bg-white max-w-lg w-full rounded-3xl p-8 shadow-2xl border border-border"
-          >
-            <div className="text-center mb-6">
-              <div className="size-14 rounded-2xl bg-primary/10 text-primary mx-auto flex items-center justify-center mb-3">
-                <Sparkles className="size-7" />
-              </div>
-              <h3 className="text-2xl font-display font-bold text-accent">PTIROS 360° Full Dossier</h3>
-              <p className="text-xs sm:text-sm text-text-muted mt-1">
-                Comprehensive 10+ Page In-Depth Analysis with verified Career Roadmap
-              </p>
-            </div>
-
-            <div className="space-y-3 mb-6 text-xs sm:text-sm">
-              <div className="p-3 rounded-xl bg-bg-muted flex items-center gap-2">
-                <CheckCircle2 className="size-4 text-success" /> 10+ Page Detailed Psychometric & Cognitive Breakdown
-              </div>
-              <div className="p-3 rounded-xl bg-bg-muted flex items-center gap-2">
-                <CheckCircle2 className="size-4 text-success" /> Standard-by-Standard Course Mapping (6th-12th)
-              </div>
-              <div className="p-3 rounded-xl bg-bg-muted flex items-center gap-2">
-                <CheckCircle2 className="size-4 text-success" /> 1-on-1 Strategy Session with Senior PTIROS Mentor
-              </div>
-              <div className="p-3 rounded-xl bg-bg-muted flex items-center gap-2">
-                <CheckCircle2 className="size-4 text-success" /> Government-Verified Certificate Track Recommendations
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowPaidModal(false)}
-                className="flex-1 py-3 rounded-xl border border-border text-sm font-semibold text-text-muted hover:bg-neutral-50 cursor-pointer"
-              >
-                Close
-              </button>
-              <button
-                onClick={() => {
-                  alert("Thank you! Generating your full 360° PDF dossier now...");
-                  setShowPaidModal(false);
-                }}
-                className="flex-1 py-3 rounded-xl bg-primary text-white text-sm font-bold shadow-lg shadow-primary/20 hover:bg-primary-dark cursor-pointer"
-              >
-                Unlock for ₹499
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      )}
     </main>
   );
 }

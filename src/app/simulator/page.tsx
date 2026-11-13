@@ -47,6 +47,7 @@ import {
 import WorkplaceFeed from "@/components/simulator/WorkplaceFeed";
 import ConsequenceBranching from "@/components/simulator/ConsequenceBranching";
 import ParentDossier from "@/components/simulator/ParentDossier";
+import { useUserProfile } from "@/context/UserProfileContext";
 
 const easeOutExpo = [0.16, 1, 0.3, 1] as const;
 
@@ -859,6 +860,8 @@ function SimulatorContent() {
   const searchParams = useSearchParams();
   const trackParam = searchParams.get("track");
 
+  const { profile, openIntakeModal, openBookingModal, openDossierModal } = useUserProfile();
+
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [activeTrack, setActiveTrack] = useState<CareerTrack | null>(null);
@@ -873,6 +876,13 @@ function SimulatorContent() {
   const [showCertificateModal, setShowCertificateModal] = useState<boolean>(false);
   const [studentName, setStudentName] = useState<string>("PTIROS Explorer");
   const [completionTab, setCompletionTab] = useState<"student" | "parent">("student");
+
+  // Sync profile name
+  useEffect(() => {
+    if (profile?.studentName) {
+      setStudentName(profile.studentName);
+    }
+  }, [profile]);
 
   // Sync trackParam with activeTrack on mount
   useEffect(() => {
@@ -1517,6 +1527,8 @@ function SimulatorContent() {
                   totalMissions={activeTrack.missions.length}
                   resiliencePoints={resiliencePoints}
                   studentName={studentName}
+                  parentName={profile?.parentName}
+                  parentDream={profile?.parentDream}
                 />
               ) : (
                 /* ─── TAB B: STUDENT PERFORMANCE REPORT ─── */
@@ -1666,6 +1678,14 @@ function SimulatorContent() {
                     >
                       <Award className="h-4 w-4 text-orange-500" />
                       <span>View Verified Credential</span>
+                    </button>
+
+                    <button
+                      onClick={() => openBookingModal(activeTrack.id)}
+                      className="flex w-full sm:w-auto cursor-pointer items-center justify-center gap-2 rounded-full border border-amber-400 bg-amber-50 px-6 py-3 text-xs font-bold text-amber-900 shadow-sm transition-all hover:bg-amber-100 active:scale-95"
+                    >
+                      <span>🏛️</span>
+                      <span>Book Mentor Call</span>
                     </button>
 
                     <button

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useUserProfile } from "@/context/UserProfileContext";
 import {
   Menu,
   X,
@@ -32,6 +33,7 @@ const navLinks = [
 const easeOutExpo = [0.16, 1, 0.3, 1] as const;
 
 export default function Navbar() {
+  const { profile, openIntakeModal, openBookingModal, openDossierModal } = useUserProfile();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -112,8 +114,31 @@ export default function Navbar() {
             ))}
           </ul>
 
-          {/* Desktop CTA */}
-          <div className="hidden lg:block">
+          {/* Desktop CTA & Profile */}
+          <div className="hidden lg:flex items-center gap-3">
+            {profile?.studentName ? (
+              <button
+                type="button"
+                onClick={openIntakeModal}
+                className="flex items-center gap-1.5 rounded-full border border-orange-200 bg-orange-50/80 px-3.5 py-1.5 text-xs font-semibold text-orange-950 hover:bg-orange-100 transition shadow-xs cursor-pointer"
+                title="Edit Student & Parent Profile"
+              >
+                <span>🎓</span>
+                <span className="max-w-[110px] truncate">{profile.studentName.split(" ")[0]}</span>
+                <span className="text-[10px] text-orange-600 bg-orange-100 px-1.5 py-0.2 rounded-full">
+                  {profile.grade}
+                </span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={openIntakeModal}
+                className="text-xs font-semibold text-accent/80 hover:text-primary transition px-2.5 py-1.5 rounded-lg hover:bg-black/5 cursor-pointer"
+              >
+                My Profile
+              </button>
+            )}
+
             <Link
               href="/career-test"
               className="cursor-pointer rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-primary/25 transition-all hover:bg-primary-dark hover:shadow-xl hover:shadow-primary/30 active:scale-95"
@@ -190,6 +215,62 @@ export default function Navbar() {
 
               {/* Scrollable Navigation Items */}
               <div className="flex-1 overflow-y-auto px-4 py-4 space-y-1.5 overscroll-contain">
+                {/* Profile Banner */}
+                <div className="mb-3 rounded-2xl border border-orange-200/90 bg-gradient-to-br from-orange-50 to-amber-50/50 p-3.5 text-xs text-orange-950 shadow-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold flex items-center gap-1.5">
+                      <span>🎓</span> {profile?.studentName ? profile.studentName : "Student Profile"}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsOpen(false);
+                        openIntakeModal();
+                      }}
+                      className="text-[11px] font-bold text-orange-700 bg-orange-100 hover:bg-orange-200 px-2.5 py-1 rounded-full cursor-pointer transition"
+                    >
+                      {profile?.studentName ? "Edit" : "Set Up"}
+                    </button>
+                  </div>
+                  {profile ? (
+                    <p className="mt-1 text-[11px] text-stone-600">
+                      {profile.grade} • {profile.city} • Parent: {profile.parentName}
+                    </p>
+                  ) : (
+                    <p className="mt-1 text-[11px] text-stone-500">
+                      Personalize your simulations, credentials, and parent reports.
+                    </p>
+                  )}
+                </div>
+
+                {/* Quick Feature Triggers (From Handwritten Blueprint) */}
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsOpen(false);
+                      openBookingModal();
+                    }}
+                    className="flex flex-col items-start rounded-xl border border-border/70 bg-bg-muted/50 p-2.5 text-left hover:border-primary/40 hover:bg-primary/5 transition cursor-pointer"
+                  >
+                    <span className="text-base mb-1">🏛️</span>
+                    <span className="text-xs font-bold text-accent">Book Mentor</span>
+                    <span className="text-[10px] text-text-muted">1-on-1 Strategy Call</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsOpen(false);
+                      openDossierModal();
+                    }}
+                    className="flex flex-col items-start rounded-xl border border-border/70 bg-bg-muted/50 p-2.5 text-left hover:border-primary/40 hover:bg-primary/5 transition cursor-pointer"
+                  >
+                    <span className="text-base mb-1">📋</span>
+                    <span className="text-xs font-bold text-accent">10-Pg Dossier</span>
+                    <span className="text-[10px] text-text-muted">Sample Preview</span>
+                  </button>
+                </div>
                 {navLinks.map((link, i) => {
                   const Icon = link.icon;
                   return (

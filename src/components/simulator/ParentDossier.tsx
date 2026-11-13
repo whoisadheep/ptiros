@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useUserProfile } from "@/context/UserProfileContext";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Users,
@@ -316,6 +317,8 @@ interface ParentDossierProps {
   totalMissions: number;
   resiliencePoints: number;
   studentName?: string;
+  parentName?: string;
+  parentDream?: string;
   onClose?: () => void;
 }
 
@@ -328,16 +331,24 @@ export default function ParentDossier({
   score,
   totalMissions,
   resiliencePoints,
-  studentName = "PTIROS Student",
+  studentName,
+  parentName,
+  parentDream,
   onClose,
 }: ParentDossierProps) {
+  const { profile, openBookingModal, openDossierModal } = useUserProfile();
   const [activeTab, setActiveTab] = useState<"dossier" | "institutions" | "conversation">("dossier");
   const [copiedSummary, setCopiedSummary] = useState(false);
+
+  const effectiveStudentName = studentName || profile?.studentName || "PTIROS Student";
+  const effectiveParentName = parentName || profile?.parentName;
+  const effectiveParentDream = parentDream || profile?.parentDream;
 
   const dossier = PARENT_DOSSIERS[trackId] || PARENT_DOSSIERS["ai-robotics"];
 
   const handleCopyWhatsAppSummary = async () => {
-    const text = `📋 *PTIROS Career Simulation Dossier for ${studentName}*\n\n` +
+    const text = `📋 *PTIROS Career Simulation Dossier for ${effectiveStudentName}*\n` +
+      (effectiveParentName ? `👨‍👩‍👦 *Family Briefing:* Prepared for ${effectiveParentName} (${effectiveParentDream || "Career Exploration"})\n\n` : `\n`) +
       `🎯 *Track Tested:* ${trackTitle} (${categoryLabel})\n` +
       `⭐ *Simulation Fit Score:* ${fitPercent}% (${score}/${totalMissions} workplace decisions correct)\n` +
       (resiliencePoints > 0 ? `🔥 *Crisis Resilience Mastery:* +${resiliencePoints} Pts\n\n` : `\n`) +
@@ -350,7 +361,7 @@ export default function ParentDossier({
     try {
       if (typeof navigator !== "undefined" && navigator.share) {
         await navigator.share({
-          title: `PTIROS Career Dossier for ${studentName}`,
+          title: `PTIROS Career Dossier for ${effectiveStudentName}`,
           text,
         });
       } else if (typeof navigator !== "undefined" && navigator.clipboard) {
@@ -387,7 +398,8 @@ export default function ParentDossier({
             Family Alignment Report: {trackTitle}
           </h3>
           <p className="mt-1 text-xs sm:text-sm text-gray-500">
-            Prepared for <span className="font-bold text-gray-800">{studentName}</span> & Family • Grounded in Indian Education Realities & NEP 2020
+            Prepared for <span className="font-bold text-gray-800">{effectiveStudentName}</span>
+            {effectiveParentName && <span> (Parent: <span className="font-medium text-gray-700">{effectiveParentName}</span>)</span>} • Grounded in Indian Education Realities & NEP 2020
           </p>
         </div>
 
@@ -658,6 +670,40 @@ export default function ParentDossier({
           </div>
         </div>
       )}
+
+      {/* ─── Conversion & Mentorship Action Block (Client Blueprint WA0019) ─── */}
+      <div className="mt-8 rounded-3xl border border-orange-200 bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100/50 p-6 shadow-sm print:hidden">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <span className="inline-block rounded-full bg-orange-200/80 px-2.5 py-0.5 text-[10px] font-bold text-orange-900 uppercase tracking-wider mb-1">
+              Next Step for {effectiveStudentName}
+            </span>
+            <h4 className="text-base font-bold text-stone-900">
+              Turn Simulation Insights into an Actionable Class 11-12 Strategy
+            </h4>
+            <p className="text-xs text-stone-600 mt-0.5 max-w-xl">
+              Discuss your child’s simulation fit score and college trajectory with a verified senior mentor, or unlock the 10-page psychometric breakdown.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap sm:flex-nowrap gap-2.5 w-full sm:w-auto shrink-0">
+            <button
+              type="button"
+              onClick={() => openDossierModal()}
+              className="flex-1 sm:flex-none rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-xs font-semibold text-stone-800 shadow-xs hover:bg-stone-50 active:scale-95 transition cursor-pointer"
+            >
+              Preview 10-Page Dossier
+            </button>
+            <button
+              type="button"
+              onClick={() => openBookingModal(trackId)}
+              className="flex-1 sm:flex-none rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 px-5 py-2.5 text-xs font-bold text-white shadow-md hover:brightness-105 active:scale-95 transition cursor-pointer"
+            >
+              Book 1-on-1 Mentor (20 Min) →
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* ─── Footer Sign-off ───────────────────────── */}
       <div className="mt-8 border-t border-gray-100 pt-5 flex flex-col sm:flex-row items-center justify-between text-[11px] text-gray-400 gap-3">

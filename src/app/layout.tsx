@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Outfit, Work_Sans } from "next/font/google";
 import "./globals.css";
 import SmoothScroll from "@/components/SmoothScroll";
+import AppProviders from "@/components/AppProviders";
 
 const outfit = Outfit({
   variable: "--font-display",
@@ -46,7 +47,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${outfit.variable} ${workSans.variable}`}>
       <body className="antialiased">
-        <SmoothScroll>{children}</SmoothScroll>
+        <AppProviders>
+          <SmoothScroll>{children}</SmoothScroll>
+        </AppProviders>
       </body>
     </html>
   );
