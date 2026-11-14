@@ -6,8 +6,8 @@ async function main() {
   const browser = await puppeteer.launch({
     executablePath: "/home/whoisadheep/.local/bin/google-chrome",
     headless: "new",
-    args: ["--no-sandbox", "--disable-gpu", "--user-data-dir=/home/whoisadheep/Documents/Mentorship/.chrome_ud_portal"],
-    defaultViewport: { width: 1366, height: 850 },
+    args: ["--no-sandbox", "--disable-gpu", "--user-data-dir=/tmp/.chrome_ud_portal_v2"],
+    defaultViewport: { width: 1400, height: 900 },
   });
 
   const page = await browser.newPage();
@@ -40,54 +40,63 @@ async function main() {
     await page.waitForNavigation({ waitUntil: "networkidle0" }).catch(() => {});
     await new Promise((r) => setTimeout(r, 2000));
   }
-  await save("student_dashboard_aarav_overview.png");
+  await save("student_dashboard_aarav_cockpit.png");
 
-  // 3. Click Planner tab
-  console.log("Navigating to My Planner...");
+  // 3. Click Kaizen Roadmap tab
+  console.log("Navigating to Kaizen Roadmap...");
   const plannerTab = await page.evaluateHandle(() => {
-    const btns = Array.from(document.querySelectorAll("aside nav button, main button"));
-    return btns.find((b) => b.textContent && b.textContent.includes("My Planner"));
+    const btns = Array.from(document.querySelectorAll("nav button"));
+    return btns.find((b) => b.textContent && b.textContent.includes("Kaizen Roadmap"));
   });
   if (plannerTab) {
     await plannerTab.click();
     await new Promise((r) => setTimeout(r, 1200));
-    await save("student_dashboard_planner.png");
+    await save("student_dashboard_kaizen_roadmap.png");
   }
 
-  // 4. Click Diary tab
-  console.log("Navigating to My Diary...");
+  // 4. Click Hansei Diary tab
+  console.log("Navigating to Hansei Diary...");
   const diaryTab = await page.evaluateHandle(() => {
-    const btns = Array.from(document.querySelectorAll("aside nav button"));
-    return btns.find((b) => b.textContent && b.textContent.includes("My Diary"));
+    const btns = Array.from(document.querySelectorAll("nav button"));
+    return btns.find((b) => b.textContent && b.textContent.includes("Hansei Diary"));
   });
   if (diaryTab) {
     await diaryTab.click();
     await new Promise((r) => setTimeout(r, 1200));
-    await save("student_dashboard_diary.png");
+    await save("student_dashboard_hansei_diary.png");
   }
 
-  // 5. Click Career Test Analysis tab
-  console.log("Navigating to Career Test Analysis...");
-  const analysisTab = await page.evaluateHandle(() => {
-    const btns = Array.from(document.querySelectorAll("aside nav button"));
-    return btns.find((b) => b.textContent && b.textContent.includes("Career Test Analysis"));
+  // 5. Click NEP 2020 Credentials tab
+  console.log("Navigating to NEP Credentials...");
+  const credTab = await page.evaluateHandle(() => {
+    const btns = Array.from(document.querySelectorAll("nav button"));
+    return btns.find((b) => b.textContent && b.textContent.includes("NEP 2020 Credentials"));
   });
-  if (analysisTab) {
-    await analysisTab.click();
+  if (credTab) {
+    await credTab.click();
     await new Promise((r) => setTimeout(r, 1200));
-    await save("student_dashboard_analysis.png");
+    await save("student_dashboard_nep_credentials.png");
   }
 
   // 6. Switch to Meera (Corporate Law)
   console.log("Switching to Meera...");
   const meeraSwitch = await page.evaluateHandle(() => {
-    const btns = Array.from(document.querySelectorAll("main button"));
-    return btns.find((b) => b.textContent && b.textContent.includes("Meera (Law)"));
+    const btns = Array.from(document.querySelectorAll("header button"));
+    return btns.find((b) => b.textContent && b.textContent.includes("Meera"));
   });
   if (meeraSwitch) {
     await meeraSwitch.click();
     await new Promise((r) => setTimeout(r, 2500));
-    await save("student_dashboard_meera.png");
+    // Click Cockpit tab for Meera
+    const cockpitTab = await page.evaluateHandle(() => {
+      const btns = Array.from(document.querySelectorAll("nav button"));
+      return btns.find((b) => b.textContent && b.textContent.includes("Trajectory Cockpit"));
+    });
+    if (cockpitTab) {
+      await cockpitTab.click();
+      await new Promise((r) => setTimeout(r, 1200));
+    }
+    await save("student_dashboard_meera_cockpit.png");
   }
 
   await browser.close();
