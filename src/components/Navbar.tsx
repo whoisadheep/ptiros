@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUserProfile } from "@/context/UserProfileContext";
+import { useStudentAuth } from "@/context/StudentAuthContext";
 import {
   Menu,
   X,
@@ -34,6 +35,7 @@ const easeOutExpo = [0.16, 1, 0.3, 1] as const;
 
 export default function Navbar() {
   const { profile, openIntakeModal, openBookingModal, openDossierModal } = useUserProfile();
+  const { user: studentUser, openAuthModal: openStudentAuthModal } = useStudentAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -115,8 +117,32 @@ export default function Navbar() {
           </ul>
 
           {/* Desktop CTA & Profile */}
-          <div className="hidden lg:flex items-center gap-3">
-            {profile?.studentName ? (
+          <div className="hidden lg:flex items-center gap-2.5">
+            {studentUser ? (
+              <Link
+                href="/dashboard"
+                className="flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50/90 px-3 py-1 text-xs font-bold text-orange-950 hover:bg-orange-100 transition shadow-xs cursor-pointer"
+                title="Open Student Dashboard"
+              >
+                <span className="size-6 rounded-full bg-gradient-to-tr from-primary to-secondary text-white text-[10px] font-bold flex items-center justify-center">
+                  {studentUser.avatarInitials}
+                </span>
+                <span className="max-w-[85px] truncate">{studentUser.name.split(" ")[0]}</span>
+                <span className="text-[10px] text-orange-700 bg-orange-200/60 px-1.5 py-0.5 rounded-full">
+                  {studentUser.grade}
+                </span>
+              </Link>
+            ) : (
+              <button
+                type="button"
+                onClick={() => openStudentAuthModal("login")}
+                className="text-xs font-bold text-accent/90 hover:text-primary transition px-3.5 py-1.5 rounded-full border border-border/70 hover:border-primary/40 bg-white/80 cursor-pointer shadow-xs"
+              >
+                Student Login
+              </button>
+            )}
+
+            {profile?.studentName && !studentUser && (
               <button
                 type="button"
                 onClick={openIntakeModal}
@@ -129,19 +155,11 @@ export default function Navbar() {
                   {profile.grade}
                 </span>
               </button>
-            ) : (
-              <button
-                type="button"
-                onClick={openIntakeModal}
-                className="text-xs font-semibold text-accent/80 hover:text-primary transition px-2.5 py-1.5 rounded-lg hover:bg-black/5 cursor-pointer"
-              >
-                My Profile
-              </button>
             )}
 
             <Link
               href="/career-test"
-              className="cursor-pointer rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-primary/25 transition-all hover:bg-primary-dark hover:shadow-xl hover:shadow-primary/30 active:scale-95"
+              className="cursor-pointer rounded-full bg-primary px-5 py-2 text-xs font-bold text-white shadow-lg shadow-primary/25 transition-all hover:bg-primary-dark hover:shadow-xl hover:shadow-primary/30 active:scale-95"
             >
               Give Career Test
             </Link>
@@ -215,30 +233,40 @@ export default function Navbar() {
 
               {/* Scrollable Navigation Items */}
               <div className="flex-1 overflow-y-auto px-4 py-4 space-y-1.5 overscroll-contain">
-                {/* Profile Banner */}
+                {/* Student Session Banner */}
                 <div className="mb-3 rounded-2xl border border-orange-200/90 bg-gradient-to-br from-orange-50 to-amber-50/50 p-3.5 text-xs text-orange-950 shadow-xs">
                   <div className="flex items-center justify-between">
                     <span className="font-bold flex items-center gap-1.5">
-                      <span>🎓</span> {profile?.studentName ? profile.studentName : "Student Profile"}
+                      <span>🎓</span> {studentUser ? studentUser.name : (profile?.studentName ? profile.studentName : "Student Portal")}
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsOpen(false);
-                        openIntakeModal();
-                      }}
-                      className="text-[11px] font-bold text-orange-700 bg-orange-100 hover:bg-orange-200 px-2.5 py-1 rounded-full cursor-pointer transition"
-                    >
-                      {profile?.studentName ? "Edit" : "Set Up"}
-                    </button>
+                    {studentUser ? (
+                      <Link
+                        href="/dashboard"
+                        onClick={() => setIsOpen(false)}
+                        className="text-[11px] font-bold text-white bg-primary hover:bg-primary-dark px-3 py-1 rounded-full cursor-pointer transition shadow-xs"
+                      >
+                        Dashboard →
+                      </Link>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsOpen(false);
+                          openStudentAuthModal("login");
+                        }}
+                        className="text-[11px] font-bold text-orange-700 bg-orange-100 hover:bg-orange-200 px-3 py-1 rounded-full cursor-pointer transition"
+                      >
+                        Login / Demo
+                      </button>
+                    )}
                   </div>
-                  {profile ? (
+                  {studentUser ? (
                     <p className="mt-1 text-[11px] text-stone-600">
-                      {profile.grade} • {profile.city} • Parent: {profile.parentName}
+                      {studentUser.grade} • {studentUser.city} • {studentUser.curriculum}
                     </p>
                   ) : (
                     <p className="mt-1 text-[11px] text-stone-500">
-                      Personalize your simulations, credentials, and parent reports.
+                      Sign in or switch instant demo profiles (Aarav, Meera, Vihaan).
                     </p>
                   )}
                 </div>

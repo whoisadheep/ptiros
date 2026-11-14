@@ -97,6 +97,60 @@ export interface DatabaseStore {
   };
 }
 
+export interface StudentUser {
+  id: string;
+  name: string;
+  email: string;
+  grade: string;
+  schoolName?: string;
+  city: string;
+  curriculum: string;
+  parentName?: string;
+  parentPhone?: string;
+  parentDream?: string;
+  avatarInitials: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface StudentDiaryEntry {
+  id: string;
+  userId: string;
+  date: string;
+  title: string;
+  content: string;
+  category: string;
+  createdAt: string;
+}
+
+export interface StudentPlannerGoal {
+  id: string;
+  userId: string;
+  title: string;
+  timeView: "daily" | "monthly" | "yearly";
+  completed: boolean;
+  deadline?: string;
+  createdAt: string;
+}
+
+export interface StudentSimResult {
+  id: string;
+  userId: string;
+  trackId: string;
+  trackTitle: string;
+  fitScore: number;
+  resiliencePoints: number;
+  badgeEarned?: string;
+  completedAt: string;
+}
+
+export interface StudentPortalData {
+  user: StudentUser;
+  diary: StudentDiaryEntry[];
+  goals: StudentPlannerGoal[];
+  simulations: StudentSimResult[];
+}
+
 export type ApiResponse<T> =
   | { success: true; data: T; total?: number }
   | { success: false; error: string; details?: Record<string, string> };
