@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useUserProfile } from "@/context/UserProfileContext";
+import { useScrollLock } from "@/hooks/useScrollLock";
 import { StudentGrade, SchoolCurriculum, ParentDreamOption } from "@/types/profile";
 import { validateIndianMobile } from "@/lib/storage";
 import { GraduationCap, Users, X, Info, Check } from "lucide-react";
@@ -71,7 +72,10 @@ export default function StudentParentIntakeModal() {
     }
   }, [profile, isIntakeModalOpen]);
 
-  // Accessibility: Escape key and body scroll lock
+  // Universal scroll lock & Lenis pause
+  useScrollLock(isIntakeModalOpen);
+
+  // Accessibility: Escape key
   useEffect(() => {
     if (!isIntakeModalOpen) return;
 
@@ -79,14 +83,8 @@ export default function StudentParentIntakeModal() {
       if (e.key === "Escape") closeIntakeModal();
     };
 
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
     window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.body.style.overflow = originalOverflow;
-      window.removeEventListener("keydown", handleKeyDown);
-    };
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isIntakeModalOpen, closeIntakeModal]);
 
   if (!isIntakeModalOpen) return null;
@@ -127,9 +125,10 @@ export default function StudentParentIntakeModal() {
       role="dialog"
       aria-modal="true"
       aria-labelledby="intake-title"
-      className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-stone-900/70 backdrop-blur-md animate-in fade-in duration-200"
+      data-lenis-prevent
+      className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-stone-900/70 backdrop-blur-md animate-in fade-in duration-200 overscroll-contain"
     >
-      <div className="relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl bg-white p-6 sm:p-8 shadow-2xl border border-stone-200 text-stone-900">
+      <div data-lenis-prevent className="relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl bg-white p-6 sm:p-8 shadow-2xl border border-stone-200 text-stone-900 overscroll-contain">
         {/* Header Bar */}
         <div className="flex items-center justify-between border-b border-stone-100 pb-4">
           <div className="flex items-center gap-3">

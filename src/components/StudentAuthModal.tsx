@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStudentAuth } from "@/context/StudentAuthContext";
+import { useScrollLock } from "@/hooks/useScrollLock";
 import {
   X,
   Sparkles,
@@ -48,6 +49,9 @@ export default function StudentAuthModal() {
 
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Lock background scroll and Lenis while modal is open
+  useScrollLock(isAuthModalOpen);
 
   if (!isAuthModalOpen) return null;
 
@@ -124,7 +128,10 @@ export default function StudentAuthModal() {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
           transition={{ duration: 0.2 }}
-          className="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl border border-border/80 overflow-hidden z-10 flex flex-col max-h-[92vh]"
+          role="dialog"
+          aria-modal="true"
+          data-lenis-prevent
+          className="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl border border-border/80 overflow-hidden z-10 flex flex-col max-h-[92vh] overscroll-contain"
         >
           {/* Header */}
           <div className="relative px-6 pt-6 pb-4 bg-gradient-to-r from-orange-50 via-amber-50 to-orange-100/50 border-b border-border/60">
@@ -234,7 +241,7 @@ export default function StudentAuthModal() {
           </div>
 
           {/* Content Body */}
-          <div className="p-6 overflow-y-auto flex-1">
+          <div data-lenis-prevent className="p-6 overflow-y-auto flex-1 overscroll-contain">
             {errorMsg && (
               <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
                 <AlertCircle className="size-4 shrink-0 text-red-500" />

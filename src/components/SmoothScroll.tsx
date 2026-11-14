@@ -37,6 +37,16 @@ export default function SmoothScroll({
         wheelMultiplier: 1.05,
         syncTouch: false,
         easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+        prevent: (node) => {
+          if (!(node instanceof HTMLElement)) return false;
+          return Boolean(
+            node.hasAttribute("data-lenis-prevent") ||
+            node.closest("[data-lenis-prevent]") ||
+            node.closest('[role="dialog"]') ||
+            node.closest('[aria-modal="true"]') ||
+            node.closest(".lenis-prevent")
+          );
+        },
       }}
     >
       {children}

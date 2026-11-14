@@ -47,6 +47,7 @@ import {
   X,
 } from "lucide-react";
 import { Blobatar } from "@blobatar/react";
+import { useScrollLock } from "@/hooks/useScrollLock";
 
 type DashboardTab = "cockpit" | "planner" | "diary" | "credentials" | "analysis" | "mentorship";
 
@@ -86,6 +87,9 @@ export default function DashboardPage() {
   const [newGoalTimeView, setNewGoalTimeView] = useState<"daily" | "monthly" | "yearly">("daily");
   const [newGoalDeadline, setNewGoalDeadline] = useState("");
   const [isSubmittingGoal, setIsSubmittingGoal] = useState(false);
+
+  // Universal scroll lock for milestone modal
+  useScrollLock(showGoalModal);
 
   // Active student profile fallback
   const student = user || {
@@ -1183,8 +1187,13 @@ export default function DashboardPage() {
       {/* 4. MODAL: ADD MILESTONE DRAWER */}
       {/* ========================================================= */}
       {showGoalModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-stone-200 space-y-4">
+        <div
+          role="dialog"
+          aria-modal="true"
+          data-lenis-prevent
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overscroll-contain"
+        >
+          <div data-lenis-prevent className="w-full max-w-md max-h-[90vh] overflow-y-auto bg-white rounded-3xl p-6 shadow-2xl border border-stone-200 space-y-4 overscroll-contain">
             <div className="flex items-center justify-between border-b border-stone-100 pb-3">
               <h3 className="font-display font-bold text-lg text-stone-900">
                 Add Kaizen Milestone

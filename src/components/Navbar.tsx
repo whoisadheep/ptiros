@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { Blobatar } from "@blobatar/react";
+import { useScrollLock } from "@/hooks/useScrollLock";
 
 const navLinks = [
   { label: "Home", href: "/#home", icon: Home },
@@ -50,16 +51,8 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [isOpen]);
+  // Universal scroll lock & Lenis pause for mobile drawer
+  useScrollLock(isOpen);
 
   const handleNavClick = (
     e: React.MouseEvent<HTMLAnchorElement>,
@@ -212,7 +205,8 @@ export default function Navbar() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ duration: 0.35, ease: easeOutExpo }}
-              className="fixed top-0 right-0 bottom-0 flex h-[100dvh] w-[86vw] max-w-sm flex-col justify-between bg-white shadow-2xl overflow-hidden"
+              data-lenis-prevent
+              className="fixed top-0 right-0 bottom-0 flex h-[100dvh] w-[86vw] max-w-sm flex-col justify-between bg-white shadow-2xl overflow-hidden overscroll-contain"
               aria-label="Mobile navigation sidebar"
             >
               {/* Sidebar Header */}
@@ -236,7 +230,7 @@ export default function Navbar() {
               </div>
 
               {/* Scrollable Navigation Items */}
-              <div className="flex-1 overflow-y-auto px-4 py-4 space-y-1.5 overscroll-contain">
+              <div data-lenis-prevent className="flex-1 overflow-y-auto px-4 py-4 space-y-1.5 overscroll-contain">
                 {/* Student Session Banner */}
                 <div className="mb-3 rounded-2xl border border-orange-200/90 bg-gradient-to-br from-orange-50 to-amber-50/50 p-3.5 text-xs text-orange-950 shadow-xs">
                   <div className="flex items-center justify-between">

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useUserProfile } from "@/context/UserProfileContext";
+import { useScrollLock } from "@/hooks/useScrollLock";
 import {
   Target,
   Landmark,
@@ -147,6 +148,10 @@ export default function ComprehensiveDossierModal() {
   const [selectedPageIndex, setSelectedPageIndex] = useState(0);
 
   // Accessibility: Escape key and body scroll lock
+  // Universal scroll lock & Lenis pause
+  useScrollLock(isDossierModalOpen);
+
+  // Accessibility: Escape key
   useEffect(() => {
     if (!isDossierModalOpen) return;
 
@@ -154,13 +159,8 @@ export default function ComprehensiveDossierModal() {
       if (e.key === "Escape") closeDossierModal();
     };
 
-    document.body.style.overflow = "hidden";
     window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.body.style.overflow = "";
-      window.removeEventListener("keydown", handleKeyDown);
-    };
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isDossierModalOpen, closeDossierModal]);
 
   if (!isDossierModalOpen) return null;
@@ -199,9 +199,10 @@ export default function ComprehensiveDossierModal() {
       role="dialog"
       aria-modal="true"
       aria-labelledby="dossier-sample-title"
-      className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-stone-900/75 backdrop-blur-md animate-in fade-in duration-200"
+      data-lenis-prevent
+      className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-stone-900/75 backdrop-blur-md animate-in fade-in duration-200 overscroll-contain"
     >
-      <div className="relative w-full max-w-3xl max-h-[92vh] overflow-y-auto rounded-3xl bg-white p-6 sm:p-8 shadow-2xl border border-stone-200 text-stone-900">
+      <div data-lenis-prevent className="relative w-full max-w-3xl max-h-[92vh] overflow-y-auto rounded-3xl bg-white p-6 sm:p-8 shadow-2xl border border-stone-200 text-stone-900 overscroll-contain">
         {/* Header Bar */}
         <div className="flex items-center justify-between border-b border-stone-100 pb-4">
           <div className="flex items-center gap-3">

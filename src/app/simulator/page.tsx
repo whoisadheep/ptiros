@@ -48,6 +48,7 @@ import WorkplaceFeed from "@/components/simulator/WorkplaceFeed";
 import ConsequenceBranching from "@/components/simulator/ConsequenceBranching";
 import ParentDossier from "@/components/simulator/ParentDossier";
 import { useUserProfile } from "@/context/UserProfileContext";
+import { useScrollLock } from "@/hooks/useScrollLock";
 
 const easeOutExpo = [0.16, 1, 0.3, 1] as const;
 
@@ -874,6 +875,9 @@ function SimulatorContent() {
   const [resiliencePoints, setResiliencePoints] = useState<number>(0);
   const [isCompleted, setIsCompleted] = useState<boolean>(false);
   const [showCertificateModal, setShowCertificateModal] = useState<boolean>(false);
+  
+  // Universal scroll lock for certificate modal
+  useScrollLock(showCertificateModal);
   const [studentName, setStudentName] = useState<string>("PTIROS Explorer");
   const [completionTab, setCompletionTab] = useState<"student" | "parent">("student");
 
@@ -1726,7 +1730,10 @@ function SimulatorContent() {
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95, y: 10 }}
                   transition={{ duration: 0.3, ease: easeOutExpo }}
-                  className="fixed inset-x-4 top-[6vh] z-50 mx-auto max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl bg-white p-6 sm:p-8 shadow-2xl border-4 border-amber-200"
+                  role="dialog"
+                  aria-modal="true"
+                  data-lenis-prevent
+                  className="fixed inset-x-4 top-[6vh] z-50 mx-auto max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl bg-white p-6 sm:p-8 shadow-2xl border-4 border-amber-200 overscroll-contain"
                 >
                   <div className="text-center">
                     {/* Official National Emblem / Top Seal */}

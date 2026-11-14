@@ -5,6 +5,7 @@ import { useUserProfile } from "@/context/UserProfileContext";
 import { MENTORS } from "@/data/mentors";
 import { Mentor, MentorshipBooking } from "@/types/profile";
 import { validateIndianMobile } from "@/lib/storage";
+import { useScrollLock } from "@/hooks/useScrollLock";
 import { Building2, X, CheckCircle2, FileText, Calendar, MessageSquare, Star } from "lucide-react";
 import { Blobatar } from "@blobatar/react";
 
@@ -52,7 +53,10 @@ export default function MentorshipBookingModal() {
     setSelectedDate(tomorrow.toISOString().split("T")[0]);
   }, []);
 
-  // Accessibility: Escape key and body scroll lock
+  // Universal scroll lock & Lenis pause
+  useScrollLock(isBookingModalOpen);
+
+  // Accessibility: Escape key
   useEffect(() => {
     if (!isBookingModalOpen) return;
 
@@ -60,14 +64,8 @@ export default function MentorshipBookingModal() {
       if (e.key === "Escape") closeBookingModal();
     };
 
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
     window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      document.body.style.overflow = originalOverflow;
-      window.removeEventListener("keydown", handleKeyDown);
-    };
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isBookingModalOpen, closeBookingModal]);
 
   if (!isBookingModalOpen) return null;
@@ -156,9 +154,10 @@ export default function MentorshipBookingModal() {
       role="dialog"
       aria-modal="true"
       aria-labelledby="booking-title"
-      className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-stone-900/70 backdrop-blur-md animate-in fade-in duration-200"
+      data-lenis-prevent
+      className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-stone-900/70 backdrop-blur-md animate-in fade-in duration-200 overscroll-contain"
     >
-      <div className="relative w-full max-w-2xl max-h-[92vh] overflow-y-auto rounded-3xl bg-white p-6 sm:p-8 shadow-2xl border border-stone-200 text-stone-900">
+      <div data-lenis-prevent className="relative w-full max-w-2xl max-h-[92vh] overflow-y-auto rounded-3xl bg-white p-6 sm:p-8 shadow-2xl border border-stone-200 text-stone-900 overscroll-contain">
         {/* Header Bar */}
         <div className="flex items-center justify-between border-b border-stone-100 pb-4">
           <div className="flex items-center gap-3">
@@ -253,7 +252,7 @@ export default function MentorshipBookingModal() {
               <label className="block text-xs font-semibold uppercase tracking-wider text-stone-600 mb-2">
                 1. Select Domain Mentor ({MENTORS.length} Available)
               </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-52 overflow-y-auto pr-1">
+              <div data-lenis-prevent className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-52 overflow-y-auto pr-1 overscroll-contain">
                 {MENTORS.map((m) => {
                   const isSelected = selectedMentor.id === m.id;
                   return (

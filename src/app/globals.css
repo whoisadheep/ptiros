@@ -61,6 +61,14 @@
   html, body {
     overflow-x: clip;
   }
+
+  /* Prevent modal and popup scroll-chaining to the background page */
+  [data-lenis-prevent],
+  [role="dialog"],
+  [aria-modal="true"],
+  .lenis-prevent {
+    overscroll-behavior: contain !important;
+  }
   
   body {
     font-family: var(--font-body);
