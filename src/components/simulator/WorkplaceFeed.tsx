@@ -18,6 +18,7 @@ import {
   User,
   Sparkles,
 } from "lucide-react";
+import { Blobatar } from "@blobatar/react";
 
 export interface WorkplaceManager {
   name: string;
@@ -359,10 +360,8 @@ export default function WorkplaceFeed({
       <div className="border-b border-orange-100 bg-[#1E1E2F] px-4 py-3 text-white">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div
-              className={`flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-tr ${manager.avatarGradient} text-white font-bold text-xs shadow-sm`}
-            >
-              {manager.avatarInitials}
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl overflow-hidden border border-white/20 bg-stone-900 shadow-xs">
+              <Blobatar name={manager.name} size={32} animate="hover" className="size-full object-cover" />
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -436,10 +435,8 @@ export default function WorkplaceFeed({
 
               return (
                 <div key={i} className="flex items-start gap-2.5">
-                  <div
-                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-tr ${manager.avatarGradient} text-white font-bold text-[10px] mt-0.5`}
-                  >
-                    {manager.avatarInitials}
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg overflow-hidden border border-stone-200 bg-stone-100 shadow-2xs mt-0.5">
+                    <Blobatar name={manager.name} size={28} className="size-full object-cover" />
                   </div>
 
                   <div className="flex-1 space-y-1">

@@ -46,6 +46,7 @@ import {
   Star,
   X,
 } from "lucide-react";
+import { Blobatar } from "@blobatar/react";
 
 type DashboardTab = "cockpit" | "planner" | "diary" | "credentials" | "analysis" | "mentorship";
 
@@ -238,7 +239,9 @@ export default function DashboardPage() {
             </Link>
 
             <div className="hidden md:flex items-center gap-2 text-xs border-l border-stone-200 pl-3">
-              <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="size-6 rounded-full overflow-hidden border border-orange-300 bg-white flex items-center justify-center shrink-0 shadow-2xs">
+                <Blobatar name={student.name} size={24} className="size-full object-cover" />
+              </span>
               <span className="font-semibold text-stone-700">{student.name}</span>
               <span className="text-stone-400">•</span>
               <span className="text-stone-500 font-medium">{student.grade} ({student.curriculum})</span>
@@ -592,8 +595,8 @@ export default function DashboardPage() {
                   </div>
 
                   <div className="flex items-start gap-4 pt-1">
-                    <div className="size-14 rounded-2xl bg-gradient-to-tr from-stone-900 to-stone-800 text-orange-400 font-display font-black text-xl flex items-center justify-center shrink-0 shadow-xs border border-stone-700">
-                      {trajectoryMeta.primaryMentor.initials}
+                    <div className="size-14 rounded-2xl overflow-hidden bg-stone-100 border border-stone-200/90 shadow-xs flex items-center justify-center shrink-0">
+                      <Blobatar name={trajectoryMeta.primaryMentor.name} size={56} animate="hover" className="size-full object-cover" />
                     </div>
                     <div>
                       <h4 className="font-display font-bold text-base text-stone-900">
@@ -1119,8 +1122,8 @@ export default function DashboardPage() {
               {/* Mentor 1 */}
               <div className="p-6 rounded-2xl bg-stone-50 border border-stone-200/80 space-y-3">
                 <div className="flex items-start gap-4">
-                  <div className="size-14 rounded-2xl bg-stone-900 text-orange-400 font-display font-black text-xl flex items-center justify-center shrink-0">
-                    {trajectoryMeta.primaryMentor.initials}
+                  <div className="size-14 rounded-2xl overflow-hidden bg-stone-100 border border-stone-200/90 shadow-xs flex items-center justify-center shrink-0">
+                    <Blobatar name={trajectoryMeta.primaryMentor.name} size={56} animate="hover" className="size-full object-cover" />
                   </div>
                   <div>
                     <h3 className="font-display font-bold text-base text-stone-900">
@@ -1147,8 +1150,8 @@ export default function DashboardPage() {
               {/* Mentor 2 */}
               <div className="p-6 rounded-2xl bg-stone-50 border border-stone-200/80 space-y-3">
                 <div className="flex items-start gap-4">
-                  <div className="size-14 rounded-2xl bg-stone-900 text-amber-400 font-display font-black text-xl flex items-center justify-center shrink-0">
-                    PK
+                  <div className="size-14 rounded-2xl overflow-hidden bg-stone-100 border border-stone-200/90 shadow-xs flex items-center justify-center shrink-0">
+                    <Blobatar name="Pooja Krishnan" size={56} animate="hover" className="size-full object-cover" />
                   </div>
                   <div>
                     <h3 className="font-display font-bold text-base text-stone-900">

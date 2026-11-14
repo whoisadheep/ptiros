@@ -6,6 +6,7 @@ import { MENTORS } from "@/data/mentors";
 import { Mentor, MentorshipBooking } from "@/types/profile";
 import { validateIndianMobile } from "@/lib/storage";
 import { Building2, X, CheckCircle2, FileText, Calendar, MessageSquare, Star } from "lucide-react";
+import { Blobatar } from "@blobatar/react";
 
 const TIME_SLOTS = [
   "10:00 AM - 10:20 AM IST",
@@ -266,8 +267,8 @@ export default function MentorshipBookingModal() {
                           : "border-stone-200 bg-stone-50/50 hover:bg-stone-100"
                       }`}
                     >
-                      <div className="size-9 rounded-xl bg-gradient-to-tr from-stone-900 to-stone-800 text-orange-400 font-display font-black text-xs flex items-center justify-center shrink-0 shadow-xs border border-stone-700">
-                        {m.avatarEmoji}
+                      <div className="size-10 rounded-xl overflow-hidden bg-stone-100 border border-stone-200/90 shrink-0 shadow-2xs flex items-center justify-center">
+                        <Blobatar name={m.name} size={40} animate="hover" className="size-full object-cover" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">

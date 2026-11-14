@@ -22,6 +22,7 @@ import {
   FileText,
 } from "lucide-react";
 import Link from "next/link";
+import { Blobatar } from "@blobatar/react";
 
 const navLinks = [
   { label: "Home", href: "/#home", icon: Home },
@@ -127,8 +128,8 @@ export default function Navbar() {
                 className="flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50/90 px-3 py-1 text-xs font-bold text-orange-950 hover:bg-orange-100 transition shadow-xs cursor-pointer"
                 title="Open Student Dashboard"
               >
-                <span className="size-6 rounded-full bg-gradient-to-tr from-primary to-secondary text-white text-[10px] font-bold flex items-center justify-center">
-                  {studentUser.avatarInitials}
+                <span className="size-6 rounded-full overflow-hidden border border-orange-300 bg-white flex items-center justify-center shrink-0 shadow-2xs">
+                  <Blobatar name={studentUser.name} size={24} className="size-full object-cover" />
                 </span>
                 <span className="max-w-[85px] truncate">{studentUser.name.split(" ")[0]}</span>
                 <span className="text-[10px] text-orange-700 bg-orange-200/60 px-1.5 py-0.5 rounded-full">
@@ -239,8 +240,15 @@ export default function Navbar() {
                 {/* Student Session Banner */}
                 <div className="mb-3 rounded-2xl border border-orange-200/90 bg-gradient-to-br from-orange-50 to-amber-50/50 p-3.5 text-xs text-orange-950 shadow-xs">
                   <div className="flex items-center justify-between">
-                    <span className="font-bold flex items-center gap-1.5">
-                      <GraduationCap className="size-4 text-primary" /> {studentUser ? studentUser.name : (profile?.studentName ? profile.studentName : "Student Portal")}
+                    <span className="font-bold flex items-center gap-2">
+                      {studentUser ? (
+                        <span className="size-5 rounded-full overflow-hidden border border-orange-300 bg-white flex items-center justify-center shrink-0">
+                          <Blobatar name={studentUser.name} size={20} className="size-full object-cover" />
+                        </span>
+                      ) : (
+                        <GraduationCap className="size-4 text-primary" />
+                      )}
+                      {studentUser ? studentUser.name : (profile?.studentName ? profile.studentName : "Student Portal")}
                     </span>
                     {studentUser ? (
                       <Link

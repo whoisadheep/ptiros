@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useStudentAuth } from "@/context/StudentAuthContext";
 import { Zap, ArrowRight, ArrowLeft, Bot, Scale, Stethoscope } from "lucide-react";
+import { Blobatar } from "@blobatar/react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -47,12 +48,17 @@ export default function LoginPage() {
               onClick={() => handleDemo("aarav")}
               className="w-full p-3 rounded-xl bg-white hover:bg-orange-100/70 border border-orange-200 text-left transition flex items-center justify-between group cursor-pointer"
             >
-              <div>
-                <div className="text-xs font-bold text-accent group-hover:text-primary flex items-center gap-1.5">
-                  <Bot className="size-3.5 text-primary" />
-                  <span>Aarav Sharma</span>
+              <div className="flex items-center gap-3">
+                <div className="size-9 rounded-xl overflow-hidden bg-stone-100 border border-stone-200/80 shrink-0 shadow-2xs flex items-center justify-center">
+                  <Blobatar name="Aarav Sharma" size={36} animate="hover" className="size-full object-cover" />
                 </div>
-                <div className="text-[11px] text-text-muted">Class 10 • AI & Autonomous Robotics</div>
+                <div>
+                  <div className="text-xs font-bold text-accent group-hover:text-primary flex items-center gap-1.5">
+                    <Bot className="size-3.5 text-primary" />
+                    <span>Aarav Sharma</span>
+                  </div>
+                  <div className="text-[11px] text-text-muted">Class 10 • AI & Autonomous Robotics</div>
+                </div>
               </div>
               <ArrowRight className="size-4 text-primary group-hover:translate-x-1 transition-transform" />
             </button>
@@ -61,12 +67,17 @@ export default function LoginPage() {
               onClick={() => handleDemo("meera")}
               className="w-full p-3 rounded-xl bg-white hover:bg-blue-50 border border-blue-200 text-left transition flex items-center justify-between group cursor-pointer"
             >
-              <div>
-                <div className="text-xs font-bold text-accent group-hover:text-blue-700 flex items-center gap-1.5">
-                  <Scale className="size-3.5 text-blue-600" />
-                  <span>Meera Nair</span>
+              <div className="flex items-center gap-3">
+                <div className="size-9 rounded-xl overflow-hidden bg-stone-100 border border-stone-200/80 shrink-0 shadow-2xs flex items-center justify-center">
+                  <Blobatar name="Meera Nair" size={36} animate="hover" className="size-full object-cover" />
                 </div>
-                <div className="text-[11px] text-text-muted">Class 11 • Corporate Law & Policy</div>
+                <div>
+                  <div className="text-xs font-bold text-accent group-hover:text-blue-700 flex items-center gap-1.5">
+                    <Scale className="size-3.5 text-blue-600" />
+                    <span>Meera Nair</span>
+                  </div>
+                  <div className="text-[11px] text-text-muted">Class 11 • Corporate Law & Policy</div>
+                </div>
               </div>
               <ArrowRight className="size-4 text-blue-600 group-hover:translate-x-1 transition-transform" />
             </button>
@@ -75,12 +86,17 @@ export default function LoginPage() {
               onClick={() => handleDemo("vihaan")}
               className="w-full p-3 rounded-xl bg-white hover:bg-emerald-50 border border-emerald-200 text-left transition flex items-center justify-between group cursor-pointer"
             >
-              <div>
-                <div className="text-xs font-bold text-accent group-hover:text-emerald-700 flex items-center gap-1.5">
-                  <Stethoscope className="size-3.5 text-emerald-600" />
-                  <span>Vihaan Patel</span>
+              <div className="flex items-center gap-3">
+                <div className="size-9 rounded-xl overflow-hidden bg-stone-100 border border-stone-200/80 shrink-0 shadow-2xs flex items-center justify-center">
+                  <Blobatar name="Vihaan Patel" size={36} animate="hover" className="size-full object-cover" />
                 </div>
-                <div className="text-[11px] text-text-muted">Class 12 • Medicine & BioTech</div>
+                <div>
+                  <div className="text-xs font-bold text-accent group-hover:text-emerald-700 flex items-center gap-1.5">
+                    <Stethoscope className="size-3.5 text-emerald-600" />
+                    <span>Vihaan Patel</span>
+                  </div>
+                  <div className="text-[11px] text-text-muted">Class 12 • Medicine & BioTech</div>
+                </div>
               </div>
               <ArrowRight className="size-4 text-emerald-600 group-hover:translate-x-1 transition-transform" />
             </button>
