@@ -347,15 +347,15 @@ export default function ParentDossier({
   const dossier = PARENT_DOSSIERS[trackId] || PARENT_DOSSIERS["ai-robotics"];
 
   const handleCopyWhatsAppSummary = async () => {
-    const text = `📋 *PTIROS Career Simulation Dossier for ${effectiveStudentName}*\n` +
-      (effectiveParentName ? `👨‍👩‍👦 *Family Briefing:* Prepared for ${effectiveParentName} (${effectiveParentDream || "Career Exploration"})\n\n` : `\n`) +
-      `🎯 *Track Tested:* ${trackTitle} (${categoryLabel})\n` +
-      `⭐ *Simulation Fit Score:* ${fitPercent}% (${score}/${totalMissions} workplace decisions correct)\n` +
-      (resiliencePoints > 0 ? `🔥 *Crisis Resilience Mastery:* +${resiliencePoints} Pts\n\n` : `\n`) +
-      `💡 *Executive Observation for Parents:*\n${dossier.studentStrengthsSummary}\n\n` +
-      `💼 *Indian Salary Trajectory:* Entry: ${dossier.economicOutlook.entryLevel} | Mid: ${dossier.economicOutlook.midCareer} | Leadership: ${dossier.economicOutlook.leadership}\n\n` +
-      `🎓 *Recommended Class 11-12 Stream:* ${dossier.streamStrategy.recommendedStream}\n` +
-      `⚠️ *Key Tip to Avoid Pitfalls:* ${dossier.streamStrategy.criticalPitfallToAvoid}\n\n` +
+    const text = `*PTIROS Career Simulation Dossier for ${effectiveStudentName}*\n` +
+      (effectiveParentName ? `[Family Briefing] Prepared for ${effectiveParentName} (${effectiveParentDream || "Career Exploration"})\n\n` : `\n`) +
+      `[Track Tested] ${trackTitle} (${categoryLabel})\n` +
+      `[Simulation Fit Score] ${fitPercent}% (${score}/${totalMissions} workplace decisions correct)\n` +
+      (resiliencePoints > 0 ? `[Crisis Resilience Mastery] +${resiliencePoints} Pts\n\n` : `\n`) +
+      `[Executive Observation for Parents]\n${dossier.studentStrengthsSummary}\n\n` +
+      `[Indian Salary Trajectory] Entry: ${dossier.economicOutlook.entryLevel} | Mid: ${dossier.economicOutlook.midCareer} | Leadership: ${dossier.economicOutlook.leadership}\n\n` +
+      `[Recommended Class 11-12 Stream] ${dossier.streamStrategy.recommendedStream}\n` +
+      `[Critical Strategy Note] ${dossier.streamStrategy.criticalPitfallToAvoid}\n\n` +
       `Verified by PTIROS Virtual Career Simulator: https://ptiros.in/simulator?track=${trackId}`;
 
     try {

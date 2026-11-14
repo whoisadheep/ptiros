@@ -626,8 +626,9 @@ export default function Roadmaps() {
               <span className="text-[10px] font-semibold uppercase tracking-wider text-text-muted">
                 Key Milestone
               </span>
-              <span className="font-display font-bold text-accent text-xs sm:text-sm">
-                🎯 {curriculum.milestone}
+              <span className="font-display font-bold text-accent text-xs sm:text-sm flex items-center gap-1.5">
+                <Target className="size-3.5 text-primary" />
+                <span>{curriculum.milestone}</span>
               </span>
             </div>
           </div>

@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useStudentAuth } from "@/context/StudentAuthContext";
-import { Zap, ArrowRight, ArrowLeft } from "lucide-react";
+import { Zap, ArrowRight, ArrowLeft, Bot, Scale, Stethoscope } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -48,8 +48,9 @@ export default function LoginPage() {
               className="w-full p-3 rounded-xl bg-white hover:bg-orange-100/70 border border-orange-200 text-left transition flex items-center justify-between group cursor-pointer"
             >
               <div>
-                <div className="text-xs font-bold text-accent group-hover:text-primary">
-                  🚀 Aarav Sharma
+                <div className="text-xs font-bold text-accent group-hover:text-primary flex items-center gap-1.5">
+                  <Bot className="size-3.5 text-primary" />
+                  <span>Aarav Sharma</span>
                 </div>
                 <div className="text-[11px] text-text-muted">Class 10 • AI & Autonomous Robotics</div>
               </div>
@@ -61,8 +62,9 @@ export default function LoginPage() {
               className="w-full p-3 rounded-xl bg-white hover:bg-blue-50 border border-blue-200 text-left transition flex items-center justify-between group cursor-pointer"
             >
               <div>
-                <div className="text-xs font-bold text-accent group-hover:text-blue-700">
-                  ⚖️ Meera Nair
+                <div className="text-xs font-bold text-accent group-hover:text-blue-700 flex items-center gap-1.5">
+                  <Scale className="size-3.5 text-blue-600" />
+                  <span>Meera Nair</span>
                 </div>
                 <div className="text-[11px] text-text-muted">Class 11 • Corporate Law & Policy</div>
               </div>
@@ -74,8 +76,9 @@ export default function LoginPage() {
               className="w-full p-3 rounded-xl bg-white hover:bg-emerald-50 border border-emerald-200 text-left transition flex items-center justify-between group cursor-pointer"
             >
               <div>
-                <div className="text-xs font-bold text-accent group-hover:text-emerald-700">
-                  🧬 Vihaan Patel
+                <div className="text-xs font-bold text-accent group-hover:text-emerald-700 flex items-center gap-1.5">
+                  <Stethoscope className="size-3.5 text-emerald-600" />
+                  <span>Vihaan Patel</span>
                 </div>
                 <div className="text-[11px] text-text-muted">Class 12 • Medicine & BioTech</div>
               </div>

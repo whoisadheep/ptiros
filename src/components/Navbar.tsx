@@ -17,6 +17,9 @@ import {
   ChevronRight,
   ArrowRight,
   Gamepad2,
+  GraduationCap,
+  Building2,
+  FileText,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -149,7 +152,7 @@ export default function Navbar() {
                 className="flex items-center gap-1.5 rounded-full border border-orange-200 bg-orange-50/80 px-3.5 py-1.5 text-xs font-semibold text-orange-950 hover:bg-orange-100 transition shadow-xs cursor-pointer"
                 title="Edit Student & Parent Profile"
               >
-                <span>🎓</span>
+                <GraduationCap className="size-3.5 text-primary" />
                 <span className="max-w-[110px] truncate">{profile.studentName.split(" ")[0]}</span>
                 <span className="text-[10px] text-orange-600 bg-orange-100 px-1.5 py-0.2 rounded-full">
                   {profile.grade}
@@ -237,7 +240,7 @@ export default function Navbar() {
                 <div className="mb-3 rounded-2xl border border-orange-200/90 bg-gradient-to-br from-orange-50 to-amber-50/50 p-3.5 text-xs text-orange-950 shadow-xs">
                   <div className="flex items-center justify-between">
                     <span className="font-bold flex items-center gap-1.5">
-                      <span>🎓</span> {studentUser ? studentUser.name : (profile?.studentName ? profile.studentName : "Student Portal")}
+                      <GraduationCap className="size-4 text-primary" /> {studentUser ? studentUser.name : (profile?.studentName ? profile.studentName : "Student Portal")}
                     </span>
                     {studentUser ? (
                       <Link
@@ -281,7 +284,7 @@ export default function Navbar() {
                     }}
                     className="flex flex-col items-start rounded-xl border border-border/70 bg-bg-muted/50 p-2.5 text-left hover:border-primary/40 hover:bg-primary/5 transition cursor-pointer"
                   >
-                    <span className="text-base mb-1">🏛️</span>
+                    <Building2 className="size-4 text-primary mb-1" />
                     <span className="text-xs font-bold text-accent">Book Mentor</span>
                     <span className="text-[10px] text-text-muted">1-on-1 Strategy Call</span>
                   </button>
@@ -294,7 +297,7 @@ export default function Navbar() {
                     }}
                     className="flex flex-col items-start rounded-xl border border-border/70 bg-bg-muted/50 p-2.5 text-left hover:border-primary/40 hover:bg-primary/5 transition cursor-pointer"
                   >
-                    <span className="text-base mb-1">📋</span>
+                    <FileText className="size-4 text-primary mb-1" />
                     <span className="text-xs font-bold text-accent">10-Pg Dossier</span>
                     <span className="text-[10px] text-text-muted">Sample Preview</span>
                   </button>

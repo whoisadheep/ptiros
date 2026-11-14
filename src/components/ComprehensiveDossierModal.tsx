@@ -2,13 +2,31 @@
 
 import React, { useState, useEffect } from "react";
 import { useUserProfile } from "@/context/UserProfileContext";
+import {
+  Target,
+  Landmark,
+  BarChart3,
+  Globe,
+  Compass,
+  GraduationCap,
+  Briefcase,
+  Users,
+  Zap,
+  Handshake,
+  FileText,
+  X,
+  Check,
+  Sparkles,
+  ShieldCheck,
+  LucideIcon,
+} from "lucide-react";
 
 interface PageTeaser {
   pageNumber: number;
   title: string;
   badge: string;
   previewPoints: string[];
-  icon: string;
+  icon: LucideIcon;
 }
 
 const DOSSIER_PAGES: PageTeaser[] = [
@@ -16,7 +34,7 @@ const DOSSIER_PAGES: PageTeaser[] = [
     pageNumber: 1,
     title: "Executive Cognitive Summary & Fit Index",
     badge: "Core Diagnostic",
-    icon: "🎯",
+    icon: Target,
     previewPoints: [
       "Cross-validated score across 5 Career Simulation pillars",
       "Cognitive strength profile vs top 10% Indian cohort",
@@ -27,7 +45,7 @@ const DOSSIER_PAGES: PageTeaser[] = [
     pageNumber: 2,
     title: "NEP 2020 5+3+3+4 Competency Mapping",
     badge: "Govt Standard",
-    icon: "🏛️",
+    icon: Landmark,
     previewPoints: [
       "Alignment with National Education Policy Middle & Secondary stages",
       "Experiential learning credit breakdown for academic transcripts",
@@ -38,7 +56,7 @@ const DOSSIER_PAGES: PageTeaser[] = [
     pageNumber: 3,
     title: "RIASEC Holland Hexagon Psychometric Chart",
     badge: "Psychometrics",
-    icon: "📊",
+    icon: BarChart3,
     previewPoints: [
       "Realistic, Investigative, Artistic, Social, Enterprising, Conventional score map",
       "Inconsistency index detection to weed out peer pressure bias",
@@ -49,7 +67,7 @@ const DOSSIER_PAGES: PageTeaser[] = [
     pageNumber: 4,
     title: "3-Tier Indian & Global Career Trajectory",
     badge: "Macro Analysis",
-    icon: "🌐",
+    icon: Globe,
     previewPoints: [
       "Primary track, lateral transition options, and emerging hybrid roles",
       "Automation risk index: How AI will impact this career by 2035",
@@ -60,7 +78,7 @@ const DOSSIER_PAGES: PageTeaser[] = [
     pageNumber: 5,
     title: "Class 11-12 Stream Combination & Pitfall Guide",
     badge: "Crucial Decision",
-    icon: "🧭",
+    icon: Compass,
     previewPoints: [
       "Exact subject combination strategy (PCM vs PCB vs Commerce with Applied Math)",
       "High-risk academic traps: When coaching institutes misalign with aptitude",
@@ -71,7 +89,7 @@ const DOSSIER_PAGES: PageTeaser[] = [
     pageNumber: 6,
     title: "Top Indian Institutions & Entrance Exam Strategy",
     badge: "Admissions",
-    icon: "🎓",
+    icon: GraduationCap,
     previewPoints: [
       "IITs, NITs, NLUs, AIIMS, BITS, and premier private universities breakdown",
       "Historical cutoff trajectories and seats-per-applicant ratio",
@@ -82,7 +100,7 @@ const DOSSIER_PAGES: PageTeaser[] = [
     pageNumber: 7,
     title: "10-Year Economic Outlook & Salary Ladders",
     badge: "Financial ROI",
-    icon: "💼",
+    icon: Briefcase,
     previewPoints: [
       "Entry-level CTC (₹8L-₹24L) vs 5-Year Mid-Career (₹22L-₹55L) vs Leadership (₹70L+)",
       "Tier 1 campus placements vs off-campus industry demand curves",
@@ -93,7 +111,7 @@ const DOSSIER_PAGES: PageTeaser[] = [
     pageNumber: 8,
     title: "Parent-Child Dialogue & Conflict Resolution Matrix",
     badge: "Family Alignment",
-    icon: "👨‍👩‍👦",
+    icon: Users,
     previewPoints: [
       "Objective mediation guide for differing parental expectations vs student aptitude",
       "4 structured dinner-table discussion prompts with empirical data",
@@ -104,7 +122,7 @@ const DOSSIER_PAGES: PageTeaser[] = [
     pageNumber: 9,
     title: "Kaizen 4-Year Action Checklist (Grades 9-12)",
     badge: "Execution",
-    icon: "⚡",
+    icon: Zap,
     previewPoints: [
       "Quarter-by-quarter milestones: competitions, olympiads, and portfolio projects",
       "Extracurricular activities that genuinely matter to tier-1 admissions",
@@ -115,7 +133,7 @@ const DOSSIER_PAGES: PageTeaser[] = [
     pageNumber: 10,
     title: "Senior Gurukul Mentor Action Blueprint",
     badge: "1-on-1 Guidance",
-    icon: "🤝",
+    icon: Handshake,
     previewPoints: [
       "Direct notes from senior industry mentor evaluation",
       "Tailored preparation checklist for 20-minute strategic counseling call",
@@ -136,12 +154,11 @@ export default function ComprehensiveDossierModal() {
       if (e.key === "Escape") closeDossierModal();
     };
 
-    const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     window.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      document.body.style.overflow = originalOverflow;
+      document.body.style.overflow = "";
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [isDossierModalOpen, closeDossierModal]);
@@ -149,6 +166,7 @@ export default function ComprehensiveDossierModal() {
   if (!isDossierModalOpen) return null;
 
   const activePage = DOSSIER_PAGES[selectedPageIndex];
+  const ActivePageIcon = activePage.icon;
 
   const handleUnlockDossier = () => {
     const studentName = profile?.studentName || "PTIROS Student";
@@ -165,12 +183,12 @@ export default function ComprehensiveDossierModal() {
     }).catch(() => {});
 
     const text =
-      `📄 *PTIROS 360° Comprehensive 10-Page Career Dossier Unlock Request*\n\n` +
-      `🎓 *Student:* ${studentName}\n` +
-      `🏫 *Grade:* ${profile?.grade || "Class 10"}\n` +
-      `📍 *City:* ${profile?.city || "India"}\n` +
-      `💼 *Parent Contact:* ${profile?.parentPhone ? "+91 " + profile.parentPhone : "Pending"}\n` +
-      `💳 *Offer Selected:* Full 10-Page Dossier (₹499 Early Pioneer Pass)\n\n` +
+      `*PTIROS 360° Comprehensive 10-Page Career Dossier Unlock Request*\n\n` +
+      `[Student] ${studentName}\n` +
+      `[Grade] ${profile?.grade || "Class 10"}\n` +
+      `[City] ${profile?.city || "India"}\n` +
+      `[Parent Contact] ${profile?.parentPhone ? "+91 " + profile.parentPhone : "Pending"}\n` +
+      `[Offer Selected] Full 10-Page Dossier (₹499 Early Pioneer Pass)\n\n` +
       `Please issue our personalized 10-page verified PDF dossier and activate our 1-on-1 Gurukul mentor session: https://ptiros.in`;
 
     window.open(`https://api.whatsapp.com/send?phone=919876543210&text=${encodeURIComponent(text)}`, "_blank");
@@ -187,8 +205,8 @@ export default function ComprehensiveDossierModal() {
         {/* Header Bar */}
         <div className="flex items-center justify-between border-b border-stone-100 pb-4">
           <div className="flex items-center gap-3">
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-100 text-2xl font-bold text-orange-600">
-              📋
+            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-100 text-orange-600">
+              <FileText className="size-5" />
             </span>
             <div>
               <div className="flex items-center gap-2">
@@ -210,40 +228,58 @@ export default function ComprehensiveDossierModal() {
             className="rounded-full p-2 text-stone-400 hover:bg-stone-100 hover:text-stone-700 transition"
             aria-label="Close modal"
           >
-            ✕
+            <X className="size-5" />
           </button>
         </div>
 
         {/* Free vs Paid Tier Value Matrix */}
         <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
           <div className="rounded-2xl border border-stone-200 bg-stone-50/60 p-3">
-            <div className="font-bold text-stone-600 flex items-center gap-1 mb-1">
-              <span>🆓</span> Free Snapshot (Included)
+            <div className="font-bold text-stone-600 flex items-center gap-1.5 mb-1">
+              <FileText className="size-3.5 text-stone-500" />
+              <span>Free Snapshot (Included)</span>
             </div>
             <ul className="space-y-1 text-stone-500 text-[11px]">
-              <li>✓ Basic 3-Page Summary</li>
-              <li>✓ Top Career Category Match</li>
-              <li>✓ General Salary Range</li>
-              <li className="text-stone-400 line-through">✗ Detailed College Cutoff Matrix</li>
-              <li className="text-stone-400 line-through">✗ 1-on-1 Mentor Strategy Call</li>
+              <li className="flex items-center gap-1">
+                <Check className="size-3 text-stone-400" /> Basic 3-Page Summary
+              </li>
+              <li className="flex items-center gap-1">
+                <Check className="size-3 text-stone-400" /> Top Career Category Match
+              </li>
+              <li className="flex items-center gap-1">
+                <Check className="size-3 text-stone-400" /> General Salary Range
+              </li>
+              <li className="text-stone-400 line-through">Detailed College Cutoff Matrix</li>
+              <li className="text-stone-400 line-through">1-on-1 Mentor Strategy Call</li>
             </ul>
           </div>
 
           <div className="rounded-2xl border border-orange-200 bg-orange-50/70 p-3 ring-1 ring-orange-400/30">
             <div className="font-bold text-orange-950 flex items-center justify-between mb-1">
-              <span className="flex items-center gap-1">
-                <span>⭐</span> Full 10-Page Dossier
+              <span className="flex items-center gap-1.5">
+                <Sparkles className="size-3.5 text-orange-600" />
+                <span>Full 10-Page Dossier</span>
               </span>
               <span className="text-[11px] font-extrabold text-orange-700 bg-orange-100 px-2 py-0.5 rounded-full">
                 ₹499 Only
               </span>
             </div>
             <ul className="space-y-1 text-orange-900 text-[11px]">
-              <li>✓ All 10 In-Depth Diagnostic Modules</li>
-              <li>✓ NEP 2020 Transcript Credential</li>
-              <li>✓ Subject Stream & Coaching Strategy</li>
-              <li>✓ Parent-Child Dinner Mediation Guide</li>
-              <li>✓ Priority 1-on-1 Mentor Reservation</li>
+              <li className="flex items-center gap-1">
+                <Check className="size-3 text-orange-600" /> All 10 In-Depth Diagnostic Modules
+              </li>
+              <li className="flex items-center gap-1">
+                <Check className="size-3 text-orange-600" /> NEP 2020 Transcript Credential
+              </li>
+              <li className="flex items-center gap-1">
+                <Check className="size-3 text-orange-600" /> Subject Stream & Coaching Strategy
+              </li>
+              <li className="flex items-center gap-1">
+                <Check className="size-3 text-orange-600" /> Parent-Child Dinner Mediation Guide
+              </li>
+              <li className="flex items-center gap-1">
+                <Check className="size-3 text-orange-600" /> Priority 1-on-1 Mentor Reservation
+              </li>
             </ul>
           </div>
         </div>
@@ -263,18 +299,19 @@ export default function ComprehensiveDossierModal() {
           <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
             {DOSSIER_PAGES.map((page, idx) => {
               const isSelected = selectedPageIndex === idx;
+              const PageIcon = page.icon;
               return (
                 <button
                   key={page.pageNumber}
                   type="button"
                   onClick={() => setSelectedPageIndex(idx)}
-                  className={`flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-1.5 text-xs font-medium transition shrink-0 ${
+                  className={`flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-1.5 text-xs font-medium transition shrink-0 cursor-pointer ${
                     isSelected
                       ? "bg-stone-900 text-white shadow-sm"
                       : "bg-stone-100 text-stone-600 hover:bg-stone-200"
                   }`}
                 >
-                  <span>{page.icon}</span>
+                  <PageIcon className="size-3.5" />
                   <span>Pg {page.pageNumber}</span>
                 </button>
               );
@@ -289,7 +326,7 @@ export default function ComprehensiveDossierModal() {
                   {activePage.badge}
                 </span>
                 <h4 className="mt-1.5 text-base font-bold text-stone-900 flex items-center gap-2">
-                  <span>{activePage.icon}</span>
+                  <ActivePageIcon className="size-4 text-orange-600" />
                   <span>{activePage.title}</span>
                 </h4>
               </div>
@@ -317,21 +354,22 @@ export default function ComprehensiveDossierModal() {
 
         {/* Footer CTAs */}
         <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-stone-100 pt-4">
-          <div className="text-xs text-stone-500 text-center sm:text-left">
-            🔒 Includes Instant PDF Download + 20-min 1-on-1 Mentor strategy call.
+          <div className="text-xs text-stone-500 text-center sm:text-left flex items-center gap-1.5">
+            <ShieldCheck className="size-4 text-stone-600 shrink-0" />
+            <span>Includes Instant PDF Download + 20-min 1-on-1 Mentor strategy call.</span>
           </div>
           <div className="flex gap-2 w-full sm:w-auto">
             <button
               type="button"
               onClick={closeDossierModal}
-              className="flex-1 sm:flex-none rounded-xl border border-stone-300 px-4 py-2.5 text-xs font-semibold text-stone-700 hover:bg-stone-50"
+              className="flex-1 sm:flex-none rounded-xl border border-stone-300 px-4 py-2.5 text-xs font-semibold text-stone-700 hover:bg-stone-50 cursor-pointer"
             >
               Close Preview
             </button>
             <button
               type="button"
               onClick={handleUnlockDossier}
-              className="flex-1 sm:flex-none rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 px-6 py-2.5 text-xs font-bold text-white shadow-lg hover:brightness-105 active:scale-95 transition"
+              className="flex-1 sm:flex-none rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 px-6 py-2.5 text-xs font-bold text-white shadow-lg hover:brightness-105 active:scale-95 transition cursor-pointer"
             >
               Unlock 10-Page Dossier (₹499) →
             </button>

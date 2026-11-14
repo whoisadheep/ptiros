@@ -43,6 +43,8 @@ import {
   CalendarDays,
   ChevronDown,
   BookOpen,
+  Star,
+  X,
 } from "lucide-react";
 
 type DashboardTab = "cockpit" | "planner" | "diary" | "credentials" | "analysis" | "mentorship";
@@ -1129,7 +1131,10 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <div className="pt-2 flex items-center justify-between text-xs text-stone-500 border-t border-stone-200/60">
-                  <span>Rating: ★ {trajectoryMeta.primaryMentor.rating}</span>
+                  <span className="flex items-center gap-1 font-semibold text-stone-700">
+                    <Star className="size-3 text-amber-500 fill-amber-500" />
+                    <span>{trajectoryMeta.primaryMentor.rating}</span>
+                  </span>
                   <button
                     onClick={() => openBookingModal(trajectoryMeta.primaryMentor.trackId)}
                     className="text-orange-600 font-bold hover:underline"
@@ -1154,7 +1159,10 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <div className="pt-2 flex items-center justify-between text-xs text-stone-500 border-t border-stone-200/60">
-                  <span>Rating: ★ 4.96</span>
+                  <span className="flex items-center gap-1 font-semibold text-stone-700">
+                    <Star className="size-3 text-amber-500 fill-amber-500" />
+                    <span>4.96</span>
+                  </span>
                   <button
                     onClick={() => openBookingModal("media-creative-tech")}
                     className="text-orange-600 font-bold hover:underline"
@@ -1180,9 +1188,10 @@ export default function DashboardPage() {
               </h3>
               <button
                 onClick={() => setShowGoalModal(false)}
-                className="text-stone-400 hover:text-stone-600 cursor-pointer"
+                className="text-stone-400 hover:text-stone-600 cursor-pointer p-1 rounded-lg hover:bg-stone-100 transition"
+                aria-label="Close"
               >
-                ✕
+                <X className="size-4" />
               </button>
             </div>
 

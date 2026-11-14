@@ -24,6 +24,9 @@ import {
   Info,
   DollarSign,
   Maximize2,
+  Bot,
+  Camera,
+  Building2,
 } from "lucide-react";
 
 /* ────────────────────────────────────────────────────────────
@@ -60,8 +63,18 @@ export function RoboticsTactileWidget({ onSolved }: { onSolved?: () => void }) {
 
           <div className="relative z-10 flex items-center justify-between text-[11px] text-gray-400">
             <span>Fulfilment Corridor Aisle-04</span>
-            <span className={isGhostObstacle ? "text-amber-400 font-bold" : "text-emerald-400 font-bold"}>
-              {isGhostObstacle ? "⚠️ Obstacle Detected (HALTED)" : "✅ Path Clear (DRIVING)"}
+            <span className={isGhostObstacle ? "text-amber-400 font-bold flex items-center gap-1" : "text-emerald-400 font-bold flex items-center gap-1"}>
+              {isGhostObstacle ? (
+                <>
+                  <AlertTriangle className="size-3 text-amber-400" />
+                  <span>Obstacle Detected (HALTED)</span>
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="size-3 text-emerald-400" />
+                  <span>Path Clear (DRIVING)</span>
+                </>
+              )}
             </span>
           </div>
 
@@ -70,7 +83,7 @@ export function RoboticsTactileWidget({ onSolved }: { onSolved?: () => void }) {
             {/* Robot Node */}
             <div className="flex flex-col items-center gap-1">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-500/30">
-                🤖
+                <Bot className="size-5 text-white" />
               </div>
               <span className="text-[10px] text-indigo-300 font-bold">Bot #402</span>
             </div>
@@ -93,7 +106,7 @@ export function RoboticsTactileWidget({ onSolved }: { onSolved?: () => void }) {
                     : "border-gray-800 bg-gray-900/60 text-gray-600"
                 }`}
               >
-                {isGhostObstacle ? "🛑" : "🟢"}
+                {isGhostObstacle ? <AlertTriangle className="size-4 text-red-400" /> : <CheckCircle2 className="size-4 text-emerald-400" />}
               </div>
               <span className="text-[10px] text-gray-500 font-bold">
                 {isGhostObstacle ? "Ghost Obstacle" : "Target Waypoint"}
@@ -247,11 +260,21 @@ export function LawTactileWidget({ onSolved }: { onSolved?: () => void }) {
               Clause 14.2: Restrictive Trade Covenant
             </span>
             <span
-              className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
+              className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold flex items-center gap-1 ${
                 redlines.clause14 ? "bg-emerald-200 text-emerald-800" : "bg-rose-200 text-rose-800"
               }`}
             >
-              {redlines.clause14 ? "✓ REDLINED & STRUCK OUT" : "⚠️ UNENFORCEABLE RESTRICTION"}
+              {redlines.clause14 ? (
+                <>
+                  <Check className="size-3" />
+                  <span>REDLINED & STRUCK OUT</span>
+                </>
+              ) : (
+                <>
+                  <AlertTriangle className="size-3" />
+                  <span>UNENFORCEABLE RESTRICTION</span>
+                </>
+              )}
             </span>
           </div>
 
@@ -293,11 +316,21 @@ export function LawTactileWidget({ onSolved }: { onSolved?: () => void }) {
               Clause 15.1: Seller Representations & Indemnity
             </span>
             <span
-              className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
+              className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold flex items-center gap-1 ${
                 redlines.clause15 ? "bg-emerald-200 text-emerald-800" : "bg-rose-200 text-rose-800"
               }`}
             >
-              {redlines.clause15 ? "✓ REDLINED & CAPPED" : "⚠️ UNCAPPED PERSONAL LIABILITY"}
+              {redlines.clause15 ? (
+                <>
+                  <Check className="size-3" />
+                  <span>REDLINED & CAPPED</span>
+                </>
+              ) : (
+                <>
+                  <AlertTriangle className="size-3" />
+                  <span>UNCAPPED PERSONAL LIABILITY</span>
+                </>
+              )}
             </span>
           </div>
 
@@ -427,7 +460,14 @@ export function UXTactileWidget() {
                         : "border-gray-200 bg-gray-50 text-gray-300"
                     }`}
                   >
-                    {progressiveDisclosure ? "📷 Scan Aadhar Card" : "Input Merchant PAN Number"}
+                    {progressiveDisclosure ? (
+                      <span className="flex items-center gap-1.5">
+                        <Camera className="size-3 text-stone-700" />
+                        <span>Scan Aadhaar Card</span>
+                      </span>
+                    ) : (
+                      "Input Merchant PAN Number"
+                    )}
                   </div>
                   {!progressiveDisclosure && (
                     <>
@@ -651,7 +691,10 @@ export function MedicineTactileWidget() {
                   : "bg-emerald-950/40 border-emerald-700/60 text-emerald-300 hover:bg-emerald-900/60"
               }`}
             >
-              <p className="font-bold text-xs">💉 Needle Thoracostomy</p>
+              <p className="font-bold text-xs flex items-center gap-1.5">
+                <Activity className="size-3.5 text-emerald-400" />
+                <span>Needle Thoracostomy</span>
+              </p>
               <p className="text-[10px] text-emerald-400/80 mt-0.5">2nd Intercostal Mid-Clavicular</p>
             </button>
 
@@ -659,7 +702,10 @@ export function MedicineTactileWidget() {
               onClick={() => handleAction("sedate")}
               className="cursor-pointer rounded-xl p-3 text-left border border-gray-800 bg-gray-900/40 text-gray-300 hover:bg-gray-800/60"
             >
-              <p className="font-bold text-xs">💊 IV Sedation Dose</p>
+              <p className="font-bold text-xs flex items-center gap-1.5">
+                <ShieldAlert className="size-3.5 text-amber-400" />
+                <span>IV Sedation Dose</span>
+              </p>
               <p className="text-[10px] text-gray-500 mt-0.5">Relieve anxiety & pain</p>
             </button>
 
@@ -667,7 +713,10 @@ export function MedicineTactileWidget() {
               onClick={() => handleAction("ct")}
               className="cursor-pointer rounded-xl p-3 text-left border border-gray-800 bg-gray-900/40 text-gray-300 hover:bg-gray-800/60"
             >
-              <p className="font-bold text-xs">🏥 CT Scan Transfer</p>
+              <p className="font-bold text-xs flex items-center gap-1.5">
+                <Building2 className="size-3.5 text-blue-400" />
+                <span>CT Scan Transfer</span>
+              </p>
               <p className="text-[10px] text-gray-500 mt-0.5">64-slice high-res imaging</p>
             </button>
           </div>
@@ -803,10 +852,10 @@ export function FinanceTactileWidget() {
           </div>
         </div>
 
-        <p className="text-[11px] leading-relaxed text-gray-500 italic">
-          💡 If you put 100% in Bank FDs (7%), after 30% tax bracket you net 4.9%, which permanently destroys capital
-          against 6% inflation. A 60-25-15 allocation beats inflation while hedging USD tuition costs.
-        </p>
+        <div className="flex items-start gap-1.5 text-[11px] leading-relaxed text-gray-500 italic">
+          <Info className="size-3.5 text-stone-400 shrink-0 mt-0.5" />
+          <span>If you put 100% in Bank FDs (7%), after 30% tax bracket you net 4.9%, which permanently destroys capital against 6% inflation. A 60-25-15 allocation beats inflation while hedging USD tuition costs.</span>
+        </div>
       </div>
     </div>
   );
@@ -919,15 +968,20 @@ export function MediaTactileWidget() {
           }`}
         >
           {isViral ? (
-            <p>
-              <span className="font-bold">🚀 Algorithmic Breakthrough: </span>
-              Retaining 86% of Gen Z past the 3-second mark triggers the recommendation engine. Video projected for
-              500K+ organic impressions.
+            <p className="flex items-start gap-1.5">
+              <TrendingUp className="size-4 text-emerald-600 shrink-0 mt-0.5" />
+              <span>
+                <strong className="font-bold">Algorithmic Breakthrough: </strong>
+                Retaining 86% of Gen Z past the 3-second mark triggers the recommendation engine. Video projected for 500K+ organic impressions.
+              </span>
             </p>
           ) : (
-            <p>
-              <span className="font-bold">📉 Algorithmic Penalty: </span>
-              Preachy speech causes an 76% viewer drop at 2.4s. The platform algorithm suppresses the post.
+            <p className="flex items-start gap-1.5">
+              <AlertTriangle className="size-4 text-rose-600 shrink-0 mt-0.5" />
+              <span>
+                <strong className="font-bold">Algorithmic Penalty: </strong>
+                Preachy speech causes an 76% viewer drop at 2.4s. The platform algorithm suppresses the post.
+              </span>
             </p>
           )}
         </div>

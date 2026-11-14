@@ -46,7 +46,7 @@ const MANAGERS_DATA: { [trackId: string]: WorkplaceManager } = {
     role: "Director of Robotics Systems",
     avatarInitials: "PS",
     avatarGradient: "from-indigo-600 to-purple-600",
-    status: "🟢 In Autonomous Testing Lab 4",
+    status: "Active in Autonomous Testing Lab 4",
     channelName: "#robotics-fleet-ops",
     voiceMemoDuration: "0:14",
     voiceMemoTranscript:
@@ -54,7 +54,7 @@ const MANAGERS_DATA: { [trackId: string]: WorkplaceManager } = {
     messages: [
       {
         sender: "system",
-        text: "⚡ INCIDENT #4092 TRIGGERED: Fleet Bot 402 halted on corridor aisle A-04.",
+        text: "INCIDENT #4092: Fleet Bot 402 halted on corridor aisle A-04.",
         time: "09:41 AM",
       },
       {
@@ -79,7 +79,7 @@ const MANAGERS_DATA: { [trackId: string]: WorkplaceManager } = {
     role: "Senior Partner • M&A Practice",
     avatarInitials: "VM",
     avatarGradient: "from-sky-600 to-blue-700",
-    status: "🟢 On Call with Singapore Acquirer",
+    status: "On Call with Singapore Acquirer",
     channelName: "#saas-acquisition-dealroom",
     voiceMemoDuration: "0:16",
     voiceMemoTranscript:
@@ -87,7 +87,7 @@ const MANAGERS_DATA: { [trackId: string]: WorkplaceManager } = {
     messages: [
       {
         sender: "system",
-        text: "🔒 SECURE DEAL ROOM: Acquirer Legal uploaded SPA_Draft_v4.2.docx",
+        text: "SECURE DEAL ROOM: Acquirer Legal uploaded SPA_Draft_v4.2.docx",
         time: "11:15 AM",
       },
       {
@@ -112,7 +112,7 @@ const MANAGERS_DATA: { [trackId: string]: WorkplaceManager } = {
     role: "Head of Product Experience",
     avatarInitials: "AR",
     avatarGradient: "from-pink-600 to-rose-600",
-    status: "🟢 In User Research Session",
+    status: "In User Research Session",
     channelName: "#merchant-kyc-redesign",
     voiceMemoDuration: "0:15",
     voiceMemoTranscript:
@@ -120,7 +120,7 @@ const MANAGERS_DATA: { [trackId: string]: WorkplaceManager } = {
     messages: [
       {
         sender: "system",
-        text: "📊 MIXPANEL ALERT: Step 3 KYC Drop-off reached 68.4% (Threshold: 30%)",
+        text: "MIXPANEL ALERT: Step 3 KYC Drop-off reached 68.4% (Threshold: 30%)",
         time: "10:02 AM",
       },
       {
@@ -145,7 +145,7 @@ const MANAGERS_DATA: { [trackId: string]: WorkplaceManager } = {
     role: "Chief of Trauma & Emergency Medicine",
     avatarInitials: "RS",
     avatarGradient: "from-emerald-600 to-teal-700",
-    status: "🔴 URGENT • Trauma Bay Bed-04",
+    status: "URGENT • Trauma Bay Bed-04",
     channelName: "#trauma-resuscitation-code",
     voiceMemoDuration: "0:17",
     voiceMemoTranscript:
@@ -153,7 +153,7 @@ const MANAGERS_DATA: { [trackId: string]: WorkplaceManager } = {
     messages: [
       {
         sender: "system",
-        text: "🚨 CODE BLUE TRAUMA: Acute Respiratory Failure • Bed #04",
+        text: "CODE BLUE TRAUMA: Acute Respiratory Failure • Bed #04",
         time: "02:14 PM",
       },
       {
@@ -178,7 +178,7 @@ const MANAGERS_DATA: { [trackId: string]: WorkplaceManager } = {
     role: "Managing Director • Private Wealth",
     avatarInitials: "KK",
     avatarGradient: "from-amber-500 to-orange-600",
-    status: "🟢 In Portfolio Committee Meeting",
+    status: "In Portfolio Committee Meeting",
     channelName: "#hnw-portfolio-strategy",
     voiceMemoDuration: "0:15",
     voiceMemoTranscript:
@@ -186,7 +186,7 @@ const MANAGERS_DATA: { [trackId: string]: WorkplaceManager } = {
     messages: [
       {
         sender: "system",
-        text: "💼 CLIENT BRIEF: Gupta Family Trust (Corpus: ₹10,00,00,000)",
+        text: "CLIENT BRIEF: Gupta Family Trust (Corpus: ₹10,00,00,000)",
         time: "03:10 PM",
       },
       {
@@ -211,7 +211,7 @@ const MANAGERS_DATA: { [trackId: string]: WorkplaceManager } = {
     role: "Executive Creative Director",
     avatarInitials: "ZM",
     avatarGradient: "from-purple-600 to-indigo-600",
-    status: "🟢 Creative War Room",
+    status: "In Creative War Room",
     channelName: "#campaign-viral-hooks",
     voiceMemoDuration: "0:14",
     voiceMemoTranscript:
@@ -219,7 +219,7 @@ const MANAGERS_DATA: { [trackId: string]: WorkplaceManager } = {
     messages: [
       {
         sender: "system",
-        text: "📈 TIKTOK/REELS ANALYTICS: 3-Second Hold Rate dropped to 24.1%",
+        text: "CAMPAIGN ANALYTICS: 3-Second Hold Rate dropped to 24.1%",
         time: "04:30 PM",
       },
       {

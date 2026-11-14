@@ -5,6 +5,7 @@ import { useUserProfile } from "@/context/UserProfileContext";
 import { MENTORS } from "@/data/mentors";
 import { Mentor, MentorshipBooking } from "@/types/profile";
 import { validateIndianMobile } from "@/lib/storage";
+import { Building2, X, CheckCircle2, FileText, Calendar, MessageSquare, Star } from "lucide-react";
 
 const TIME_SLOTS = [
   "10:00 AM - 10:20 AM IST",
@@ -126,10 +127,10 @@ export default function MentorshipBookingModal() {
 
     const title = encodeURIComponent(`1-on-1 PTIROS Gurukul Strategy Call: ${booking.mentorName}`);
     const details = encodeURIComponent(
-      `🎯 Mentor: ${booking.mentorName} (${booking.domainTitle})\n` +
-      `🎓 Student: ${booking.studentName}\n` +
-      `💬 Core Dilemma: ${booking.primaryQuestion}\n` +
-      `⚡ Platform: Verified PTIROS Gurukul Session (https://ptiros.in)`
+      `Mentor: ${booking.mentorName} (${booking.domainTitle})\n` +
+      `Student: ${booking.studentName}\n` +
+      `Core Dilemma: ${booking.primaryQuestion}\n` +
+      `Platform: Verified PTIROS Gurukul Session (https://ptiros.in)`
     );
 
     return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dates}&details=${details}&location=Google+Meet`;
@@ -137,13 +138,13 @@ export default function MentorshipBookingModal() {
 
   const handleWhatsAppDispatch = (booking: MentorshipBooking) => {
     const text =
-      `🏛️ *PTIROS 1-on-1 Gurukul Mentorship Booking Confirmed!*\n\n` +
-      `📌 *Booking Ref:* ${booking.id}\n` +
-      `🎓 *Student:* ${booking.studentName}\n` +
-      `👨‍🏫 *Senior Mentor:* ${booking.mentorName} (${booking.domainTitle})\n` +
-      `📅 *Date:* ${booking.date}\n` +
-      `⏰ *Slot:* ${booking.timeSlot}\n` +
-      `❓ *Primary Dilemma:* ${booking.primaryQuestion}\n\n` +
+      `*PTIROS 1-on-1 Gurukul Mentorship Booking Confirmed*\n\n` +
+      `[Booking Ref] ${booking.id}\n` +
+      `[Student] ${booking.studentName}\n` +
+      `[Senior Mentor] ${booking.mentorName} (${booking.domainTitle})\n` +
+      `[Date] ${booking.date}\n` +
+      `[Slot] ${booking.timeSlot}\n` +
+      `[Primary Dilemma] ${booking.primaryQuestion}\n\n` +
       `Please connect me with our designated academic mentor on Google Meet. Verified by PTIROS: https://ptiros.in`;
 
     window.open(`https://api.whatsapp.com/send?phone=919876543210&text=${encodeURIComponent(text)}`, "_blank");
@@ -160,8 +161,8 @@ export default function MentorshipBookingModal() {
         {/* Header Bar */}
         <div className="flex items-center justify-between border-b border-stone-100 pb-4">
           <div className="flex items-center gap-3">
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-100 text-2xl font-bold text-amber-700">
-              🏛️
+            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
+              <Building2 className="size-5" />
             </span>
             <div>
               <h2 id="booking-title" className="text-xl font-bold tracking-tight text-stone-900">
@@ -178,15 +179,15 @@ export default function MentorshipBookingModal() {
             className="rounded-full p-2 text-stone-400 hover:bg-stone-100 hover:text-stone-700 transition"
             aria-label="Close modal"
           >
-            ✕
+            <X className="size-5" />
           </button>
         </div>
 
         {bookingConfirmed ? (
           /* CONFIRMATION SCREEN */
           <div className="mt-6 text-center space-y-5 animate-in zoom-in-95 duration-200">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-3xl text-emerald-600">
-              ✓
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+              <CheckCircle2 className="size-8" />
             </div>
             <div>
               <span className="inline-block rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200">
@@ -202,7 +203,8 @@ export default function MentorshipBookingModal() {
 
             <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4 text-left text-xs text-amber-950 space-y-2 max-w-lg mx-auto">
               <div className="font-semibold text-amber-900 flex items-center gap-2">
-                <span>📋</span> Session Briefing Checklist:
+                <FileText className="size-4 text-amber-700" />
+                <span>Session Briefing Checklist:</span>
               </div>
               <p>• Have your latest Class 9/10/11 marksheets or career simulation scores ready.</p>
               <p>• Both the student and at least one parent/guardian are encouraged to attend.</p>
@@ -216,14 +218,16 @@ export default function MentorshipBookingModal() {
                 rel="noreferrer"
                 className="inline-flex items-center justify-center gap-2 rounded-xl border border-stone-300 bg-white px-5 py-2.5 text-xs font-semibold text-stone-800 shadow-sm hover:bg-stone-50 active:scale-95 transition"
               >
-                <span>📅</span> Add to Google Calendar
+                <Calendar className="size-4 text-stone-600" />
+                <span>Add to Google Calendar</span>
               </a>
               <button
                 type="button"
                 onClick={() => handleWhatsAppDispatch(bookingConfirmed)}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-semibold text-white shadow-md hover:bg-emerald-700 active:scale-95 transition"
               >
-                <span>💬</span> Confirm via WhatsApp
+                <MessageSquare className="size-4 text-white" />
+                <span>Confirm via WhatsApp</span>
               </button>
             </div>
 
@@ -262,12 +266,15 @@ export default function MentorshipBookingModal() {
                           : "border-stone-200 bg-stone-50/50 hover:bg-stone-100"
                       }`}
                     >
-                      <span className="text-2xl mt-0.5">{m.avatarEmoji}</span>
+                      <div className="size-9 rounded-xl bg-gradient-to-tr from-stone-900 to-stone-800 text-orange-400 font-display font-black text-xs flex items-center justify-center shrink-0 shadow-xs border border-stone-700">
+                        {m.avatarEmoji}
+                      </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-bold text-stone-900 truncate">{m.name}</span>
-                          <span className="text-[10px] font-semibold text-amber-600 bg-amber-100/80 px-1.5 py-0.5 rounded-full">
-                            ★ {m.rating}
+                          <span className="text-[10px] font-semibold text-amber-700 bg-amber-100/80 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                            <Star className="size-2.5 text-amber-500 fill-amber-500" />
+                            {m.rating}
                           </span>
                         </div>
                         <p className="text-[11px] text-stone-600 font-medium truncate">{m.pedigree}</p>

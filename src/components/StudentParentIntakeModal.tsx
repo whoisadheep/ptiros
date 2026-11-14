@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useUserProfile } from "@/context/UserProfileContext";
 import { StudentGrade, SchoolCurriculum, ParentDreamOption } from "@/types/profile";
 import { validateIndianMobile } from "@/lib/storage";
+import { GraduationCap, Users, X, Info, Check } from "lucide-react";
 
 const GRADES: StudentGrade[] = [
   "Class 6",
@@ -132,8 +133,8 @@ export default function StudentParentIntakeModal() {
         {/* Header Bar */}
         <div className="flex items-center justify-between border-b border-stone-100 pb-4">
           <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-orange-100 text-xl font-bold text-orange-600">
-              {step === 1 ? "🎓" : "👨‍👩‍👦"}
+            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-orange-100 font-bold text-orange-600">
+              {step === 1 ? <GraduationCap className="size-5" /> : <Users className="size-5" />}
             </span>
             <div>
               <h2 id="intake-title" className="text-xl font-bold tracking-tight text-stone-900">
@@ -152,7 +153,7 @@ export default function StudentParentIntakeModal() {
             className="rounded-full p-2 text-stone-400 hover:bg-stone-100 hover:text-stone-700 transition"
             aria-label="Close modal"
           >
-            ✕
+            <X className="size-5" />
           </button>
         </div>
 
@@ -276,8 +277,9 @@ export default function StudentParentIntakeModal() {
         ) : (
           /* STEP 2: PARENT ALIGNMENT */
           <form onSubmit={handleFinalSubmit} className="mt-6 space-y-4">
-            <div className="rounded-xl bg-amber-50/80 p-3.5 border border-amber-200/80 text-xs text-amber-900 leading-relaxed">
-              💡 <strong>Why we ask this:</strong> PTIROS creates an executive Parent Dossier with dinner table conversation prompts to prevent family conflict during Class 11-12 stream selection.
+            <div className="rounded-xl bg-amber-50/80 p-3.5 border border-amber-200/80 text-xs text-amber-900 leading-relaxed flex items-start gap-2">
+              <Info className="size-4 shrink-0 text-amber-700 mt-0.5" />
+              <span><strong>Why we ask this:</strong> PTIROS creates an executive Parent Dossier with dinner table conversation prompts to prevent family conflict during Class 11-12 stream selection.</span>
             </div>
 
             <div>
@@ -367,9 +369,10 @@ export default function StudentParentIntakeModal() {
               </button>
               <button
                 type="submit"
-                className="rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 px-6 py-2.5 text-sm font-semibold text-white shadow-md hover:brightness-105 active:scale-95 transition"
+                className="rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 px-6 py-2.5 text-sm font-semibold text-white shadow-md hover:brightness-105 active:scale-95 transition flex items-center gap-1.5"
               >
-                Save Profile & Personalize Platform ✓
+                <span>Save Profile & Personalize Platform</span>
+                <Check className="size-4" />
               </button>
             </div>
           </form>

@@ -192,11 +192,11 @@ export default function AdminPortalPage() {
 
   const openWhatsAppToBooking = (booking: MentorshipSessionRecord) => {
     const text =
-      `🏛️ *PTIROS 1-on-1 Mentorship Confirmation*\n\n` +
+      `*PTIROS 1-on-1 Mentorship Confirmation*\n\n` +
       `Student: ${booking.studentName}\n` +
       `Designated Mentor: ${booking.mentorName} (${booking.domainTitle})\n` +
       `Scheduled Date: ${booking.date} at ${booking.timeSlot}\n` +
-      (booking.meetingLink ? `🔗 Video Link: ${booking.meetingLink}\n\n` : `\n`) +
+      (booking.meetingLink ? `Video Link: ${booking.meetingLink}\n\n` : `\n`) +
       `Our mentor is looking forward to addressing your core dilemma: "${booking.primaryQuestion}".\n\n` +
       `Please let us know if you need to reschedule or have any questions.`;
 

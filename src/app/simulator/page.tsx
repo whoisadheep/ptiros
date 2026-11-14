@@ -1684,7 +1684,7 @@ function SimulatorContent() {
                       onClick={() => openBookingModal(activeTrack.id)}
                       className="flex w-full sm:w-auto cursor-pointer items-center justify-center gap-2 rounded-full border border-amber-400 bg-amber-50 px-6 py-3 text-xs font-bold text-amber-900 shadow-sm transition-all hover:bg-amber-100 active:scale-95"
                     >
-                      <span>🏛️</span>
+                      <Users className="h-4 w-4 text-amber-700" />
                       <span>Book Mentor Call</span>
                     </button>
 

@@ -67,7 +67,7 @@ export default function Science() {
       aria-label="The Science behind PTIROS"
     >
       <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-12">
-        {/* Section Header matching design-02.png: "The Science behind PTIROS ?" + arrow ↙ */}
+        {/* Section Header matching design-02.png: "The Science behind PTIROS ?" + ArrowDownLeft icon */}
         <ScrollReveal direction="up" distance={20}>
           <div className="mb-14 flex flex-col md:flex-row md:items-end md:justify-between border-b border-border/60 pb-8 gap-4">
             <div>
