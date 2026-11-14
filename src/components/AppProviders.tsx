@@ -7,6 +7,7 @@ import StudentParentIntakeModal from "@/components/StudentParentIntakeModal";
 import MentorshipBookingModal from "@/components/MentorshipBookingModal";
 import ComprehensiveDossierModal from "@/components/ComprehensiveDossierModal";
 import StudentAuthModal from "@/components/StudentAuthModal";
+import FloatingCopilot from "@/components/FloatingCopilot";
 
 export default function AppProviders({ children }: { children: React.ReactNode }) {
   return (
@@ -17,6 +18,7 @@ export default function AppProviders({ children }: { children: React.ReactNode }
         <StudentParentIntakeModal />
         <MentorshipBookingModal />
         <ComprehensiveDossierModal />
+        <FloatingCopilot />
       </StudentAuthProvider>
     </UserProfileProvider>
   );

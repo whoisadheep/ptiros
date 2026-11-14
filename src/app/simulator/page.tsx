@@ -49,6 +49,7 @@ import ConsequenceBranching from "@/components/simulator/ConsequenceBranching";
 import ParentDossier from "@/components/simulator/ParentDossier";
 import { useUserProfile } from "@/context/UserProfileContext";
 import { useScrollLock } from "@/hooks/useScrollLock";
+import PtiroMascot from "@/components/PtiroMascot";
 
 const easeOutExpo = [0.16, 1, 0.3, 1] as const;
 
@@ -1065,40 +1066,52 @@ function SimulatorContent() {
               aria-hidden="true"
             />
 
-            <div className="relative z-10 max-w-3xl">
-              <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-orange-400 backdrop-blur-md">
-                <Sparkles className="h-3.5 w-3.5" />
-                Virtual Internship & Career Simulator
-              </span>
+            <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+              <div className="max-w-3xl">
+                <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-orange-400 backdrop-blur-md">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Virtual Internship & Career Simulator
+                </span>
 
-              <h1 className="mt-5 font-display text-3xl sm:text-5xl lg:text-6xl font-black leading-tight tracking-tight text-white">
-                Test-Drive Careers{" "}
-                <span className="bg-gradient-to-r from-orange-400 via-amber-300 to-orange-400 bg-clip-text text-transparent">
-                  Before Choosing
-                </span>{" "}
-                Your Stream.
-              </h1>
+                <h1 className="mt-5 font-display text-3xl sm:text-5xl lg:text-6xl font-black leading-tight tracking-tight text-white">
+                  Test-Drive Careers{" "}
+                  <span className="bg-gradient-to-r from-orange-400 via-amber-300 to-orange-400 bg-clip-text text-transparent">
+                    Before Choosing
+                  </span>{" "}
+                  Your Stream.
+                </h1>
 
-              <p className="mt-5 text-base sm:text-lg leading-relaxed text-gray-300">
-                Step directly into the shoes of top professionals. Solve authentic workplace
-                emergencies, contract disputes, product design bottlenecks, and clinical triage
-                cases in 3-minute interactive simulations.
-              </p>
+                <p className="mt-5 text-base sm:text-lg leading-relaxed text-gray-300">
+                  Step directly into the shoes of top professionals. Solve authentic workplace
+                  emergencies, contract disputes, product design bottlenecks, and clinical triage
+                  cases in 3-minute interactive simulations.
+                </p>
 
-              {/* Three Value Badges */}
-              <div className="mt-8 flex flex-wrap items-center gap-3 text-xs sm:text-sm font-semibold text-gray-300">
-                <div className="flex items-center gap-1.5 rounded-full bg-white/10 px-3.5 py-1.5 backdrop-blur-sm">
-                  <ShieldCheck className="h-4 w-4 text-emerald-400" />
-                  <span>100% Free for Students</span>
+                {/* Three Value Badges */}
+                <div className="mt-8 flex flex-wrap items-center gap-3 text-xs sm:text-sm font-semibold text-gray-300">
+                  <div className="flex items-center gap-1.5 rounded-full bg-white/10 px-3.5 py-1.5 backdrop-blur-sm">
+                    <ShieldCheck className="h-4 w-4 text-emerald-400" />
+                    <span>100% Free for Students</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 rounded-full bg-white/10 px-3.5 py-1.5 backdrop-blur-sm">
+                    <GraduationCap className="h-4 w-4 text-orange-400" />
+                    <span>NEP 2020 Aligned</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 rounded-full bg-white/10 px-3.5 py-1.5 backdrop-blur-sm">
+                    <Award className="h-4 w-4 text-sky-400" />
+                    <span>Verified Simulation Badge</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1.5 rounded-full bg-white/10 px-3.5 py-1.5 backdrop-blur-sm">
-                  <GraduationCap className="h-4 w-4 text-orange-400" />
-                  <span>NEP 2020 Aligned</span>
-                </div>
-                <div className="flex items-center gap-1.5 rounded-full bg-white/10 px-3.5 py-1.5 backdrop-blur-sm">
-                  <Award className="h-4 w-4 text-sky-400" />
-                  <span>Verified Simulation Badge</span>
-                </div>
+              </div>
+
+              {/* Ptiro Mascot Hero Spotlight */}
+              <div className="hidden lg:flex flex-col items-center justify-center p-5 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md shrink-0">
+                <PtiroMascot
+                  variant="copilot"
+                  size={120}
+                  speech="Ptiro Copilot Ready!"
+                  subSpeech="Test-drive authentic careers before stream selection."
+                />
               </div>
             </div>
           </section>
@@ -1537,14 +1550,17 @@ function SimulatorContent() {
               ) : (
                 /* ─── TAB B: STUDENT PERFORMANCE REPORT ─── */
                 <div className="overflow-hidden rounded-3xl border border-orange-200/80 bg-white p-8 sm:p-12 text-center shadow-lg">
-                  <div
-                    className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl shadow-lg"
-                    style={{ backgroundColor: `${activeTrack.color}15` }}
-                  >
-                    <Trophy className="h-10 w-10" style={{ color: activeTrack.color }} />
+                  <div className="mx-auto flex justify-center mb-3">
+                    <PtiroMascot
+                      variant="celebrate"
+                      size={95}
+                      speech="Simulation Lab Mastered!"
+                      subSpeech={`You scored ${fitPercent}% in ${activeTrack.title}`}
+                      interactive={false}
+                    />
                   </div>
 
-                  <h2 className="mt-6 font-display text-3xl sm:text-4xl font-black text-gray-900">
+                  <h2 className="mt-2 font-display text-3xl sm:text-4xl font-black text-gray-900">
                     Simulation Lab Completed!
                   </h2>
                   <p className="mt-2 text-sm text-gray-500">

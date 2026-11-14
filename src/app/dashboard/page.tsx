@@ -49,6 +49,7 @@ import {
 } from "lucide-react";
 import { Blobatar } from "@blobatar/react";
 import { useScrollLock } from "@/hooks/useScrollLock";
+import PtiroMascot from "@/components/PtiroMascot";
 
 type DashboardTab = "cockpit" | "planner" | "diary" | "credentials" | "analysis" | "mentorship";
 
@@ -75,6 +76,7 @@ export default function DashboardPage() {
   const [plannerFilter, setPlannerFilter] = useState<"all" | "daily" | "monthly" | "yearly">("all");
   const [goalCategoryFilter, setGoalCategoryFilter] = useState<string>("all");
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [celebrationGoal, setCelebrationGoal] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isLoading && !isLoggedIn) {
@@ -231,6 +233,14 @@ export default function DashboardPage() {
     setNewGoalDeadline("");
     setShowGoalModal(false);
     setIsSubmittingGoal(false);
+  };
+
+  const handleGoalToggle = async (goalId: string, currentCompleted: boolean, title: string) => {
+    if (!currentCompleted) {
+      setCelebrationGoal(title);
+      setTimeout(() => setCelebrationGoal(null), 4500);
+    }
+    await toggleGoal(goalId, !currentCompleted);
   };
 
   const handleLogout = async () => {
@@ -481,6 +491,16 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
+                {/* Ptiro Copilot Mascot */}
+                <div className="hidden xl:flex items-center justify-center p-3 rounded-2xl bg-white/5 border border-white/10 shrink-0">
+                  <PtiroMascot
+                    variant="copilot"
+                    size={75}
+                    speech="Trajectory Optimal!"
+                    subSpeech={`${trajectoryMeta.boardReadiness}% Board readiness on track.`}
+                  />
+                </div>
+
                 {/* Readiness Telemetry Dial */}
                 <div className="bg-stone-800/60 backdrop-blur-md rounded-2xl p-5 border border-stone-700/60 lg:min-w-[280px] shrink-0 space-y-4">
                   <div className="flex items-center justify-between">
@@ -564,10 +584,34 @@ export default function DashboardPage() {
 
                   {/* Goal Cards */}
                   <div className="space-y-3">
+                    {celebrationGoal && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95, y: -6 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        className="p-3.5 rounded-2xl bg-gradient-to-r from-orange-50 via-amber-50 to-emerald-50 border border-orange-200 flex items-center justify-between gap-3 shadow-xs"
+                      >
+                        <PtiroMascot
+                          variant="celebrate"
+                          size={55}
+                          speech="Milestone Crushed!"
+                          subSpeech={`${celebrationGoal} marked complete.`}
+                          interactive={false}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setCelebrationGoal(null)}
+                          className="p-1 text-stone-400 hover:text-stone-700 cursor-pointer"
+                        >
+                          <X className="size-4" />
+                        </button>
+                      </motion.div>
+                    )}
+
                     {goals.slice(0, 5).map((goal) => (
                       <div
                         key={goal.id}
-                        onClick={() => toggleGoal(goal.id, !goal.completed)}
+                        onClick={() => handleGoalToggle(goal.id, goal.completed, goal.title)}
                         className={`p-4 rounded-2xl border transition-all flex items-start justify-between gap-4 cursor-pointer group ${
                           goal.completed
                             ? "bg-stone-50/60 border-stone-200/60 opacity-60"
@@ -835,10 +879,34 @@ export default function DashboardPage() {
 
               {/* Roadmap Milestones Grid */}
               <div className="space-y-3">
+                {celebrationGoal && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: -6 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    className="p-3.5 rounded-2xl bg-gradient-to-r from-orange-50 via-amber-50 to-emerald-50 border border-orange-200 flex items-center justify-between gap-3 shadow-xs"
+                  >
+                    <PtiroMascot
+                      variant="celebrate"
+                      size={55}
+                      speech="Milestone Crushed!"
+                      subSpeech={`${celebrationGoal} marked complete.`}
+                      interactive={false}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setCelebrationGoal(null)}
+                      className="p-1 text-stone-400 hover:text-stone-700 cursor-pointer"
+                    >
+                      <X className="size-4" />
+                    </button>
+                  </motion.div>
+                )}
+
                 {filteredGoals.map((goal) => (
                   <div
                     key={goal.id}
-                    onClick={() => toggleGoal(goal.id, !goal.completed)}
+                    onClick={() => handleGoalToggle(goal.id, goal.completed, goal.title)}
                     className={`p-4 rounded-2xl border transition-all flex items-center justify-between gap-4 cursor-pointer group ${
                       goal.completed
                         ? "bg-stone-50/70 border-stone-200/60 opacity-60"
@@ -983,6 +1051,16 @@ export default function DashboardPage() {
                     Log Daily Hansei Entry
                   </h3>
                   <span className="text-[10px] uppercase font-bold text-stone-400">Live Sync</span>
+                </div>
+
+                <div className="flex items-center gap-3 p-3 rounded-2xl bg-orange-50/70 border border-orange-200/80">
+                  <PtiroMascot
+                    variant="study"
+                    size={64}
+                    speech="Hansei Mode"
+                    subSpeech="Daily deliberate reflection turns effort into compounding mastery."
+                    interactive={false}
+                  />
                 </div>
 
                 <form onSubmit={handleDiarySubmit} className="space-y-3.5">
