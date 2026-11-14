@@ -1,6 +1,7 @@
 import fs from "fs/promises";
 import path from "path";
 import crypto from "crypto";
+import { neon } from "@neondatabase/serverless";
 import {
   DatabaseStore,
   StudentLead,
@@ -25,6 +26,20 @@ export function queueDbWrite<T>(op: () => Promise<T>): Promise<T> {
   const next = writeQueue.then(op, op);
   writeQueue = next.then(() => {});
   return next;
+}
+
+/**
+ * Returns a Neon SQL executor if DATABASE_URL is configured.
+ */
+function getNeonSql() {
+  if (process.env.DATABASE_URL) {
+    try {
+      return neon(process.env.DATABASE_URL);
+    } catch (err) {
+      console.warn("Neon SQL init warning, falling back to local file store:", err);
+    }
+  }
+  return null;
 }
 
 /**
@@ -79,7 +94,7 @@ export function isAuthorizedAdmin(cookieToken?: string | null, headerKey?: strin
 }
 
 /**
- * Ensures data directory and store file exist.
+ * Ensures fallback file and directory exist if Neon is unreachable.
  */
 async function ensureDbFile(): Promise<void> {
   try {
@@ -88,69 +103,9 @@ async function ensureDbFile(): Promise<void> {
       await fs.access(DB_FILE);
     } catch {
       const initialSeed: DatabaseStore = {
-        leads: [
-          {
-            id: "lead_init_001",
-            studentName: "Aarav Sharma",
-            grade: "Class 10",
-            schoolName: "Delhi Public School, R.K. Puram",
-            city: "Delhi NCR",
-            curriculum: "CBSE",
-            parentName: "Rajesh Sharma",
-            parentPhone: "9876543210",
-            parentDream: "Wants stable engineering/technology career",
-            source: "intake_modal",
-            status: "new",
-            notes: "Interested in AI & Robotics track. Father works in PSU.",
-            parentConsent: true,
-            createdAt: new Date(Date.now() - 3600000 * 24).toISOString(),
-            updatedAt: new Date(Date.now() - 3600000 * 24).toISOString(),
-          },
-          {
-            id: "lead_init_002",
-            studentName: "Meera Nair",
-            grade: "Class 11",
-            schoolName: "The Mother's International School",
-            city: "Bengaluru",
-            curriculum: "ICSE",
-            parentName: "Suresh Nair",
-            parentPhone: "9812345678",
-            parentDream: "Seeking corporate law & public leadership",
-            source: "simulator_completion",
-            status: "contacted",
-            notes: "Scored 92% in Corporate Law simulation. Looking for CLAT counseling.",
-            parentConsent: true,
-            createdAt: new Date(Date.now() - 3600000 * 12).toISOString(),
-            updatedAt: new Date(Date.now() - 3600000 * 10).toISOString(),
-          },
-        ],
-        bookings: [
-          {
-            id: "bk_init_001",
-            mentorId: "dr-aryan-sharma",
-            mentorName: "Dr. Aryan Sharma",
-            domainTitle: "AI & Autonomous Robotics",
-            studentName: "Aarav Sharma",
-            parentPhone: "9876543210",
-            date: new Date(Date.now() + 3600000 * 24).toISOString().split("T")[0],
-            timeSlot: "11:30 AM - 11:50 AM IST",
-            primaryQuestion: "Should I focus on JEE Advanced math or start ROS robotics projects in 11th?",
-            status: "pending",
-            createdAt: new Date(Date.now() - 3600000 * 6).toISOString(),
-            updatedAt: new Date(Date.now() - 3600000 * 6).toISOString(),
-          },
-        ],
-        dossiers: [
-          {
-            id: "ord_init_001",
-            studentName: "Meera Nair",
-            parentPhone: "9812345678",
-            amount: 499,
-            currency: "INR",
-            status: "paid",
-            createdAt: new Date(Date.now() - 3600000 * 8).toISOString(),
-          },
-        ],
+        leads: [],
+        bookings: [],
+        dossiers: [],
         exportAuditLog: [],
         meta: {
           lastUpdated: new Date().toISOString(),
@@ -165,20 +120,81 @@ async function ensureDbFile(): Promise<void> {
 }
 
 /**
- * Reads database store with crash recovery.
+ * Reads database store from Neon Postgres (or local file fallback).
  */
 export async function getDatabase(): Promise<DatabaseStore> {
+  const sql = getNeonSql();
+  if (sql) {
+    try {
+      const [leadsRows, bookingsRows, dossiersRows] = await Promise.all([
+        sql`SELECT * FROM leads ORDER BY created_at DESC`,
+        sql`SELECT * FROM mentorship_bookings ORDER BY created_at DESC`,
+        sql`SELECT * FROM paid_dossiers ORDER BY created_at DESC`,
+      ]);
+
+      const leads: StudentLead[] = leadsRows.map((r: any) => ({
+        id: r.id,
+        studentName: r.student_name,
+        grade: r.grade,
+        schoolName: r.school_name || undefined,
+        city: r.city,
+        curriculum: r.curriculum,
+        parentName: r.parent_name,
+        parentPhone: r.parent_phone,
+        parentDream: r.parent_dream,
+        source: r.source,
+        status: r.status,
+        notes: r.notes || undefined,
+        parentConsent: Boolean(r.parent_consent),
+        createdAt: new Date(r.created_at).toISOString(),
+        updatedAt: new Date(r.updated_at).toISOString(),
+      }));
+
+      const bookings: MentorshipSessionRecord[] = bookingsRows.map((r: any) => ({
+        id: r.id,
+        mentorId: r.mentor_id,
+        mentorName: r.mentor_name,
+        domainTitle: r.domain_title,
+        studentName: r.student_name,
+        parentPhone: r.parent_phone,
+        date: r.date,
+        timeSlot: r.time_slot,
+        primaryQuestion: r.primary_question,
+        status: r.status,
+        meetingLink: r.meeting_link || undefined,
+        adminNotes: r.admin_notes || undefined,
+        createdAt: new Date(r.created_at).toISOString(),
+        updatedAt: new Date(r.updated_at).toISOString(),
+      }));
+
+      const dossiers: PaidDossierOrder[] = dossiersRows.map((r: any) => ({
+        id: r.id,
+        studentName: r.student_name,
+        parentPhone: r.parent_phone,
+        amount: Number(r.amount) || 499,
+        currency: r.currency || "INR",
+        status: r.status,
+        createdAt: new Date(r.created_at).toISOString(),
+      }));
+
+      return {
+        leads,
+        bookings,
+        dossiers,
+        exportAuditLog: [],
+        meta: { lastUpdated: new Date().toISOString(), version: 1 },
+      };
+    } catch (err) {
+      console.warn("Neon query failed, using local file store:", err);
+    }
+  }
+
+  // Fallback to local store
   await ensureDbFile();
   try {
     const raw = await fs.readFile(DB_FILE, "utf8");
     return JSON.parse(raw) as DatabaseStore;
   } catch (err) {
-    console.error("Corrupted database file detected. Attempting recovery snapshot...", err);
-    try {
-      const corruptName = path.join(DATA_DIR, `ptiros_store.corrupt.${Date.now()}.json`);
-      await fs.copyFile(DB_FILE, corruptName);
-    } catch {}
-    // Return empty safe structure
     return {
       leads: [],
       bookings: [],
@@ -190,47 +206,82 @@ export async function getDatabase(): Promise<DatabaseStore> {
 }
 
 /**
- * Atomically writes database to disk using a unique temporary file and rename.
- */
-async function atomicWriteDatabase(store: DatabaseStore): Promise<void> {
-  await ensureDbFile();
-  store.meta.lastUpdated = new Date().toISOString();
-  const tempFile = path.join(DATA_DIR, `ptiros_store.${crypto.randomUUID()}.tmp`);
-  await fs.writeFile(tempFile, JSON.stringify(store, null, 2), "utf8");
-  await fs.rename(tempFile, DB_FILE);
-}
-
-/**
- * Ingests or updates a student-parent lead.
+ * Ingests or updates a student-parent lead in Neon Postgres.
  */
 export async function saveLead(
   leadInput: Omit<StudentLead, "id" | "createdAt" | "updatedAt" | "status"> & { status?: LeadStatus }
 ): Promise<StudentLead> {
-  return queueDbWrite(async () => {
-    const store = await getDatabase();
-    const phoneNorm = normalizeIndianMobile(leadInput.parentPhone);
-    const cleanPhone = phoneNorm.isValid ? phoneNorm.normalized : leadInput.parentPhone.slice(-10);
+  const phoneNorm = normalizeIndianMobile(leadInput.parentPhone);
+  const cleanPhone = phoneNorm.isValid ? phoneNorm.normalized : leadInput.parentPhone.slice(-10);
+  const studentName = leadInput.studentName.trim();
+  const sql = getNeonSql();
 
-    const now = new Date().toISOString();
-    const existingIdx = store.leads.findIndex(
-      (l) => l.parentPhone === cleanPhone && l.studentName.trim().toLowerCase() === leadInput.studentName.trim().toLowerCase()
-    );
+  if (sql) {
+    try {
+      const now = new Date().toISOString();
+      const existing = await sql`
+        SELECT * FROM leads 
+        WHERE parent_phone = ${cleanPhone} AND LOWER(student_name) = LOWER(${studentName})
+        LIMIT 1
+      `;
 
-    if (existingIdx >= 0) {
-      // Upsert update
-      const existing = store.leads[existingIdx];
-      const updated: StudentLead = {
-        ...existing,
+      if (existing.length > 0) {
+        const id = existing[0].id;
+        await sql`
+          UPDATE leads SET
+            grade = ${leadInput.grade},
+            school_name = ${leadInput.schoolName || null},
+            city = ${leadInput.city},
+            curriculum = ${leadInput.curriculum},
+            parent_name = ${leadInput.parentName},
+            parent_dream = ${leadInput.parentDream},
+            source = ${leadInput.source},
+            status = ${leadInput.status || existing[0].status},
+            notes = ${leadInput.notes || existing[0].notes || null},
+            updated_at = NOW()
+          WHERE id = ${id}
+        `;
+        return {
+          ...leadInput,
+          id,
+          parentPhone: cleanPhone,
+          status: (leadInput.status || existing[0].status) as LeadStatus,
+          parentConsent: Boolean(leadInput.parentConsent),
+          createdAt: new Date(existing[0].created_at).toISOString(),
+          updatedAt: now,
+        };
+      }
+
+      const newId = `lead_${crypto.randomBytes(4).toString("hex")}`;
+      await sql`
+        INSERT INTO leads (
+          id, student_name, grade, school_name, city, curriculum,
+          parent_name, parent_phone, parent_dream, source, status, notes, parent_consent
+        ) VALUES (
+          ${newId}, ${studentName}, ${leadInput.grade}, ${leadInput.schoolName || null}, ${leadInput.city}, ${leadInput.curriculum},
+          ${leadInput.parentName}, ${cleanPhone}, ${leadInput.parentDream}, ${leadInput.source}, ${leadInput.status || 'new'},
+          ${leadInput.notes || null}, ${Boolean(leadInput.parentConsent)}
+        )
+      `;
+
+      return {
         ...leadInput,
+        id: newId,
         parentPhone: cleanPhone,
+        status: leadInput.status || "new",
+        parentConsent: Boolean(leadInput.parentConsent),
+        createdAt: now,
         updatedAt: now,
       };
-      store.leads[existingIdx] = updated;
-      await atomicWriteDatabase(store);
-      return updated;
+    } catch (err) {
+      console.warn("Neon saveLead failed, falling back to local store:", err);
     }
+  }
 
-    // New Lead
+  // Fallback to local store
+  return queueDbWrite(async () => {
+    const store = await getDatabase();
+    const now = new Date().toISOString();
     const newLead: StudentLead = {
       ...leadInput,
       id: `lead_${crypto.randomBytes(4).toString("hex")}`,
@@ -240,9 +291,9 @@ export async function saveLead(
       createdAt: now,
       updatedAt: now,
     };
-
     store.leads.unshift(newLead);
-    await atomicWriteDatabase(store);
+    await ensureDbFile();
+    await fs.writeFile(DB_FILE, JSON.stringify(store, null, 2), "utf8");
     return newLead;
   });
 }
@@ -251,16 +302,49 @@ export async function saveLead(
  * Updates an existing lead status or counselor notes.
  */
 export async function updateLeadStatus(id: string, status: LeadStatus, notes?: string): Promise<StudentLead | null> {
+  const sql = getNeonSql();
+  if (sql) {
+    try {
+      await sql`
+        UPDATE leads SET
+          status = ${status},
+          notes = COALESCE(${notes || null}, notes),
+          updated_at = NOW()
+        WHERE id = ${id}
+      `;
+      const rows = await sql`SELECT * FROM leads WHERE id = ${id} LIMIT 1`;
+      if (rows.length === 0) return null;
+      const r = rows[0];
+      return {
+        id: r.id,
+        studentName: r.student_name,
+        grade: r.grade,
+        schoolName: r.school_name || undefined,
+        city: r.city,
+        curriculum: r.curriculum,
+        parentName: r.parent_name,
+        parentPhone: r.parent_phone,
+        parentDream: r.parent_dream,
+        source: r.source,
+        status: r.status,
+        notes: r.notes || undefined,
+        parentConsent: Boolean(r.parent_consent),
+        createdAt: new Date(r.created_at).toISOString(),
+        updatedAt: new Date(r.updated_at).toISOString(),
+      };
+    } catch (err) {
+      console.warn("Neon updateLeadStatus failed:", err);
+    }
+  }
+
   return queueDbWrite(async () => {
     const store = await getDatabase();
     const lead = store.leads.find((l) => l.id === id);
     if (!lead) return null;
-
     lead.status = status;
     if (notes !== undefined) lead.notes = notes;
     lead.updatedAt = new Date().toISOString();
-
-    await atomicWriteDatabase(store);
+    await fs.writeFile(DB_FILE, JSON.stringify(store, null, 2), "utf8");
     return lead;
   });
 }
@@ -271,10 +355,58 @@ export async function updateLeadStatus(id: string, status: LeadStatus, notes?: s
 export async function saveBooking(
   bookingInput: Omit<MentorshipSessionRecord, "id" | "createdAt" | "updatedAt" | "status">
 ): Promise<{ success: boolean; booking?: MentorshipSessionRecord; conflict?: boolean }> {
+  const sql = getNeonSql();
+  const phoneNorm = normalizeIndianMobile(bookingInput.parentPhone);
+  const cleanPhone = phoneNorm.isValid ? phoneNorm.normalized : bookingInput.parentPhone.slice(-10);
+
+  if (sql) {
+    try {
+      // Check conflict
+      const conflicts = await sql`
+        SELECT id FROM mentorship_bookings 
+        WHERE mentor_id = ${bookingInput.mentorId}
+          AND date = ${bookingInput.date}
+          AND time_slot = ${bookingInput.timeSlot}
+          AND status != 'cancelled'
+        LIMIT 1
+      `;
+
+      if (conflicts.length > 0) {
+        return { success: false, conflict: true };
+      }
+
+      const newId = `bk_${crypto.randomBytes(4).toString("hex")}`;
+      const now = new Date().toISOString();
+
+      await sql`
+        INSERT INTO mentorship_bookings (
+          id, mentor_id, mentor_name, domain_title, student_name, parent_phone,
+          date, time_slot, primary_question, status
+        ) VALUES (
+          ${newId}, ${bookingInput.mentorId}, ${bookingInput.mentorName}, ${bookingInput.domainTitle},
+          ${bookingInput.studentName}, ${cleanPhone}, ${bookingInput.date}, ${bookingInput.timeSlot},
+          ${bookingInput.primaryQuestion}, 'pending'
+        )
+      `;
+
+      const newBooking: MentorshipSessionRecord = {
+        ...bookingInput,
+        id: newId,
+        parentPhone: cleanPhone,
+        status: "pending",
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      return { success: true, booking: newBooking };
+    } catch (err) {
+      console.warn("Neon saveBooking failed, fallback to local:", err);
+    }
+  }
+
+  // Fallback to local store
   return queueDbWrite(async () => {
     const store = await getDatabase();
-
-    // Conflict Check: Is the mentor already booked for this exact slot?
     const hasConflict = store.bookings.some(
       (b) =>
         b.mentorId === bookingInput.mentorId &&
@@ -282,15 +414,9 @@ export async function saveBooking(
         b.timeSlot === bookingInput.timeSlot &&
         b.status !== "cancelled"
     );
+    if (hasConflict) return { success: false, conflict: true };
 
-    if (hasConflict) {
-      return { success: false, conflict: true };
-    }
-
-    const phoneNorm = normalizeIndianMobile(bookingInput.parentPhone);
-    const cleanPhone = phoneNorm.isValid ? phoneNorm.normalized : bookingInput.parentPhone.slice(-10);
     const now = new Date().toISOString();
-
     const newBooking: MentorshipSessionRecord = {
       ...bookingInput,
       id: `bk_${crypto.randomBytes(4).toString("hex")}`,
@@ -299,9 +425,8 @@ export async function saveBooking(
       createdAt: now,
       updatedAt: now,
     };
-
     store.bookings.unshift(newBooking);
-    await atomicWriteDatabase(store);
+    await fs.writeFile(DB_FILE, JSON.stringify(store, null, 2), "utf8");
     return { success: true, booking: newBooking };
   });
 }
@@ -315,17 +440,50 @@ export async function updateBookingStatus(
   meetingLink?: string,
   adminNotes?: string
 ): Promise<MentorshipSessionRecord | null> {
+  const sql = getNeonSql();
+  if (sql) {
+    try {
+      await sql`
+        UPDATE mentorship_bookings SET
+          status = ${status},
+          meeting_link = COALESCE(${meetingLink || null}, meeting_link),
+          admin_notes = COALESCE(${adminNotes || null}, admin_notes),
+          updated_at = NOW()
+        WHERE id = ${id}
+      `;
+      const rows = await sql`SELECT * FROM mentorship_bookings WHERE id = ${id} LIMIT 1`;
+      if (rows.length === 0) return null;
+      const r = rows[0];
+      return {
+        id: r.id,
+        mentorId: r.mentor_id,
+        mentorName: r.mentor_name,
+        domainTitle: r.domain_title,
+        studentName: r.student_name,
+        parentPhone: r.parent_phone,
+        date: r.date,
+        timeSlot: r.time_slot,
+        primaryQuestion: r.primary_question,
+        status: r.status,
+        meetingLink: r.meeting_link || undefined,
+        adminNotes: r.admin_notes || undefined,
+        createdAt: new Date(r.created_at).toISOString(),
+        updatedAt: new Date(r.updated_at).toISOString(),
+      };
+    } catch (err) {
+      console.warn("Neon updateBookingStatus failed:", err);
+    }
+  }
+
   return queueDbWrite(async () => {
     const store = await getDatabase();
     const booking = store.bookings.find((b) => b.id === id);
     if (!booking) return null;
-
     booking.status = status;
     if (meetingLink !== undefined) booking.meetingLink = meetingLink;
     if (adminNotes !== undefined) booking.adminNotes = adminNotes;
     booking.updatedAt = new Date().toISOString();
-
-    await atomicWriteDatabase(store);
+    await fs.writeFile(DB_FILE, JSON.stringify(store, null, 2), "utf8");
     return booking;
   });
 }
@@ -336,27 +494,52 @@ export async function updateBookingStatus(
 export async function saveDossierOrder(
   orderInput: Omit<PaidDossierOrder, "id" | "createdAt" | "currency" | "amount">
 ): Promise<PaidDossierOrder> {
+  const sql = getNeonSql();
+  const phoneNorm = normalizeIndianMobile(orderInput.parentPhone);
+  const cleanPhone = phoneNorm.isValid ? phoneNorm.normalized : orderInput.parentPhone;
+  const newId = `ord_${crypto.randomBytes(4).toString("hex")}`;
+  const now = new Date().toISOString();
+
+  if (sql) {
+    try {
+      await sql`
+        INSERT INTO paid_dossiers (
+          id, student_name, parent_phone, amount, currency, status
+        ) VALUES (
+          ${newId}, ${orderInput.studentName}, ${cleanPhone}, 499, 'INR', ${orderInput.status || 'payment_pending'}
+        )
+      `;
+      return {
+        ...orderInput,
+        id: newId,
+        parentPhone: cleanPhone,
+        amount: 499,
+        currency: "INR",
+        createdAt: now,
+      };
+    } catch (err) {
+      console.warn("Neon saveDossierOrder failed:", err);
+    }
+  }
+
   return queueDbWrite(async () => {
     const store = await getDatabase();
-    const phoneNorm = normalizeIndianMobile(orderInput.parentPhone);
-
     const newOrder: PaidDossierOrder = {
       ...orderInput,
-      id: `ord_${crypto.randomBytes(4).toString("hex")}`,
-      parentPhone: phoneNorm.isValid ? phoneNorm.normalized : orderInput.parentPhone,
+      id: newId,
+      parentPhone: cleanPhone,
       amount: 499,
       currency: "INR",
-      createdAt: new Date().toISOString(),
+      createdAt: now,
     };
-
     store.dossiers.unshift(newOrder);
-    await atomicWriteDatabase(store);
+    await fs.writeFile(DB_FILE, JSON.stringify(store, null, 2), "utf8");
     return newOrder;
   });
 }
 
 /**
- * Aggregates high-level admin metrics and conversion stats.
+ * Aggregates high-level admin metrics and conversion stats directly from Neon Postgres.
  */
 export async function getAdminMetrics(): Promise<AdminMetricsSummary> {
   const store = await getDatabase();
@@ -392,11 +575,9 @@ export async function getAdminMetrics(): Promise<AdminMetricsSummary> {
 function escapeCsvCell(val: unknown): string {
   if (val === null || val === undefined) return '""';
   let str = String(val).replace(/[\r\n\t]/g, " ").trim();
-  // Prevent CSV Formula Injection in Excel/Sheets
   if (/^[=+\-@\t\r]/.test(str)) {
     str = "'" + str;
   }
-  // Escape inner quotes
   str = str.replace(/"/g, '""');
   return `"${str}"`;
 }
@@ -405,49 +586,49 @@ function escapeCsvCell(val: unknown): string {
  * Exports all leads to an RFC 4180 compliant CSV string with audit logging.
  */
 export async function exportLeadsToCsv(clientIp: string): Promise<string> {
-  return queueDbWrite(async () => {
-    const store = await getDatabase();
+  const store = await getDatabase();
+  const sql = getNeonSql();
 
-    // Audit log
-    store.exportAuditLog.push({
-      timestamp: new Date().toISOString(),
-      ip: clientIp,
-      count: store.leads.length,
-    });
-    await atomicWriteDatabase(store);
+  if (sql) {
+    try {
+      await sql`
+        INSERT INTO export_audit_log (client_ip, row_count)
+        VALUES (${clientIp}, ${store.leads.length})
+      `;
+    } catch {}
+  }
 
-    const headers = [
-      "Lead ID",
-      "Date Created",
-      "Student Name",
-      "Grade",
-      "Curriculum",
-      "School Name",
-      "City",
-      "Parent Name",
-      "Parent WhatsApp",
-      "Parent Career Dream",
-      "Lead Source",
-      "Status",
-      "Notes",
-    ];
+  const headers = [
+    "Lead ID",
+    "Date Created",
+    "Student Name",
+    "Grade",
+    "Curriculum",
+    "School Name",
+    "City",
+    "Parent Name",
+    "Parent WhatsApp",
+    "Parent Career Dream",
+    "Lead Source",
+    "Status",
+    "Notes",
+  ];
 
-    const rows = store.leads.map((l) => [
-      escapeCsvCell(l.id),
-      escapeCsvCell(l.createdAt.slice(0, 10)),
-      escapeCsvCell(l.studentName),
-      escapeCsvCell(l.grade),
-      escapeCsvCell(l.curriculum),
-      escapeCsvCell(l.schoolName || "N/A"),
-      escapeCsvCell(l.city),
-      escapeCsvCell(l.parentName),
-      escapeCsvCell(l.parentPhone),
-      escapeCsvCell(l.parentDream),
-      escapeCsvCell(l.source),
-      escapeCsvCell(l.status),
-      escapeCsvCell(l.notes || ""),
-    ]);
+  const rows = store.leads.map((l) => [
+    escapeCsvCell(l.id),
+    escapeCsvCell(l.createdAt.slice(0, 10)),
+    escapeCsvCell(l.studentName),
+    escapeCsvCell(l.grade),
+    escapeCsvCell(l.curriculum),
+    escapeCsvCell(l.schoolName || "N/A"),
+    escapeCsvCell(l.city),
+    escapeCsvCell(l.parentName),
+    escapeCsvCell(l.parentPhone),
+    escapeCsvCell(l.parentDream),
+    escapeCsvCell(l.source),
+    escapeCsvCell(l.status),
+    escapeCsvCell(l.notes || ""),
+  ]);
 
-    return [headers.join(","), ...rows.map((r) => r.join(","))].join("\r\n");
-  });
+  return [headers.join(","), ...rows.map((r) => r.join(","))].join("\r\n");
 }
