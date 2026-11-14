@@ -16,9 +16,10 @@ const quickLinks = [
 
 const resources = [
   { label: "Why PTIROS", href: "#why-ptiros" },
-  { label: "Research", href: "#research" },
+  { label: "Simulator", href: "/simulator" },
+  { label: "Research & NEP 2020", href: "#about" },
   { label: "Statistics", href: "#statistics" },
-  { label: "Events", href: "#events" },
+  { label: "Admin CRM", href: "/admin" },
 ];
 
 const contactInfo = [

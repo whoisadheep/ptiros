@@ -152,6 +152,18 @@ export default function ComprehensiveDossierModal() {
 
   const handleUnlockDossier = () => {
     const studentName = profile?.studentName || "PTIROS Student";
+
+    // Record order in server database
+    fetch("/api/dossiers", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        studentName,
+        parentPhone: profile?.parentPhone || "9876543210",
+        status: "payment_pending",
+      }),
+    }).catch(() => {});
+
     const text =
       `📄 *PTIROS 360° Comprehensive 10-Page Career Dossier Unlock Request*\n\n` +
       `🎓 *Student:* ${studentName}\n` +

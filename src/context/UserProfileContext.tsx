@@ -52,6 +52,28 @@ export function UserProfileProvider({ children }: { children: React.ReactNode })
     };
     setProfile(fullProfile);
     setStoredProfile(fullProfile);
+
+    // Non-blocking background sync to server database
+    try {
+      fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          studentName: fullProfile.studentName,
+          grade: fullProfile.grade,
+          schoolName: fullProfile.schoolName,
+          city: fullProfile.city,
+          curriculum: fullProfile.curriculum,
+          parentName: fullProfile.parentName,
+          parentPhone: fullProfile.parentPhone,
+          parentDream: fullProfile.parentDreamCustom || fullProfile.parentDream,
+          source: "intake_modal",
+          parentConsent: true,
+        }),
+      }).catch(() => {
+        // Silently preserve offline resilience
+      });
+    } catch {}
   };
 
   const updateProfile = (partial: Partial<UserProfile>) => {

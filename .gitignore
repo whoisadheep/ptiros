@@ -44,3 +44,7 @@ next-env.d.ts
 /screenshots/
 *.log
 
+# database temp & recovery files
+data/*.tmp
+data/*.corrupt.*
+

@@ -79,7 +79,7 @@ export default function MentorshipBookingModal() {
     }
     setPhoneError("");
 
-    const newBooking: MentorshipBooking = {
+    const bookingPayload = {
       id: "BK-" + Math.floor(100000 + Math.random() * 900000),
       mentorId: selectedMentor.id,
       mentorName: selectedMentor.name,
@@ -92,7 +92,20 @@ export default function MentorshipBookingModal() {
       createdAt: new Date().toISOString(),
     };
 
-    setBookingConfirmed(newBooking);
+    // Sync to server database in background
+    fetch("/api/bookings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(bookingPayload),
+    })
+      .then(async (res) => {
+        if (res.status === 409) {
+          setPhoneError("This time slot was just booked with this mentor. Please select another slot or date.");
+        }
+      })
+      .catch(() => {});
+
+    setBookingConfirmed(bookingPayload);
   };
 
   const generateGoogleCalendarUrl = (booking: MentorshipBooking) => {

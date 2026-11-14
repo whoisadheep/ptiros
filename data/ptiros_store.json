@@ -1,0 +1,92 @@
+{
+  "leads": [
+    {
+      "studentName": "Rohan Kulkarni",
+      "grade": "Class 11",
+      "schoolName": "Kendriya Vidyalaya IIT Powai",
+      "city": "Mumbai",
+      "curriculum": "CBSE",
+      "parentName": "Anand Kulkarni",
+      "parentPhone": "9820012345",
+      "parentDream": "Wants stable engineering/technology career",
+      "source": "intake_modal",
+      "parentConsent": true,
+      "id": "lead_6dc7c554",
+      "status": "new",
+      "createdAt": "2026-11-14T07:43:09.836Z",
+      "updatedAt": "2026-11-14T07:43:09.836Z"
+    },
+    {
+      "id": "lead_init_001",
+      "studentName": "Aarav Sharma",
+      "grade": "Class 10",
+      "schoolName": "Delhi Public School, R.K. Puram",
+      "city": "Delhi NCR",
+      "curriculum": "CBSE",
+      "parentName": "Rajesh Sharma",
+      "parentPhone": "9876543210",
+      "parentDream": "Wants stable engineering/technology career",
+      "source": "intake_modal",
+      "status": "new",
+      "notes": "Interested in AI & Robotics track. Father works in PSU.",
+      "parentConsent": true,
+      "createdAt": "2026-11-13T07:42:58.142Z",
+      "updatedAt": "2026-11-13T07:42:58.142Z"
+    },
+    {
+      "id": "lead_init_002",
+      "studentName": "Meera Nair",
+      "grade": "Class 11",
+      "schoolName": "The Mother's International School",
+      "city": "Bengaluru",
+      "curriculum": "ICSE",
+      "parentName": "Suresh Nair",
+      "parentPhone": "9812345678",
+      "parentDream": "Seeking corporate law & public leadership",
+      "source": "simulator_completion",
+      "status": "contacted",
+      "notes": "Scored 92% in Corporate Law simulation. Looking for CLAT counseling.",
+      "parentConsent": true,
+      "createdAt": "2026-11-13T19:42:58.142Z",
+      "updatedAt": "2026-11-13T21:42:58.142Z"
+    }
+  ],
+  "bookings": [
+    {
+      "id": "bk_init_001",
+      "mentorId": "dr-aryan-sharma",
+      "mentorName": "Dr. Aryan Sharma",
+      "domainTitle": "AI & Autonomous Robotics",
+      "studentName": "Aarav Sharma",
+      "parentPhone": "9876543210",
+      "date": "2026-11-15",
+      "timeSlot": "11:30 AM - 11:50 AM IST",
+      "primaryQuestion": "Should I focus on JEE Advanced math or start ROS robotics projects in 11th?",
+      "status": "pending",
+      "createdAt": "2026-11-14T01:42:58.142Z",
+      "updatedAt": "2026-11-14T01:42:58.142Z"
+    }
+  ],
+  "dossiers": [
+    {
+      "id": "ord_init_001",
+      "studentName": "Meera Nair",
+      "parentPhone": "9812345678",
+      "amount": 499,
+      "currency": "INR",
+      "status": "paid",
+      "createdAt": "2026-11-13T23:42:58.143Z"
+    }
+  ],
+  "exportAuditLog": [
+    {
+      "timestamp": "2026-11-14T07:43:14.081Z",
+      "ip": "::1",
+      "count": 3
+    }
+  ],
+  "meta": {
+    "lastUpdated": "2026-11-14T07:43:14.082Z",
+    "version": 1
+  }
+}
