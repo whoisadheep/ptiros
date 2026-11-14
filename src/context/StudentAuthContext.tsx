@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import {
   StudentUser,
   StudentDiaryEntry,
@@ -34,7 +35,7 @@ interface StudentAuthContextType {
     parentPhone?: string;
     parentDream?: string;
   }) => Promise<{ success: boolean; error?: string }>;
-  logout: () => Promise<void>;
+  logout: (redirectTo?: string) => Promise<void>;
   addDiaryEntry: (title: string, content: string, category?: string) => Promise<boolean>;
   toggleGoal: (goalId: string, completed: boolean) => Promise<boolean>;
   addGoal: (title: string, timeView: "daily" | "monthly" | "yearly", deadline?: string) => Promise<boolean>;
@@ -44,6 +45,7 @@ interface StudentAuthContextType {
 const StudentAuthContext = createContext<StudentAuthContextType | undefined>(undefined);
 
 export function StudentAuthProvider({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
   const [user, setUser] = useState<StudentUser | null>(null);
   const [diary, setDiary] = useState<StudentDiaryEntry[]>([]);
   const [goals, setGoals] = useState<StudentPlannerGoal[]>([]);
@@ -158,7 +160,7 @@ export function StudentAuthProvider({ children }: { children: React.ReactNode })
     }
   };
 
-  const logout = async () => {
+  const logout = async (redirectTo: string = "/login") => {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
     } finally {
@@ -166,6 +168,9 @@ export function StudentAuthProvider({ children }: { children: React.ReactNode })
       setDiary([]);
       setGoals([]);
       setSimulations([]);
+      if (redirectTo) {
+        router.push(redirectTo);
+      }
     }
   };
 

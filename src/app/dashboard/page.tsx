@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStudentAuth } from "@/context/StudentAuthContext";
@@ -52,6 +53,7 @@ import { useScrollLock } from "@/hooks/useScrollLock";
 type DashboardTab = "cockpit" | "planner" | "diary" | "credentials" | "analysis" | "mentorship";
 
 export default function DashboardPage() {
+  const router = useRouter();
   const {
     user,
     diary,
@@ -72,6 +74,13 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<DashboardTab>("cockpit");
   const [plannerFilter, setPlannerFilter] = useState<"all" | "daily" | "monthly" | "yearly">("all");
   const [goalCategoryFilter, setGoalCategoryFilter] = useState<string>("all");
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  useEffect(() => {
+    if (!isLoading && !isLoggedIn) {
+      router.replace("/login");
+    }
+  }, [isLoading, isLoggedIn, router]);
 
   // Diary composer state
   const [diaryTitle, setDiaryTitle] = useState("");
@@ -224,6 +233,33 @@ export default function DashboardPage() {
     setIsSubmittingGoal(false);
   };
 
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    await logout("/login");
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-stone-100/70 flex items-center justify-center p-4">
+        <div className="flex flex-col items-center gap-3">
+          <div className="size-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs font-semibold text-stone-500">Loading student portal...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-stone-100/70 flex items-center justify-center p-4">
+        <div className="flex flex-col items-center gap-3">
+          <div className="size-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs font-semibold text-stone-500">Redirecting to login...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-stone-100/70 text-stone-900 font-body flex flex-col selection:bg-orange-500 selection:text-white">
       {/* ========================================================= */}
@@ -309,19 +345,23 @@ export default function DashboardPage() {
 
             {isLoggedIn ? (
               <button
-                onClick={logout}
+                onClick={handleLogout}
+                disabled={isLoggingOut}
                 title="Sign out"
-                className="p-1.5 sm:p-2 rounded-xl text-stone-500 hover:text-stone-900 hover:bg-stone-100 transition cursor-pointer"
+                className="flex items-center gap-1.5 p-1.5 sm:px-3 sm:py-1.5 rounded-xl text-stone-500 hover:text-stone-900 hover:bg-stone-100 transition cursor-pointer disabled:opacity-50"
               >
                 <LogOut className="size-4" />
+                <span className="hidden sm:inline text-xs font-semibold">
+                  {isLoggingOut ? "Signing out..." : "Sign out"}
+                </span>
               </button>
             ) : (
-              <button
-                onClick={() => openAuthModal("login")}
+              <Link
+                href="/login"
                 className="px-2.5 sm:px-3 py-1.5 rounded-xl border border-stone-300 text-xs font-bold hover:bg-stone-50 transition cursor-pointer"
               >
                 Login
-              </button>
+              </Link>
             )}
           </div>
         </div>

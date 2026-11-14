@@ -20,6 +20,7 @@ import {
   GraduationCap,
   Building2,
   FileText,
+  LogOut,
 } from "lucide-react";
 import Link from "next/link";
 import { Blobatar } from "@blobatar/react";
@@ -40,7 +41,7 @@ const easeOutExpo = [0.16, 1, 0.3, 1] as const;
 
 export default function Navbar() {
   const { profile, openIntakeModal, openBookingModal, openDossierModal } = useUserProfile();
-  const { user: studentUser, openAuthModal: openStudentAuthModal } = useStudentAuth();
+  const { user: studentUser, openAuthModal: openStudentAuthModal, logout: studentLogout } = useStudentAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -116,19 +117,29 @@ export default function Navbar() {
           {/* Desktop CTA & Profile */}
           <div className="hidden lg:flex items-center gap-2.5">
             {studentUser ? (
-              <Link
-                href="/dashboard"
-                className="flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50/90 px-3 py-1 text-xs font-bold text-orange-950 hover:bg-orange-100 transition shadow-xs cursor-pointer"
-                title="Open Student Dashboard"
-              >
-                <span className="size-6 rounded-full overflow-hidden border border-orange-300 bg-white flex items-center justify-center shrink-0 shadow-2xs">
-                  <Blobatar name={studentUser.name} size={24} className="size-full object-cover" />
-                </span>
-                <span className="max-w-[85px] truncate">{studentUser.name.split(" ")[0]}</span>
-                <span className="text-[10px] text-orange-700 bg-orange-200/60 px-1.5 py-0.5 rounded-full">
-                  {studentUser.grade}
-                </span>
-              </Link>
+              <div className="flex items-center gap-1">
+                <Link
+                  href="/dashboard"
+                  className="flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50/90 px-3 py-1 text-xs font-bold text-orange-950 hover:bg-orange-100 transition shadow-xs cursor-pointer"
+                  title="Open Student Dashboard"
+                >
+                  <span className="size-6 rounded-full overflow-hidden border border-orange-300 bg-white flex items-center justify-center shrink-0 shadow-2xs">
+                    <Blobatar name={studentUser.name} size={24} className="size-full object-cover" />
+                  </span>
+                  <span className="max-w-[85px] truncate">{studentUser.name.split(" ")[0]}</span>
+                  <span className="text-[10px] text-orange-700 bg-orange-200/60 px-1.5 py-0.5 rounded-full">
+                    {studentUser.grade}
+                  </span>
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => studentLogout("/")}
+                  className="p-1.5 rounded-full text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition cursor-pointer"
+                  title="Sign out of student account"
+                >
+                  <LogOut className="size-3.5" />
+                </button>
+              </div>
             ) : (
               <button
                 type="button"
@@ -245,13 +256,26 @@ export default function Navbar() {
                       {studentUser ? studentUser.name : (profile?.studentName ? profile.studentName : "Student Portal")}
                     </span>
                     {studentUser ? (
-                      <Link
-                        href="/dashboard"
-                        onClick={() => setIsOpen(false)}
-                        className="text-[11px] font-bold text-white bg-primary hover:bg-primary-dark px-3 py-1 rounded-full cursor-pointer transition shadow-xs"
-                      >
-                        Dashboard →
-                      </Link>
+                      <div className="flex items-center gap-1.5">
+                        <Link
+                          href="/dashboard"
+                          onClick={() => setIsOpen(false)}
+                          className="text-[11px] font-bold text-white bg-primary hover:bg-primary-dark px-3 py-1 rounded-full cursor-pointer transition shadow-xs"
+                        >
+                          Dashboard →
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            setIsOpen(false);
+                            await studentLogout("/");
+                          }}
+                          className="p-1 rounded-md text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition cursor-pointer"
+                          title="Sign out"
+                        >
+                          <LogOut className="size-3.5" />
+                        </button>
+                      </div>
                     ) : (
                       <button
                         type="button"
