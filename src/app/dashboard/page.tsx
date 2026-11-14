@@ -230,11 +230,11 @@ export default function DashboardPage() {
       {/* 1. TOP GLOBAL COMMAND BAR (Command Center Status) */}
       {/* ========================================================= */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-stone-200/90 shadow-2xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-          {/* Brand & Trajectory Badge */}
-          <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-2 group">
-              <span className="font-display font-black text-2xl tracking-tight text-gradient">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
+          {/* Brand & Student Avatar Chip */}
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <Link href="/" className="flex items-center gap-1.5 sm:gap-2 group shrink-0">
+              <span className="font-display font-black text-xl sm:text-2xl tracking-tight text-gradient">
                 PTIROS
               </span>
               <span className="hidden sm:inline-block text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-md bg-stone-900 text-stone-100">
@@ -242,18 +242,24 @@ export default function DashboardPage() {
               </span>
             </Link>
 
-            <div className="hidden md:flex items-center gap-2 text-xs border-l border-stone-200 pl-3">
-              <span className="size-6 rounded-full overflow-hidden border border-orange-300 bg-white flex items-center justify-center shrink-0 shadow-2xs">
-                <Blobatar name={student.name} size={24} className="size-full object-cover" />
+            {/* Student Chip - Visible on Mobile and Desktop */}
+            <div className="flex items-center gap-1.5 sm:gap-2 text-xs border-l border-stone-200 pl-2 sm:pl-3 min-w-0">
+              <span className="size-6 sm:size-7 rounded-full overflow-hidden border border-orange-300 bg-white flex items-center justify-center shrink-0 shadow-2xs">
+                <Blobatar name={student.name} size={28} className="size-full object-cover" />
               </span>
-              <span className="font-semibold text-stone-700">{student.name}</span>
-              <span className="text-stone-400">•</span>
-              <span className="text-stone-500 font-medium">{student.grade} ({student.curriculum})</span>
+              <div className="min-w-0">
+                <span className="font-bold text-stone-800 text-xs truncate block max-w-[90px] sm:max-w-none">
+                  {student.name}
+                </span>
+                <span className="text-stone-400 text-[10px] hidden md:inline">
+                  • {student.grade} ({student.curriculum})
+                </span>
+              </div>
             </div>
           </div>
 
-          {/* Center Demo Switcher Segment */}
-          <div className="flex items-center bg-stone-100 p-1 rounded-xl border border-stone-200/80">
+          {/* Desktop Demo Switcher Segment */}
+          <div className="hidden md:flex items-center bg-stone-100 p-1 rounded-xl border border-stone-200/80">
             <span className="hidden lg:inline-block text-[11px] font-bold text-stone-400 px-2 uppercase tracking-wider">
               Profile:
             </span>
@@ -290,31 +296,72 @@ export default function DashboardPage() {
           </div>
 
           {/* Right Action Stack */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             <button
               onClick={() => openBookingModal(trajectoryMeta.primaryMentor.trackId)}
-              className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-600 text-white font-bold text-xs shadow-xs hover:from-orange-600 hover:to-amber-700 transition cursor-pointer"
+              className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-600 text-white font-bold text-xs shadow-xs hover:from-orange-600 hover:to-amber-700 transition cursor-pointer active:scale-95"
+              title="1:1 Mentor Desk"
             >
               <Users className="size-3.5" />
-              <span>1:1 Mentor Desk</span>
+              <span className="hidden sm:inline">1:1 Mentor Desk</span>
+              <span className="inline sm:hidden text-[11px]">Mentor</span>
             </button>
 
             {isLoggedIn ? (
               <button
                 onClick={logout}
                 title="Sign out"
-                className="p-2 rounded-xl text-stone-500 hover:text-stone-900 hover:bg-stone-100 transition cursor-pointer"
+                className="p-1.5 sm:p-2 rounded-xl text-stone-500 hover:text-stone-900 hover:bg-stone-100 transition cursor-pointer"
               >
                 <LogOut className="size-4" />
               </button>
             ) : (
               <button
                 onClick={() => openAuthModal("login")}
-                className="px-3 py-1.5 rounded-xl border border-stone-300 text-xs font-bold hover:bg-stone-50 transition cursor-pointer"
+                className="px-2.5 sm:px-3 py-1.5 rounded-xl border border-stone-300 text-xs font-bold hover:bg-stone-50 transition cursor-pointer"
               >
                 Login
               </button>
             )}
+          </div>
+        </div>
+
+        {/* Mobile Profile Switcher Bar */}
+        <div className="flex md:hidden items-center justify-between px-3 py-1.5 bg-stone-50/90 border-t border-stone-200/70 text-xs overflow-x-auto scrollbar-none">
+          <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider shrink-0 mr-1.5">
+            Switch:
+          </span>
+          <div className="flex items-center gap-1.5 min-w-0 flex-1 justify-end">
+            <button
+              onClick={() => loginAsDemo("aarav")}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer whitespace-nowrap ${
+                student.email === "aarav@demo.ptiros.in"
+                  ? "bg-white text-orange-600 shadow-2xs border border-stone-200"
+                  : "text-stone-500 hover:text-stone-800"
+              }`}
+            >
+              Aarav (AI)
+            </button>
+            <button
+              onClick={() => loginAsDemo("meera")}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer whitespace-nowrap ${
+                student.email === "meera@demo.ptiros.in"
+                  ? "bg-white text-orange-600 shadow-2xs border border-stone-200"
+                  : "text-stone-500 hover:text-stone-800"
+              }`}
+            >
+              Meera (Law)
+            </button>
+            <button
+              onClick={() => loginAsDemo("vihaan")}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer whitespace-nowrap ${
+                student.email === "vihaan@demo.ptiros.in"
+                  ? "bg-white text-orange-600 shadow-2xs border border-stone-200"
+                  : "text-stone-500 hover:text-stone-800"
+              }`}
+            >
+              Vihaan (Med)
+            </button>
           </div>
         </div>
       </header>
@@ -322,16 +369,16 @@ export default function DashboardPage() {
       {/* ========================================================= */}
       {/* 2. SUB-NAVIGATION TABS (Workbench Mode Switcher) */}
       {/* ========================================================= */}
-      <div className="bg-white border-b border-stone-200/80 sticky top-16 z-30 shadow-2xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <nav className="flex space-x-1 sm:space-x-4 overflow-x-auto py-2.5 scrollbar-none">
+      <div className="bg-white border-b border-stone-200/80 sticky top-14 sm:top-16 z-30 shadow-2xs">
+        <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
+          <nav className="flex space-x-1 sm:space-x-3 overflow-x-auto py-2 sm:py-2.5 scrollbar-none snap-x overscroll-contain">
             {[
-              { id: "cockpit", label: "Trajectory Cockpit", icon: Compass },
-              { id: "planner", label: `Kaizen Roadmap (${totalGoals - completedGoals} Active)`, icon: Calendar },
-              { id: "diary", label: `Hansei Diary (${diary.length})`, icon: FileText },
-              { id: "credentials", label: "NEP 2020 Credentials", icon: Award },
-              { id: "analysis", label: "Aptitude Diagnostics", icon: Brain },
-              { id: "mentorship", label: "Senior Mentors & 1:1", icon: Users },
+              { id: "cockpit", label: "Trajectory Cockpit", shortLabel: "Cockpit", icon: Compass },
+              { id: "planner", label: `Kaizen Roadmap (${totalGoals - completedGoals} Active)`, shortLabel: `Roadmap (${totalGoals - completedGoals})`, icon: Calendar },
+              { id: "diary", label: `Hansei Diary (${diary.length})`, shortLabel: `Diary (${diary.length})`, icon: FileText },
+              { id: "credentials", label: "NEP 2020 Credentials", shortLabel: "NEP Vault", icon: Award },
+              { id: "analysis", label: "Aptitude Diagnostics", shortLabel: "Aptitude", icon: Brain },
+              { id: "mentorship", label: "Senior Mentors & 1:1", shortLabel: "Mentors", icon: Users },
             ].map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -339,14 +386,15 @@ export default function DashboardPage() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as DashboardTab)}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                  className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer snap-start ${
                     isActive
                       ? "bg-stone-900 text-white shadow-xs"
                       : "text-stone-600 hover:text-stone-900 hover:bg-stone-100"
                   }`}
                 >
-                  <Icon className={`size-3.5 ${isActive ? "text-orange-400" : "text-stone-400"}`} />
-                  <span>{tab.label}</span>
+                  <Icon className={`size-3.5 shrink-0 ${isActive ? "text-orange-400" : "text-stone-400"}`} />
+                  <span className="hidden sm:inline">{tab.label}</span>
+                  <span className="inline sm:hidden">{tab.shortLabel}</span>
                 </button>
               );
             })}
@@ -357,36 +405,36 @@ export default function DashboardPage() {
       {/* ========================================================= */}
       {/* 3. MAIN WORKSPACE */}
       {/* ========================================================= */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-8">
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8 flex-1 w-full space-y-6 sm:space-y-8">
         {/* ========================================================= */}
         {/* TAB 1: TRAJECTORY COCKPIT (THE EXECUTIVE FLIGHT DECK) */}
         {/* ========================================================= */}
         {activeTab === "cockpit" && (
           <div className="space-y-8">
             {/* North Star Flight Card */}
-            <div className="relative rounded-3xl bg-gradient-to-br from-stone-900 via-stone-950 to-stone-900 text-white p-6 sm:p-8 shadow-xl overflow-hidden border border-stone-800">
+            <div className="relative rounded-2xl sm:rounded-3xl bg-gradient-to-br from-stone-900 via-stone-950 to-stone-900 text-white p-5 sm:p-8 shadow-xl overflow-hidden border border-stone-800">
               <div className="absolute top-0 right-0 -mt-12 -mr-12 size-80 rounded-full bg-gradient-to-br from-orange-500/20 to-amber-500/0 blur-3xl pointer-events-none" />
               <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                 <div className="space-y-2.5 max-w-2xl">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-400 text-xs font-bold uppercase tracking-wider">
                     <Target className="size-3.5" /> Active Career Trajectory
                   </div>
-                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-display font-black tracking-tight text-white">
+                  <h1 className="text-xl sm:text-3xl lg:text-4xl font-display font-black tracking-tight text-white leading-tight">
                     {trajectoryMeta.trackTitle}
                   </h1>
                   <p className="text-stone-300 text-xs sm:text-sm font-normal leading-relaxed">
                     <strong className="text-orange-300 font-semibold">Strategic Target:</strong> {trajectoryMeta.targetAspirations}
                   </p>
-                  <div className="pt-2 flex flex-wrap items-center gap-3 text-xs text-stone-400">
-                    <span className="flex items-center gap-1.5 bg-stone-800/80 px-2.5 py-1 rounded-lg border border-stone-700/60">
+                  <div className="pt-2 flex flex-wrap items-center gap-2 text-xs text-stone-400">
+                    <span className="flex items-center gap-1.5 bg-stone-800/80 px-2.5 py-1 rounded-lg border border-stone-700/60 text-[11px] sm:text-xs">
                       <GraduationCap className="size-3.5 text-orange-400" />
                       {student.grade} • {student.curriculum}
                     </span>
-                    <span className="flex items-center gap-1.5 bg-stone-800/80 px-2.5 py-1 rounded-lg border border-stone-700/60">
+                    <span className="flex items-center gap-1.5 bg-stone-800/80 px-2.5 py-1 rounded-lg border border-stone-700/60 text-[11px] sm:text-xs">
                       <Building className="size-3.5 text-orange-400" />
                       {student.schoolName || student.city}
                     </span>
-                    <span className="flex items-center gap-1.5 bg-stone-800/80 px-2.5 py-1 rounded-lg border border-stone-700/60">
+                    <span className="flex items-center gap-1.5 bg-stone-800/80 px-2.5 py-1 rounded-lg border border-stone-700/60 text-[11px] sm:text-xs">
                       <ShieldCheck className="size-3.5 text-emerald-400" />
                       NEP 2020 NSQF Level 4 Certified
                     </span>
@@ -450,24 +498,24 @@ export default function DashboardPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Left Column: Kaizen Active Milestones (2 Cols on lg) */}
               <div className="lg:col-span-2 space-y-6">
-                <div className="bg-white rounded-3xl p-6 border border-stone-200/80 shadow-xs space-y-5">
-                  <div className="flex items-center justify-between pb-3 border-b border-stone-100">
+                <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-stone-200/80 shadow-xs space-y-4 sm:space-y-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-stone-100 gap-2.5">
                     <div>
-                      <h2 className="text-lg font-display font-bold text-stone-900 flex items-center gap-2">
+                      <h2 className="text-base sm:text-lg font-display font-bold text-stone-900 flex flex-wrap items-center gap-2">
                         <span>Kaizen Action Board</span>
-                        <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-orange-100 text-orange-800">
+                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-orange-100 text-orange-800 whitespace-nowrap">
                           {totalGoals - completedGoals} Pending
                         </span>
                       </h2>
-                      <p className="text-xs text-stone-500">
+                      <p className="text-xs text-stone-500 mt-0.5">
                         Daily 1% incremental progress toward your dream university trajectory.
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 shrink-0">
                       <button
                         onClick={() => setShowGoalModal(true)}
-                        className="px-3 py-1.5 rounded-xl bg-stone-900 text-white text-xs font-bold hover:bg-stone-800 transition flex items-center gap-1.5 cursor-pointer"
+                        className="w-full sm:w-auto justify-center px-3.5 py-2 rounded-xl bg-stone-900 text-white text-xs font-bold hover:bg-stone-800 transition flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
                       >
                         <Plus className="size-3.5" /> Add Milestone
                       </button>
@@ -685,12 +733,12 @@ export default function DashboardPage() {
         {/* ========================================================= */}
         {activeTab === "planner" && (
           <div className="space-y-6">
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200/80 shadow-xs space-y-6">
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 border border-stone-200/80 shadow-xs space-y-5 sm:space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-stone-100">
                 <div>
-                  <h2 className="text-xl font-display font-bold text-stone-900 flex items-center gap-2">
+                  <h2 className="text-lg sm:text-xl font-display font-bold text-stone-900 flex flex-wrap items-center gap-2">
                     <span>Kaizen Academic & Career Roadmap</span>
-                    <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-orange-100 text-orange-800">
+                    <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-orange-100 text-orange-800 whitespace-nowrap">
                       {completedGoals} / {totalGoals} Milestones
                     </span>
                   </h2>
@@ -699,12 +747,12 @@ export default function DashboardPage() {
                   </p>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 w-full sm:w-auto">
                   {/* View Segment */}
-                  <div className="flex bg-stone-100 p-1 rounded-xl border border-stone-200/80 text-xs font-bold">
+                  <div className="flex bg-stone-100 p-1 rounded-xl border border-stone-200/80 text-xs font-bold overflow-x-auto scrollbar-none w-full sm:w-auto">
                     <button
                       onClick={() => setPlannerFilter("all")}
-                      className={`px-3 py-1 rounded-lg transition ${
+                      className={`flex-1 sm:flex-initial px-2.5 sm:px-3 py-1.5 rounded-lg transition whitespace-nowrap text-center ${
                         plannerFilter === "all" ? "bg-white shadow-xs text-stone-900" : "text-stone-500"
                       }`}
                     >
@@ -712,7 +760,7 @@ export default function DashboardPage() {
                     </button>
                     <button
                       onClick={() => setPlannerFilter("daily")}
-                      className={`px-3 py-1 rounded-lg transition ${
+                      className={`flex-1 sm:flex-initial px-2.5 sm:px-3 py-1.5 rounded-lg transition whitespace-nowrap text-center ${
                         plannerFilter === "daily" ? "bg-white shadow-xs text-stone-900" : "text-stone-500"
                       }`}
                     >
@@ -720,7 +768,7 @@ export default function DashboardPage() {
                     </button>
                     <button
                       onClick={() => setPlannerFilter("monthly")}
-                      className={`px-3 py-1 rounded-lg transition ${
+                      className={`flex-1 sm:flex-initial px-2.5 sm:px-3 py-1.5 rounded-lg transition whitespace-nowrap text-center ${
                         plannerFilter === "monthly" ? "bg-white shadow-xs text-stone-900" : "text-stone-500"
                       }`}
                     >
@@ -728,7 +776,7 @@ export default function DashboardPage() {
                     </button>
                     <button
                       onClick={() => setPlannerFilter("yearly")}
-                      className={`px-3 py-1 rounded-lg transition ${
+                      className={`flex-1 sm:flex-initial px-2.5 sm:px-3 py-1.5 rounded-lg transition whitespace-nowrap text-center ${
                         plannerFilter === "yearly" ? "bg-white shadow-xs text-stone-900" : "text-stone-500"
                       }`}
                     >
@@ -738,7 +786,7 @@ export default function DashboardPage() {
 
                   <button
                     onClick={() => setShowGoalModal(true)}
-                    className="px-4 py-2 rounded-xl bg-orange-600 text-white text-xs font-bold hover:bg-orange-700 transition flex items-center gap-1.5 shadow-xs cursor-pointer"
+                    className="w-full sm:w-auto justify-center px-4 py-2 rounded-xl bg-orange-600 text-white text-xs font-bold hover:bg-orange-700 transition flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95 shrink-0"
                   >
                     <Plus className="size-3.5" /> Add Milestone
                   </button>
@@ -820,15 +868,15 @@ export default function DashboardPage() {
         {/* TAB 3: HANSEI STUDENT REFLECTIVE DIARY */}
         {/* ========================================================= */}
         {activeTab === "diary" && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
             {/* Left 2 Cols: Diary Feed */}
             <div className="lg:col-span-2 space-y-6">
-              <div className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200/80 shadow-xs space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-stone-100">
+              <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 border border-stone-200/80 shadow-xs space-y-5 sm:space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-stone-100">
                   <div>
-                    <h2 className="text-xl font-display font-bold text-stone-900 flex items-center gap-2">
+                    <h2 className="text-lg sm:text-xl font-display font-bold text-stone-900 flex flex-wrap items-center gap-2">
                       <span>Hansei Reflection Logs</span>
-                      <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-orange-100 text-orange-800">
+                      <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-orange-100 text-orange-800 whitespace-nowrap">
                         {diary.length} Recorded
                       </span>
                     </h2>
@@ -837,14 +885,14 @@ export default function DashboardPage() {
                     </p>
                   </div>
 
-                  <div className="relative">
+                  <div className="relative w-full sm:w-auto">
                     <Search className="absolute left-3 top-2.5 size-3.5 text-stone-400" />
                     <input
                       type="text"
                       value={diarySearch}
                       onChange={(e) => setDiarySearch(e.target.value)}
                       placeholder="Search reflections..."
-                      className="pl-8 pr-3 py-1.5 rounded-xl border border-stone-200 text-xs focus:outline-none focus:ring-2 focus:ring-orange-500/30"
+                      className="w-full sm:w-auto pl-8 pr-3 py-1.5 rounded-xl border border-stone-200 text-sm sm:text-xs focus:outline-none focus:ring-2 focus:ring-orange-500/30"
                     />
                   </div>
                 </div>
@@ -854,7 +902,7 @@ export default function DashboardPage() {
                   {filteredDiary.map((item) => (
                     <div
                       key={item.id}
-                      className="p-5 rounded-2xl bg-stone-50/70 border border-stone-200/80 hover:border-orange-300 transition-all space-y-2.5"
+                      className="p-4 sm:p-5 rounded-2xl bg-stone-50/70 border border-stone-200/80 hover:border-orange-300 transition-all space-y-2.5"
                     >
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-orange-600 uppercase tracking-wider">
@@ -888,7 +936,7 @@ export default function DashboardPage() {
 
             {/* Right 1 Col: Deliberate Hansei Composer */}
             <div className="space-y-6">
-              <div className="bg-white rounded-3xl p-6 border border-stone-200/80 shadow-xs space-y-5">
+              <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-stone-200/80 shadow-xs space-y-4 sm:space-y-5">
                 <div className="flex items-center justify-between border-b border-stone-100 pb-3">
                   <h3 className="font-display font-bold text-base text-stone-900 flex items-center gap-1.5">
                     <Sparkles className="size-4 text-orange-600" />
@@ -907,7 +955,7 @@ export default function DashboardPage() {
                       value={diaryTitle}
                       onChange={(e) => setDiaryTitle(e.target.value)}
                       placeholder="e.g. Debugging Kalman Filter telemetry latency"
-                      className="w-full px-3 py-2 rounded-xl border border-stone-200 text-xs focus:ring-2 focus:ring-orange-500/30 focus:outline-none"
+                      className="w-full px-3 py-2 rounded-xl border border-stone-200 text-sm sm:text-xs focus:ring-2 focus:ring-orange-500/30 focus:outline-none"
                     />
                   </div>
 
@@ -918,7 +966,7 @@ export default function DashboardPage() {
                     <select
                       value={diaryCategory}
                       onChange={(e) => setDiaryCategory(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl border border-stone-200 text-xs focus:ring-2 focus:ring-orange-500/30 focus:outline-none bg-white"
+                      className="w-full px-3 py-2 rounded-xl border border-stone-200 text-sm sm:text-xs focus:ring-2 focus:ring-orange-500/30 focus:outline-none bg-white"
                     >
                       <option value="simulator">Simulation Debrief & Dilemma</option>
                       <option value="academic">Board Exam Derivations / Numericals</option>
@@ -937,14 +985,14 @@ export default function DashboardPage() {
                       rows={5}
                       required
                       placeholder="1. What was the exact hurdle today?&#10;2. How did I approach it?&#10;3. What will I refine tomorrow morning?"
-                      className="w-full p-3 rounded-xl border border-stone-200 text-xs focus:ring-2 focus:ring-orange-500/30 focus:outline-none leading-relaxed"
+                      className="w-full p-3 rounded-xl border border-stone-200 text-sm sm:text-xs focus:ring-2 focus:ring-orange-500/30 focus:outline-none leading-relaxed"
                     />
                   </div>
 
                   <button
                     type="submit"
                     disabled={isSavingDiary}
-                    className="w-full py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                    className="w-full py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 disabled:opacity-50"
                   >
                     {isSavingDiary ? "Committing to Neon DB..." : "Save Hansei Entry"}
                     <Sparkles className="size-3.5" />
@@ -960,12 +1008,12 @@ export default function DashboardPage() {
         {/* ========================================================= */}
         {activeTab === "credentials" && (
           <div className="space-y-6">
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200/80 shadow-xs space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-stone-100">
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 border border-stone-200/80 shadow-xs space-y-5 sm:space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-stone-100">
                 <div>
-                  <h2 className="text-xl font-display font-bold text-stone-900 flex items-center gap-2">
-                    <span>NEP 2020 Verifiable Credential Vault</span>
-                    <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                  <h2 className="text-lg sm:text-xl font-display font-bold text-stone-900 flex flex-wrap items-center gap-2">
+                    <span>NEP 2020 Credential Vault</span>
+                    <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 whitespace-nowrap">
                       National Standards Aligned
                     </span>
                   </h2>
@@ -977,7 +1025,7 @@ export default function DashboardPage() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => alert("Verification Hash: 0x9f4a... SHA-256 Validated on PTIROS Registry.")}
-                    className="px-3.5 py-1.5 rounded-xl border border-stone-200 text-xs font-bold hover:bg-stone-50 transition flex items-center gap-1.5 cursor-pointer"
+                    className="w-full sm:w-auto justify-center px-3.5 py-2 rounded-xl border border-stone-200 text-xs font-bold hover:bg-stone-50 transition flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
                   >
                     <QrCode className="size-3.5 text-orange-600" />
                     Verify Authenticity
@@ -1053,27 +1101,27 @@ export default function DashboardPage() {
         {/* TAB 5: APTITUDE DIAGNOSTICS & SIMULATION SCORES */}
         {/* ========================================================= */}
         {activeTab === "analysis" && (
-          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200/80 shadow-xs space-y-8">
-            <div className="flex items-center justify-between pb-4 border-b border-stone-100">
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 border border-stone-200/80 shadow-xs space-y-6 sm:space-y-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-stone-100">
               <div>
-                <h2 className="text-xl font-display font-bold text-stone-900">
+                <h2 className="text-lg sm:text-xl font-display font-bold text-stone-900">
                   Career Test 360° Diagnostic Dossier
                 </h2>
-                <p className="text-xs text-stone-500">
+                <p className="text-xs text-stone-500 mt-0.5">
                   Evaluated across Quantitative Logic, Spatial Telemetry, Public Speaking, and Ethical Dilemmas.
                 </p>
               </div>
               <Link
                 href="/career-test"
-                className="px-4 py-2 rounded-xl bg-orange-600 text-white font-bold text-xs hover:bg-orange-700 transition"
+                className="w-full sm:w-auto text-center justify-center px-4 py-2 rounded-xl bg-orange-600 text-white font-bold text-xs hover:bg-orange-700 transition shadow-xs active:scale-95"
               >
                 Retake Diagnostic →
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               {simulations.map((sim) => (
-                <div key={sim.id} className="p-6 rounded-2xl bg-stone-50 border border-stone-200/80 space-y-3">
+                <div key={sim.id} className="p-4 sm:p-6 rounded-2xl bg-stone-50 border border-stone-200/80 space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-orange-600 uppercase tracking-wider">
                       {sim.trackTitle}
@@ -1104,25 +1152,25 @@ export default function DashboardPage() {
         {/* TAB 6: SENIOR MENTORS & 1:1 SESSIONS */}
         {/* ========================================================= */}
         {activeTab === "mentorship" && (
-          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-stone-200/80 shadow-xs space-y-8">
-            <div className="flex items-center justify-between pb-4 border-b border-stone-100">
+          <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 border border-stone-200/80 shadow-xs space-y-6 sm:space-y-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-stone-100">
               <div>
-                <h2 className="text-xl font-display font-bold text-stone-900">
+                <h2 className="text-lg sm:text-xl font-display font-bold text-stone-900">
                   PTIROS Senior Mentorship Council
                 </h2>
-                <p className="text-xs text-stone-500">
+                <p className="text-xs text-stone-500 mt-0.5">
                   Elite practitioners from IITs, NLSIU, AIIMS, and Global Frontier Tech.
                 </p>
               </div>
               <button
                 onClick={() => openBookingModal(trajectoryMeta.primaryMentor.trackId)}
-                className="px-4 py-2 rounded-xl bg-orange-600 text-white font-bold text-xs hover:bg-orange-700 transition"
+                className="w-full sm:w-auto text-center justify-center px-4 py-2 rounded-xl bg-orange-600 text-white font-bold text-xs hover:bg-orange-700 transition shadow-xs active:scale-95 cursor-pointer"
               >
                 + Book 1:1 Session
               </button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               {/* Mentor 1 */}
               <div className="p-6 rounded-2xl bg-stone-50 border border-stone-200/80 space-y-3">
                 <div className="flex items-start gap-4">

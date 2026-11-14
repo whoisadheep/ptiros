@@ -25,8 +25,8 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-bg-muted flex flex-col justify-center items-center p-4">
-      <div className="w-full max-w-md bg-white rounded-3xl p-8 border border-border shadow-xl space-y-6">
+    <div className="min-h-screen bg-bg-muted flex flex-col justify-center items-center p-3 sm:p-4 py-8">
+      <div className="w-full max-w-md bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-border shadow-xl space-y-5 sm:space-y-6">
         <div className="text-center">
           <Link href="/" className="inline-block mb-3">
             <span className="font-display font-extrabold text-3xl text-gradient">PTIROS</span>
