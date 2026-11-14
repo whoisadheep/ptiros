@@ -18,7 +18,7 @@ import {
   ArrowRight,
   Gamepad2,
   GraduationCap,
-  Building2,
+  Users,
   FileText,
   LogOut,
 } from "lucide-react";
@@ -26,27 +26,35 @@ import Link from "next/link";
 import { Blobatar } from "@blobatar/react";
 import { useScrollLock } from "@/hooks/useScrollLock";
 
-const navLinks = [
-  { label: "Home", href: "/#home", icon: Home },
-  { label: "About", href: "/#about", icon: Info },
-  { label: "Why PTIROS", href: "/#why-ptiros", icon: Sparkles },
-  { label: "Simulator", href: "/simulator", icon: Gamepad2 },
-  { label: "Roadmaps", href: "/#roadmaps", icon: Map },
-  { label: "Career Test", href: "/career-test", icon: Brain },
-  { label: "Student Portal", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Contact", href: "/#contact", icon: Phone },
+// Streamlined desktop links — removes duplicates (Home is logo, Career Test & Portal are in actions)
+const desktopNavLinks = [
+  { label: "Simulator", href: "/simulator", highlight: true },
+  { label: "Roadmaps", href: "/#roadmaps" },
+  { label: "Why PTIROS", href: "/#why-ptiros" },
+  { label: "About", href: "/#about" },
+  { label: "Contact", href: "/#contact" },
+] as const;
+
+// Curated mobile drawer links
+const mobileNavLinks = [
+  { label: "Career Simulator", href: "/simulator", icon: Gamepad2, tag: "Interactive" },
+  { label: "360° Career Test", href: "/career-test", icon: Brain, tag: "Assessment" },
+  { label: "Academic Roadmaps", href: "/#roadmaps", icon: Map, tag: "Class 6–12" },
+  { label: "The Science & Why Us", href: "/#why-ptiros", icon: Sparkles },
+  { label: "About PTIROS & NEP 2020", href: "/#about", icon: Info },
+  { label: "Contact & Consultations", href: "/#contact", icon: Phone },
 ] as const;
 
 const easeOutExpo = [0.16, 1, 0.3, 1] as const;
 
 export default function Navbar() {
-  const { profile, openIntakeModal, openBookingModal, openDossierModal } = useUserProfile();
+  const { openBookingModal, openDossierModal } = useUserProfile();
   const { user: studentUser, openAuthModal: openStudentAuthModal, logout: studentLogout } = useStudentAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
+    const handleScroll = () => setScrolled(window.scrollY > 15);
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
@@ -79,62 +87,68 @@ export default function Navbar() {
 
   return (
     <>
-      {/* Top Navigation Bar */}
+      {/* Top Global Navigation Bar */}
       <header
         className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
           scrolled
-            ? "bg-white/90 backdrop-blur-xl border-b border-border/50 shadow-xs"
-            : "bg-transparent"
+            ? "bg-white/95 backdrop-blur-xl border-b border-stone-200/80 shadow-2xs py-3"
+            : "bg-white/70 backdrop-blur-md border-b border-stone-200/40 py-4"
         }`}
       >
         <nav
-          className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 lg:px-8"
+          className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8"
           aria-label="Primary navigation"
         >
-          {/* Brand */}
-          <Link href="/" className="relative cursor-pointer">
-            <span className="font-display text-2xl font-bold tracking-tight text-gradient">
+          {/* Brand Logo */}
+          <Link href="/" className="flex items-center gap-2 group shrink-0">
+            <span className="font-display text-2xl font-black tracking-tight text-gradient">
               PTIROS
+            </span>
+            <span className="hidden sm:inline-block text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded bg-orange-100 text-orange-800">
+              NEP 2020
             </span>
           </Link>
 
-          {/* Desktop Links */}
-          <ul className="hidden items-center gap-1 lg:flex" role="list">
-            {navLinks.map((link) => (
+          {/* Clean, Decluttered Desktop Navigation Links */}
+          <ul className="hidden items-center gap-6 xl:gap-8 lg:flex" role="list">
+            {desktopNavLinks.map((link) => (
               <li key={link.href}>
                 <Link
                   href={link.href}
                   onClick={(e) => handleNavClick(e, link.href)}
-                  className="relative cursor-pointer rounded-lg px-4 py-2 text-sm font-medium text-accent transition-colors hover:text-primary"
-                  style={{ transitionDuration: "var(--duration-quick)" }}
+                  className="relative cursor-pointer text-xs font-bold uppercase tracking-wider text-stone-600 hover:text-stone-950 transition-colors flex items-center gap-1.5 py-1"
                 >
-                  {link.label}
+                  <span>{link.label}</span>
+                  {"highlight" in link && link.highlight && (
+                    <span className="size-1.5 rounded-full bg-orange-500 animate-pulse shrink-0" />
+                  )}
                 </Link>
               </li>
             ))}
           </ul>
 
-          {/* Desktop CTA & Profile */}
-          <div className="hidden lg:flex items-center gap-2.5">
+          {/* Desktop Right Action Cluster (Clear Hierarchy) */}
+          <div className="hidden lg:flex items-center gap-3">
+            {/* Student Auth State */}
             {studentUser ? (
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1.5 bg-stone-50 border border-stone-200/80 rounded-full pl-1.5 pr-2 py-1 shadow-2xs">
                 <Link
                   href="/dashboard"
-                  className="flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50/90 px-3 py-1 text-xs font-bold text-orange-950 hover:bg-orange-100 transition shadow-xs cursor-pointer"
+                  className="flex items-center gap-2 text-xs font-bold text-stone-800 hover:text-primary transition"
                   title="Open Student Dashboard"
                 >
-                  <span className="size-6 rounded-full overflow-hidden border border-orange-300 bg-white flex items-center justify-center shrink-0 shadow-2xs">
+                  <span className="size-6 rounded-full overflow-hidden border border-orange-300 bg-white flex items-center justify-center shrink-0">
                     <Blobatar name={studentUser.name} size={24} className="size-full object-cover" />
                   </span>
-                  <span className="max-w-[85px] truncate">{studentUser.name.split(" ")[0]}</span>
-                  <span className="text-[10px] text-orange-700 bg-orange-200/60 px-1.5 py-0.5 rounded-full">
+                  <span className="max-w-[80px] truncate">{studentUser.name.split(" ")[0]}</span>
+                  <span className="text-[10px] text-orange-700 bg-orange-100 px-1.5 py-0.2 rounded-full">
                     {studentUser.grade}
                   </span>
                 </Link>
                 <button
                   type="button"
                   onClick={() => studentLogout("/")}
-                  className="p-1.5 rounded-full text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition cursor-pointer"
+                  className="p-1 rounded-full text-stone-400 hover:text-stone-700 hover:bg-stone-200/60 transition cursor-pointer"
                   title="Sign out of student account"
                 >
                   <LogOut className="size-3.5" />
@@ -144,58 +158,35 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={() => openStudentAuthModal("login")}
-                className="text-xs font-bold text-accent/90 hover:text-primary transition px-3.5 py-1.5 rounded-full border border-border/70 hover:border-primary/40 bg-white/80 cursor-pointer shadow-xs"
+                className="text-xs font-bold text-stone-700 hover:text-primary transition px-3.5 py-1.5 rounded-full hover:bg-stone-100/80 cursor-pointer"
               >
                 Student Login
               </button>
             )}
 
-            {profile?.studentName && !studentUser && (
-              <button
-                type="button"
-                onClick={openIntakeModal}
-                className="flex items-center gap-1.5 rounded-full border border-orange-200 bg-orange-50/80 px-3.5 py-1.5 text-xs font-semibold text-orange-950 hover:bg-orange-100 transition shadow-xs cursor-pointer"
-                title="Edit Student & Parent Profile"
-              >
-                <GraduationCap className="size-3.5 text-primary" />
-                <span className="max-w-[110px] truncate">{profile.studentName.split(" ")[0]}</span>
-                <span className="text-[10px] text-orange-600 bg-orange-100 px-1.5 py-0.2 rounded-full">
-                  {profile.grade}
-                </span>
-              </button>
-            )}
-
+            {/* Primary Action Button */}
             <Link
               href="/career-test"
-              className="cursor-pointer rounded-full bg-primary px-5 py-2 text-xs font-bold text-white shadow-lg shadow-primary/25 transition-all hover:bg-primary-dark hover:shadow-xl hover:shadow-primary/30 active:scale-95"
+              className="cursor-pointer rounded-full bg-primary px-4 sm:px-5 py-2 text-xs font-bold text-white shadow-md shadow-primary/20 transition-all hover:bg-primary-dark hover:shadow-lg hover:shadow-primary/25 active:scale-95 flex items-center gap-1.5"
             >
-              Give Career Test
+              <span>Give Career Test</span>
+              <ArrowRight className="size-3.5" />
             </Link>
           </div>
 
           {/* Mobile Menu Toggle Button */}
           <button
-            className="relative flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl bg-white/80 backdrop-blur-md border border-border/70 shadow-sm text-accent lg:hidden transition-transform active:scale-90"
+            className="relative flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl bg-white border border-stone-200 shadow-2xs text-stone-800 lg:hidden transition-transform active:scale-90"
             onClick={() => setIsOpen(!isOpen)}
             aria-label={isOpen ? "Close menu" : "Open menu"}
             aria-expanded={isOpen}
           >
-            <div className="relative h-5 w-6 flex items-center justify-center">
-              {isOpen ? (
-                <X className="h-6 w-6 text-accent" />
-              ) : (
-                <div className="space-y-1.5 w-6">
-                  <span className="block h-0.5 w-6 rounded-full bg-accent" />
-                  <span className="block h-0.5 w-4 rounded-full bg-primary ml-auto" />
-                  <span className="block h-0.5 w-6 rounded-full bg-accent" />
-                </div>
-              )}
-            </div>
+            {isOpen ? <X className="size-5" /> : <Menu className="size-5" />}
           </button>
         </nav>
       </header>
 
-      {/* Mobile Navigation Sidebar Drawer — Rendered at Top Level with z-[999] */}
+      {/* Mobile Navigation Sidebar Drawer */}
       <AnimatePresence>
         {isOpen && (
           <div className="fixed inset-0 z-[999] lg:hidden">
@@ -204,7 +195,7 @@ export default function Navbar() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
+              transition={{ duration: 0.2 }}
               onClick={() => setIsOpen(false)}
               className="fixed inset-0 bg-black/60 backdrop-blur-sm"
               aria-hidden="true"
@@ -215,104 +206,147 @@ export default function Navbar() {
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
-              transition={{ duration: 0.35, ease: easeOutExpo }}
+              transition={{ duration: 0.3, ease: easeOutExpo }}
               data-lenis-prevent
               className="fixed top-0 right-0 bottom-0 flex h-[100dvh] w-[86vw] max-w-sm flex-col justify-between bg-white shadow-2xl overflow-hidden overscroll-contain"
               aria-label="Mobile navigation sidebar"
             >
               {/* Sidebar Header */}
-              <div className="flex items-center justify-between border-b border-border/60 px-5 py-4 bg-bg-muted/70">
+              <div className="flex items-center justify-between border-b border-stone-100 px-5 py-4 bg-stone-50/70">
                 <div className="flex items-center gap-2">
                   <span className="font-display text-xl font-black text-gradient">
                     PTIROS
                   </span>
                   <span className="rounded-md bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
-                    Navigation
+                    Menu
                   </span>
                 </div>
 
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg bg-white border border-border/60 text-accent transition-colors hover:bg-neutral-100 hover:text-primary active:scale-95"
+                  className="flex size-8 cursor-pointer items-center justify-center rounded-lg bg-white border border-stone-200 text-stone-600 transition-colors hover:bg-stone-100 hover:text-stone-900 active:scale-95"
                   aria-label="Close sidebar"
                 >
-                  <X className="h-5 w-5" />
+                  <X className="size-4" />
                 </button>
               </div>
 
-              {/* Scrollable Navigation Items */}
-              <div data-lenis-prevent className="flex-1 overflow-y-auto px-4 py-4 space-y-1.5 overscroll-contain">
-                {/* Student Session Banner */}
-                <div className="mb-3 rounded-2xl border border-orange-200/90 bg-gradient-to-br from-orange-50 to-amber-50/50 p-3.5 text-xs text-orange-950 shadow-xs">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold flex items-center gap-2">
-                      {studentUser ? (
-                        <span className="size-5 rounded-full overflow-hidden border border-orange-300 bg-white flex items-center justify-center shrink-0">
-                          <Blobatar name={studentUser.name} size={20} className="size-full object-cover" />
+              {/* Scrollable Navigation Body */}
+              <div data-lenis-prevent className="flex-1 overflow-y-auto px-4 py-4 space-y-4 overscroll-contain">
+                {/* Student Profile Card */}
+                {studentUser ? (
+                  <div className="rounded-2xl border border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50/60 p-3.5 shadow-xs">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className="size-8 rounded-full overflow-hidden border border-orange-300 bg-white flex items-center justify-center shrink-0 shadow-2xs">
+                          <Blobatar name={studentUser.name} size={32} className="size-full object-cover" />
                         </span>
-                      ) : (
-                        <GraduationCap className="size-4 text-primary" />
-                      )}
-                      {studentUser ? studentUser.name : (profile?.studentName ? profile.studentName : "Student Portal")}
-                    </span>
-                    {studentUser ? (
-                      <div className="flex items-center gap-1.5">
-                        <Link
-                          href="/dashboard"
-                          onClick={() => setIsOpen(false)}
-                          className="text-[11px] font-bold text-white bg-primary hover:bg-primary-dark px-3 py-1 rounded-full cursor-pointer transition shadow-xs"
-                        >
-                          Dashboard →
-                        </Link>
-                        <button
-                          type="button"
-                          onClick={async () => {
-                            setIsOpen(false);
-                            await studentLogout("/");
-                          }}
-                          className="p-1 rounded-md text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition cursor-pointer"
-                          title="Sign out"
-                        >
-                          <LogOut className="size-3.5" />
-                        </button>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-stone-900 truncate">
+                            {studentUser.name}
+                          </p>
+                          <p className="text-[10px] text-stone-500">
+                            {studentUser.grade} • {studentUser.city}
+                          </p>
+                        </div>
                       </div>
-                    ) : (
                       <button
                         type="button"
-                        onClick={() => {
+                        onClick={async () => {
                           setIsOpen(false);
-                          openStudentAuthModal("login");
+                          await studentLogout("/");
                         }}
-                        className="text-[11px] font-bold text-orange-700 bg-orange-100 hover:bg-orange-200 px-3 py-1 rounded-full cursor-pointer transition"
+                        className="text-stone-400 hover:text-stone-700 p-1 rounded-md transition"
+                        title="Sign out"
                       >
-                        Login / Demo
+                        <LogOut className="size-4" />
                       </button>
-                    )}
+                    </div>
+
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setIsOpen(false)}
+                      className="mt-3 flex items-center justify-center gap-1.5 w-full py-2 rounded-xl bg-primary text-white font-bold text-xs shadow-xs hover:bg-primary-dark transition"
+                    >
+                      <LayoutDashboard className="size-3.5" />
+                      <span>Open Student Dashboard</span>
+                    </Link>
                   </div>
-                  {studentUser ? (
-                    <p className="mt-1 text-[11px] text-stone-600">
-                      {studentUser.grade} • {studentUser.city} • {studentUser.curriculum}
+                ) : (
+                  <div className="rounded-2xl border border-stone-200 bg-stone-50 p-3.5 space-y-2">
+                    <div className="flex items-center justify-between text-xs font-bold text-stone-800">
+                      <span className="flex items-center gap-1.5">
+                        <GraduationCap className="size-4 text-primary" />
+                        Student Portal
+                      </span>
+                      <span className="text-[10px] text-orange-700 font-semibold bg-orange-100 px-2 py-0.5 rounded-full">
+                        Demo Ready
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-stone-500">
+                      Sign in or test with instant demo profiles (Aarav, Meera, Vihaan).
                     </p>
-                  ) : (
-                    <p className="mt-1 text-[11px] text-stone-500">
-                      Sign in or switch instant demo profiles (Aarav, Meera, Vihaan).
-                    </p>
-                  )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsOpen(false);
+                        openStudentAuthModal("login");
+                      }}
+                      className="w-full py-2 rounded-xl bg-white border border-stone-200 hover:border-orange-300 text-stone-900 font-bold text-xs transition cursor-pointer shadow-2xs"
+                    >
+                      Student Login / Demo Accounts →
+                    </button>
+                  </div>
+                )}
+
+                {/* Primary Route Links */}
+                <div className="space-y-1">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-stone-400 px-2 pb-1">
+                    Explore Platform
+                  </p>
+                  {mobileNavLinks.map((link) => {
+                    const Icon = link.icon;
+                    return (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        onClick={(e) => handleNavClick(e, link.href)}
+                        className="flex items-center justify-between rounded-xl px-3 py-2.5 text-stone-700 hover:bg-orange-50/70 hover:text-stone-950 transition-colors group"
+                      >
+                        <div className="flex items-center gap-3">
+                          <Icon className="size-4 text-primary" />
+                          <span className="text-xs font-semibold">{link.label}</span>
+                        </div>
+                        {"tag" in link && link.tag ? (
+                          <span className="text-[10px] font-bold text-orange-700 bg-orange-100/80 px-2 py-0.5 rounded-full">
+                            {link.tag}
+                          </span>
+                        ) : (
+                          <ChevronRight className="size-3.5 text-stone-400 group-hover:translate-x-0.5 transition-transform" />
+                        )}
+                      </Link>
+                    );
+                  })}
                 </div>
 
-                {/* Quick Feature Triggers (From Handwritten Blueprint) */}
-                <div className="grid grid-cols-2 gap-2 mb-3">
+                {/* 1:1 Booking & Dossier Triggers */}
+                <div className="space-y-1 pt-2 border-t border-stone-100">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-stone-400 px-2 pb-1">
+                    Direct Triggers
+                  </p>
                   <button
                     type="button"
                     onClick={() => {
                       setIsOpen(false);
                       openBookingModal();
                     }}
-                    className="flex flex-col items-start rounded-xl border border-border/70 bg-bg-muted/50 p-2.5 text-left hover:border-primary/40 hover:bg-primary/5 transition cursor-pointer"
+                    className="w-full flex items-center justify-between rounded-xl px-3 py-2 text-stone-700 hover:bg-orange-50/70 transition-colors text-left cursor-pointer"
                   >
-                    <Building2 className="size-4 text-primary mb-1" />
-                    <span className="text-xs font-bold text-accent">Book Mentor</span>
-                    <span className="text-[10px] text-text-muted">1-on-1 Strategy Call</span>
+                    <div className="flex items-center gap-3">
+                      <Users className="size-4 text-primary" />
+                      <span className="text-xs font-semibold">Book 1:1 Gurukul Mentor Call</span>
+                    </div>
+                    <ArrowRight className="size-3.5 text-stone-400" />
                   </button>
 
                   <button
@@ -321,61 +355,27 @@ export default function Navbar() {
                       setIsOpen(false);
                       openDossierModal();
                     }}
-                    className="flex flex-col items-start rounded-xl border border-border/70 bg-bg-muted/50 p-2.5 text-left hover:border-primary/40 hover:bg-primary/5 transition cursor-pointer"
+                    className="w-full flex items-center justify-between rounded-xl px-3 py-2 text-stone-700 hover:bg-orange-50/70 transition-colors text-left cursor-pointer"
                   >
-                    <FileText className="size-4 text-primary mb-1" />
-                    <span className="text-xs font-bold text-accent">10-Pg Dossier</span>
-                    <span className="text-[10px] text-text-muted">Sample Preview</span>
+                    <div className="flex items-center gap-3">
+                      <FileText className="size-4 text-primary" />
+                      <span className="text-xs font-semibold">Preview 10-Page Career Dossier</span>
+                    </div>
+                    <ArrowRight className="size-3.5 text-stone-400" />
                   </button>
                 </div>
-                {navLinks.map((link, i) => {
-                  const Icon = link.icon;
-                  return (
-                    <motion.div
-                      key={link.href}
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{
-                        duration: 0.25,
-                        delay: i * 0.03,
-                        ease: easeOutExpo,
-                      }}
-                    >
-                      <Link
-                        href={link.href}
-                        onClick={(e) => handleNavClick(e, link.href)}
-                        className="group flex cursor-pointer items-center justify-between rounded-xl px-3.5 py-3 text-accent transition-all duration-150 hover:bg-primary/5 active:bg-primary/10"
-                      >
-                        <div className="flex items-center gap-3.5">
-                          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-bg-muted border border-border/50 text-accent group-hover:border-primary/40 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                            <Icon className="h-4 w-4" />
-                          </div>
-                          <span className="font-display text-base font-semibold text-accent group-hover:text-primary transition-colors">
-                            {link.label}
-                          </span>
-                        </div>
-                        <ChevronRight className="h-4 w-4 text-text-muted/60 transition-transform duration-150 group-hover:translate-x-1 group-hover:text-primary" />
-                      </Link>
-                    </motion.div>
-                  );
-                })}
               </div>
 
-              {/* Sidebar Footer with CTA (with iOS safe-area inset) */}
-              <div className="border-t border-border/60 p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] bg-bg/90 backdrop-blur-sm">
+              {/* Sidebar Footer with CTA */}
+              <div className="border-t border-stone-100 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] bg-stone-50/60">
                 <Link
                   href="/career-test"
                   onClick={() => setIsOpen(false)}
-                  className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-primary py-3.5 px-6 font-display text-base font-bold text-white shadow-lg shadow-primary/25 transition-all hover:bg-primary-dark active:scale-[0.98]"
+                  className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary py-3 px-5 font-bold text-xs uppercase tracking-wider text-white shadow-md shadow-primary/25 transition-all hover:bg-primary-dark active:scale-98"
                 >
-                  <span>Give Career Test</span>
-                  <ArrowRight className="h-4 w-4" />
+                  <Sparkles className="size-3.5" />
+                  <span>Give 360° Career Test</span>
                 </Link>
-
-                <div className="mt-3 flex items-center justify-between text-[11px] font-medium text-text-muted px-1">
-                  <span>NEP 2020 Aligned</span>
-                  <span>Free Instant Report</span>
-                </div>
               </div>
             </motion.aside>
           </div>
