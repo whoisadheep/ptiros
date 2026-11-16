@@ -52,7 +52,7 @@ const comparisonData: ComparisonRow[] = [
     schools: false,
   },
   {
-    feature: "Elite government certificatin tracks",
+    feature: "Government-verified skill certification tracks",
     ptiros: true,
     schools: false,
   },

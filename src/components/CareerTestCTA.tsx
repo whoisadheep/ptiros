@@ -6,11 +6,11 @@ import MagneticButton from "./ui/MagneticButton";
 import ScrollReveal from "./ui/ScrollReveal";
 
 const testHighlights = [
-  "Most suited career recommendations",
-  "Skill gap analysis",
-  "Personality analysis",
-  "Strength and weakness analysis",
-  "Brain areas developed",
+  "Discover your natural cognitive superpowers",
+  "Match with 250+ future careers across AI, Medicine, Design & Law",
+  "Zero exam pressure — 100% confidential, supportive, and fun",
+  "Customized roadmap tailored to your exact school grade (Class 6–12)",
+  "Instant personalized career blueprint with actionable steps",
 ] as const;
 
 export default function CareerTestCTA() {
@@ -66,11 +66,11 @@ export default function CareerTestCTA() {
                 <div className="relative z-10">
                   {/* Header pill & Title */}
                   <span className="inline-block rounded-full bg-white/20 px-4 py-1 text-xs sm:text-sm font-bold uppercase tracking-widest text-white backdrop-blur-sm">
-                    Career Test
+                    Interactive Career Discovery
                   </span>
 
                   <h2 className="mt-4 font-display text-3xl sm:text-5xl lg:text-6xl font-black leading-tight text-white">
-                    360 degree Career Report
+                    Find Your True Future
                   </h2>
 
                   {/* 5 Bullet Points with White Dots matching design-01.png */}
@@ -86,17 +86,20 @@ export default function CareerTestCTA() {
                     ))}
                   </ul>
 
-                  {/* CTA Button matching design-01.png: White pill button with "TAKE YOUR TEST" */}
-                  <div className="mt-8 pt-2">
+                  {/* CTA Button matching design-01.png: White pill button */}
+                  <div className="mt-8 pt-2 flex flex-col sm:flex-row items-start sm:items-center gap-4">
                     <MagneticButton href="/career-test" strength={0.25}>
                       <div
                         className="group inline-flex cursor-pointer items-center justify-center gap-3 rounded-full bg-white px-9 py-4 text-base sm:text-lg font-black uppercase tracking-wider text-primary shadow-xl shadow-black/10 transition-all duration-200 hover:bg-white/95 hover:shadow-2xl active:scale-[0.98]"
                         style={{ minHeight: "54px" }}
                       >
-                        <span>TAKE YOUR TEST</span>
+                        <span>START DISCOVERY QUEST</span>
                         <ArrowRight className="h-5 w-5 transition-transform duration-200 group-hover:translate-x-1" />
                       </div>
                     </MagneticButton>
+                    <span className="text-xs font-semibold text-white/80">
+                      ✦ 5 Mins • 100% Free • No Wrong Answers
+                    </span>
                   </div>
                 </div>
               </div>

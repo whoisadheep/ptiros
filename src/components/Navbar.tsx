@@ -38,7 +38,7 @@ const desktopNavLinks = [
 // Curated mobile drawer links
 const mobileNavLinks = [
   { label: "Career Simulator", href: "/simulator", icon: Gamepad2, tag: "Interactive" },
-  { label: "360° Career Test", href: "/career-test", icon: Brain, tag: "Assessment" },
+  { label: "Career Match Quest", href: "/career-test", icon: Brain, tag: "Free Quiz" },
   { label: "Academic Roadmaps", href: "/#roadmaps", icon: Map, tag: "Class 6–12" },
   { label: "The Science & Why Us", href: "/#why-ptiros", icon: Sparkles },
   { label: "About PTIROS & Our Story", href: "/about", icon: Info },
@@ -169,8 +169,8 @@ export default function Navbar() {
               href="/career-test"
               className="cursor-pointer rounded-full bg-primary px-4 sm:px-5 py-2 text-xs font-bold text-white shadow-md shadow-primary/20 transition-all hover:bg-primary-dark hover:shadow-lg hover:shadow-primary/25 active:scale-95 flex items-center gap-1.5"
             >
-              <span>Give Career Test</span>
-              <ArrowRight className="size-3.5" />
+              <span>Find Your Fit</span>
+              <Sparkles className="size-3.5" />
             </Link>
           </div>
 

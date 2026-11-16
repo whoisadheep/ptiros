@@ -137,7 +137,7 @@ export default function CareerSimulator() {
           <div className="text-center max-w-3xl mx-auto">
             <span className="inline-flex items-center gap-2 rounded-full bg-orange-100 px-4 py-1.5 text-xs sm:text-sm font-bold uppercase tracking-widest text-orange-700">
               <Sparkles className="h-3.5 w-3.5" />
-              Mindler Immrse Inspired
+              Interactive Career Quests
             </span>
 
             <h2 className="mt-4 font-display text-3xl sm:text-5xl lg:text-6xl font-black text-gray-900 leading-tight">
