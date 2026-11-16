@@ -31,7 +31,7 @@ const desktopNavLinks = [
   { label: "Simulator", href: "/simulator", highlight: true },
   { label: "Roadmaps", href: "/#roadmaps" },
   { label: "Why PTIROS", href: "/#why-ptiros" },
-  { label: "About", href: "/#about" },
+  { label: "About", href: "/about" },
   { label: "Contact", href: "/#contact" },
 ] as const;
 
@@ -41,7 +41,7 @@ const mobileNavLinks = [
   { label: "360° Career Test", href: "/career-test", icon: Brain, tag: "Assessment" },
   { label: "Academic Roadmaps", href: "/#roadmaps", icon: Map, tag: "Class 6–12" },
   { label: "The Science & Why Us", href: "/#why-ptiros", icon: Sparkles },
-  { label: "About PTIROS & NEP 2020", href: "/#about", icon: Info },
+  { label: "About PTIROS & Our Story", href: "/about", icon: Info },
   { label: "Contact & Consultations", href: "/#contact", icon: Phone },
 ] as const;
 

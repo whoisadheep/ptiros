@@ -1,6 +1,7 @@
 "use client";
 
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, ArrowRight } from "lucide-react";
+import Link from "next/link";
 import ScrollReveal from "./ui/ScrollReveal";
 
 const nepPillars = [
@@ -144,6 +145,30 @@ export default function About() {
                 </ScrollReveal>
               ))}
             </div>
+          </div>
+        </ScrollReveal>
+
+        {/* Section 4: Read Full Our Story Link */}
+        <ScrollReveal direction="up" distance={20} delay={0.2}>
+          <div className="mt-10 flex flex-col sm:flex-row items-center justify-between gap-6 p-6 sm:p-8 rounded-2xl border border-white/30 bg-white/10 backdrop-blur-md">
+            <div className="space-y-1.5 text-center sm:text-left">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-orange-200">
+                Our Genesis & Mission
+              </span>
+              <h4 className="text-xl sm:text-2xl font-display font-bold text-white">
+                How 9+ Years of Classroom Mentorship Sparked PTIROS
+              </h4>
+              <p className="text-xs sm:text-sm text-white/85 max-w-2xl leading-relaxed">
+                Explore our 4-stage evolutionary timeline, empirical student diagnostic telemetry, Gurukul mentor fellows, and guiding educational values.
+              </p>
+            </div>
+            <Link
+              href="/about"
+              className="shrink-0 px-6 py-3 rounded-full bg-white text-stone-900 font-bold text-xs sm:text-sm hover:bg-orange-50 transition shadow-lg flex items-center gap-2 active:scale-95 cursor-pointer"
+            >
+              <span>Explore Our Full Story</span>
+              <ArrowRight className="size-4 text-primary" />
+            </Link>
           </div>
         </ScrollReveal>
       </div>
