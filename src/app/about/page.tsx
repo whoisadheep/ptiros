@@ -200,8 +200,8 @@ export default function AboutPage() {
               href="/career-test"
               className="rounded-full bg-primary px-4 sm:px-5 py-2 text-xs font-bold text-white shadow-md shadow-primary/20 hover:bg-primary-dark transition-all flex items-center gap-1.5 active:scale-95"
             >
-              <span>Find Your Fit</span>
-              <Sparkles className="size-3.5" />
+              <span>Give Career Test</span>
+              <ArrowRight className="size-3.5" />
             </Link>
           </div>
         </div>
