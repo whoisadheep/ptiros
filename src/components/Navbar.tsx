@@ -27,6 +27,7 @@ import {
 import Link from "next/link";
 import { Blobatar } from "@blobatar/react";
 import { useScrollLock } from "@/hooks/useScrollLock";
+import NavProfileMenu from "@/components/NavProfileMenu";
 
 // Streamlined dedicated page links
 const desktopNavLinks = [
@@ -54,7 +55,12 @@ const easeOutExpo = [0.16, 1, 0.3, 1] as const;
 export default function Navbar() {
   const pathname = usePathname();
   const { openBookingModal, openDossierModal } = useUserProfile();
-  const { user: studentUser, openAuthModal: openStudentAuthModal, logout: studentLogout } = useStudentAuth();
+  const {
+    user: studentUser,
+    openAuthModal: openStudentAuthModal,
+    loginAsDemo: studentLoginAsDemo,
+    logout: studentLogout,
+  } = useStudentAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -144,40 +150,8 @@ export default function Navbar() {
 
           {/* Desktop Right Action Cluster (Clear Hierarchy) */}
           <div className="hidden lg:flex items-center gap-3">
-            {/* Student Auth State */}
-            {studentUser ? (
-              <div className="flex items-center gap-1.5 bg-stone-50 border border-stone-200/80 rounded-full pl-1.5 pr-2 py-1 shadow-2xs">
-                <Link
-                  href="/dashboard"
-                  className="flex items-center gap-2 text-xs font-bold text-stone-800 hover:text-primary transition"
-                  title="Open Student Dashboard"
-                >
-                  <span className="size-6 rounded-full overflow-hidden border border-orange-300 bg-white flex items-center justify-center shrink-0">
-                    <Blobatar name={studentUser.name} size={24} className="size-full object-cover" />
-                  </span>
-                  <span className="max-w-[80px] truncate">{studentUser.name.split(" ")[0]}</span>
-                  <span className="text-[10px] text-orange-700 bg-orange-100 px-1.5 py-0.2 rounded-full">
-                    {studentUser.grade}
-                  </span>
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => studentLogout("/")}
-                  className="p-1 rounded-full text-stone-400 hover:text-stone-700 hover:bg-stone-200/60 transition cursor-pointer"
-                  title="Sign out of student account"
-                >
-                  <LogOut className="size-3.5" />
-                </button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => openStudentAuthModal("login")}
-                className="text-xs font-bold text-stone-700 hover:text-primary transition px-3.5 py-1.5 rounded-full hover:bg-stone-100/80 cursor-pointer"
-              >
-                Student Login
-              </button>
-            )}
+            {/* Professional Student Profile Menu */}
+            <NavProfileMenu />
 
             {/* Primary Action Button */}
             <Link
@@ -250,18 +224,19 @@ export default function Navbar() {
               <div data-lenis-prevent className="flex-1 overflow-y-auto px-4 py-4 space-y-4 overscroll-contain">
                 {/* Student Profile Card */}
                 {studentUser ? (
-                  <div className="rounded-2xl border border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50/60 p-3.5 shadow-xs">
+                  <div className="rounded-2xl border border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50/60 p-4 shadow-xs space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <span className="size-8 rounded-full overflow-hidden border border-orange-300 bg-white flex items-center justify-center shrink-0 shadow-2xs">
-                          <Blobatar name={studentUser.name} size={32} className="size-full object-cover" />
+                        <span className="relative size-10 rounded-2xl overflow-hidden border border-orange-300 bg-white flex items-center justify-center shrink-0 shadow-2xs">
+                          <Blobatar name={studentUser.name} size={40} className="size-full object-cover" />
+                          <span className="absolute bottom-0 right-0 size-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
                         </span>
                         <div className="min-w-0">
                           <p className="text-xs font-bold text-stone-900 truncate">
                             {studentUser.name}
                           </p>
                           <p className="text-[10px] text-stone-500">
-                            {studentUser.grade} • {studentUser.city}
+                            {studentUser.grade} • {studentUser.schoolName || studentUser.city}
                           </p>
                         </div>
                       </div>
@@ -271,7 +246,7 @@ export default function Navbar() {
                           setIsOpen(false);
                           await studentLogout("/");
                         }}
-                        className="text-stone-400 hover:text-stone-700 p-1 rounded-md transition"
+                        className="text-stone-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 transition cursor-pointer"
                         title="Sign out"
                       >
                         <LogOut className="size-4" />
@@ -281,36 +256,90 @@ export default function Navbar() {
                     <Link
                       href="/dashboard"
                       onClick={() => setIsOpen(false)}
-                      className="mt-3 flex items-center justify-center gap-1.5 w-full py-2 rounded-xl bg-primary text-white font-bold text-xs shadow-xs hover:bg-primary-dark transition"
+                      className="flex items-center justify-center gap-1.5 w-full py-2.5 rounded-xl bg-primary text-white font-bold text-xs shadow-xs hover:bg-primary-dark transition active:scale-95"
                     >
                       <LayoutDashboard className="size-3.5" />
                       <span>Open Student Dashboard</span>
                     </Link>
+
+                    {/* Quick Demo Switcher on Mobile */}
+                    <div className="pt-2 border-t border-orange-200/60">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-stone-500 block mb-1.5">
+                        Switch Demo Persona
+                      </span>
+                      <div className="grid grid-cols-3 gap-1.5">
+                        {[
+                          { key: "aarav" as const, name: "Aarav" },
+                          { key: "meera" as const, name: "Meera" },
+                          { key: "vihaan" as const, name: "Vihaan" },
+                        ].map((d) => (
+                          <button
+                            key={d.key}
+                            type="button"
+                            onClick={async () => {
+                              await studentLoginAsDemo(d.key);
+                              setIsOpen(false);
+                            }}
+                            className="py-1 px-2 rounded-lg bg-white border border-orange-200 text-stone-800 font-bold text-[11px] hover:bg-orange-100/70 transition"
+                          >
+                            {d.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 ) : (
-                  <div className="rounded-2xl border border-stone-200 bg-stone-50 p-3.5 space-y-2">
+                  <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4 space-y-3">
                     <div className="flex items-center justify-between text-xs font-bold text-stone-800">
                       <span className="flex items-center gap-1.5">
                         <GraduationCap className="size-4 text-primary" />
                         Student Portal
                       </span>
                       <span className="text-[10px] text-orange-700 font-semibold bg-orange-100 px-2 py-0.5 rounded-full">
-                        Demo Ready
+                        Instant Demo Ready
                       </span>
                     </div>
-                    <p className="text-[11px] text-stone-500">
-                      Sign in or test with instant demo profiles (Aarav, Meera, Vihaan).
+
+                    <p className="text-[11px] text-stone-500 leading-relaxed">
+                      Access your personal dashboard, daily Hansei reflections, and simulator badges.
                     </p>
+
                     <button
                       type="button"
                       onClick={() => {
                         setIsOpen(false);
                         openStudentAuthModal("login");
                       }}
-                      className="w-full py-2 rounded-xl bg-white border border-stone-200 hover:border-orange-300 text-stone-900 font-bold text-xs transition cursor-pointer shadow-2xs"
+                      className="w-full py-2.5 rounded-xl bg-primary text-white font-bold text-xs shadow-xs hover:bg-primary-dark transition cursor-pointer"
                     >
-                      Student Login / Demo Accounts →
+                      Sign In / Student Register →
                     </button>
+
+                    <div className="pt-2 border-t border-stone-200/70">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block mb-1.5">
+                        Quick Demo Launch
+                      </span>
+                      <div className="grid grid-cols-3 gap-1.5">
+                        {[
+                          { key: "aarav" as const, name: "Aarav", track: "AI Tech" },
+                          { key: "meera" as const, name: "Meera", track: "Law" },
+                          { key: "vihaan" as const, name: "Vihaan", track: "Medicine" },
+                        ].map((d) => (
+                          <button
+                            key={d.key}
+                            type="button"
+                            onClick={async () => {
+                              await studentLoginAsDemo(d.key);
+                              setIsOpen(false);
+                            }}
+                            className="py-1 px-2 rounded-lg bg-white border border-stone-200 text-stone-800 font-semibold text-[10px] hover:bg-orange-50 hover:border-orange-300 transition text-center"
+                          >
+                            <span className="font-bold block">{d.name}</span>
+                            <span className="text-[9px] text-stone-400 block">{d.track}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 )}
 
