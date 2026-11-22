@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUserProfile } from "@/context/UserProfileContext";
 import { useStudentAuth } from "@/context/StudentAuthContext";
@@ -27,30 +28,31 @@ import Link from "next/link";
 import { Blobatar } from "@blobatar/react";
 import { useScrollLock } from "@/hooks/useScrollLock";
 
-// Streamlined desktop links — removes duplicates (Home is logo, Career Test & Portal are in actions)
+// Streamlined dedicated page links
 const desktopNavLinks = [
   { label: "Simulator", href: "/simulator", highlight: true },
-  { label: "Track Meeting", href: "/track-booking" },
-  { label: "Roadmaps", href: "/#roadmaps" },
-  { label: "Why PTIROS", href: "/#why-ptiros" },
+  { label: "Roadmaps", href: "/roadmaps" },
+  { label: "Why PTIROS", href: "/why-ptiros" },
   { label: "About", href: "/about" },
-  { label: "Contact", href: "/#contact" },
+  { label: "Contact", href: "/contact" },
+  { label: "Track Meeting", href: "/track-booking" },
 ] as const;
 
 // Curated mobile drawer links
 const mobileNavLinks = [
-  { label: "Track Meeting Progress", href: "/track-booking", icon: Clock, tag: "Live" },
   { label: "Career Simulator", href: "/simulator", icon: Gamepad2, tag: "Interactive" },
   { label: "Career Match Quest", href: "/career-test", icon: Brain, tag: "Free Quiz" },
-  { label: "Academic Roadmaps", href: "/#roadmaps", icon: Map, tag: "Class 6–12" },
-  { label: "The Science & Why Us", href: "/#why-ptiros", icon: Sparkles },
-  { label: "About PTIROS & Our Story", href: "/about", icon: Info },
-  { label: "Contact & Consultations", href: "/#contact", icon: Phone },
+  { label: "Academic Roadmaps", href: "/roadmaps", icon: Map, tag: "Class 6–12" },
+  { label: "Why PTIROS & The Science", href: "/why-ptiros", icon: Sparkles },
+  { label: "About Us & Our Story", href: "/about", icon: Info },
+  { label: "Contact & Consultations", href: "/contact", icon: Phone },
+  { label: "Track Meeting Progress", href: "/track-booking", icon: Clock, tag: "Live" },
 ] as const;
 
 const easeOutExpo = [0.16, 1, 0.3, 1] as const;
 
 export default function Navbar() {
+  const pathname = usePathname();
   const { openBookingModal, openDossierModal } = useUserProfile();
   const { user: studentUser, openAuthModal: openStudentAuthModal, logout: studentLogout } = useStudentAuth();
   const [isOpen, setIsOpen] = useState(false);
@@ -114,20 +116,30 @@ export default function Navbar() {
 
           {/* Clean, Decluttered Desktop Navigation Links */}
           <ul className="hidden items-center gap-6 xl:gap-8 lg:flex" role="list">
-            {desktopNavLinks.map((link) => (
-              <li key={link.href}>
-                <Link
-                  href={link.href}
-                  onClick={(e) => handleNavClick(e, link.href)}
-                  className="relative cursor-pointer text-xs font-bold uppercase tracking-wider text-stone-600 hover:text-stone-950 transition-colors flex items-center gap-1.5 py-1"
-                >
-                  <span>{link.label}</span>
-                  {"highlight" in link && link.highlight && (
-                    <span className="size-1.5 rounded-full bg-orange-500 animate-pulse shrink-0" />
-                  )}
-                </Link>
-              </li>
-            ))}
+            {desktopNavLinks.map((link) => {
+              const isActive = pathname === link.href;
+              return (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    onClick={(e) => handleNavClick(e, link.href)}
+                    className={`relative cursor-pointer text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-1.5 py-1 ${
+                      isActive
+                        ? "text-primary"
+                        : "text-stone-600 hover:text-stone-950"
+                    }`}
+                  >
+                    <span>{link.label}</span>
+                    {isActive && (
+                      <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary rounded-full" />
+                    )}
+                    {"highlight" in link && link.highlight && !isActive && (
+                      <span className="size-1.5 rounded-full bg-orange-500 animate-pulse shrink-0" />
+                    )}
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
 
           {/* Desktop Right Action Cluster (Clear Hierarchy) */}
@@ -309,16 +321,21 @@ export default function Navbar() {
                   </p>
                   {mobileNavLinks.map((link) => {
                     const Icon = link.icon;
+                    const isActive = pathname === link.href;
                     return (
                       <Link
                         key={link.href}
                         href={link.href}
                         onClick={(e) => handleNavClick(e, link.href)}
-                        className="flex items-center justify-between rounded-xl px-3 py-2.5 text-stone-700 hover:bg-orange-50/70 hover:text-stone-950 transition-colors group"
+                        className={`flex items-center justify-between rounded-xl px-3 py-2.5 transition-colors group ${
+                          isActive
+                            ? "bg-orange-100/80 text-primary font-bold"
+                            : "text-stone-700 hover:bg-orange-50/70 hover:text-stone-950"
+                        }`}
                       >
                         <div className="flex items-center gap-3">
-                          <Icon className="size-4 text-primary" />
-                          <span className="text-xs font-semibold">{link.label}</span>
+                          <Icon className={`size-4 ${isActive ? "text-primary" : "text-stone-500 group-hover:text-primary"}`} />
+                          <span className="text-xs">{link.label}</span>
                         </div>
                         {"tag" in link && link.tag ? (
                           <span className="text-[10px] font-bold text-orange-700 bg-orange-100/80 px-2 py-0.5 rounded-full">

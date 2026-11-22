@@ -7,26 +7,26 @@ import Link from "next/link";
 const easeOutExpo = [0.16, 1, 0.3, 1] as const;
 
 const quickLinks = [
-  { label: "Home", href: "#home" },
+  { label: "Home", href: "/" },
   { label: "About Us & Story", href: "/about" },
+  { label: "Academic Roadmaps", href: "/roadmaps" },
+  { label: "Career Match Quest", href: "/career-test" },
+  { label: "Virtual Simulator", href: "/simulator" },
   { label: "Track Meeting Progress", href: "/track-booking" },
-  { label: "Career Test", href: "#career-test" },
-  { label: "Roadmaps", href: "#roadmaps" },
 ];
 
 const resources = [
-  { label: "Track 1:1 Meeting", href: "/track-booking" },
-  { label: "Why PTIROS", href: "#why-ptiros" },
-  { label: "Simulator", href: "/simulator" },
-  { label: "Our Story & Pedagogy", href: "/about" },
-  { label: "Statistics", href: "#statistics" },
+  { label: "Why PTIROS & The Science", href: "/why-ptiros" },
+  { label: "Contact & Consultations", href: "/contact" },
+  { label: "Student Portal & Cockpit", href: "/dashboard" },
+  { label: "Verified Credentials", href: "/dashboard?tab=credentials" },
   { label: "Admin CRM", href: "/admin" },
 ];
 
 const contactInfo = [
   { label: "admissions@ptiros.education", href: "mailto:admissions@ptiros.education" },
   { label: "+91 98765 43210", href: "tel:+919876543210" },
-  { label: "Bengaluru / New Delhi / Mumbai, India", href: "#contact" },
+  { label: "Bengaluru / New Delhi / Mumbai, India", href: "/contact" },
 ];
 
 const socialLinks = [

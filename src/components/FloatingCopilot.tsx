@@ -57,6 +57,18 @@ export default function FloatingCopilot() {
       title: "Our Story & Pedagogy",
       hint: "Learn how we synthesized Japanese Kaizen routines with ancient Gurukul human mentorship.",
     },
+    "/roadmaps": {
+      title: "NEP 2020 Multi-Disciplinary Roadmaps",
+      hint: "Explore subject combinations and exam milestones for CBSE, ICSE, and IB across Classes 6–12.",
+    },
+    "/why-ptiros": {
+      title: "The Science of Clarity",
+      hint: "See how cognitive neuroscience and daily Hansei reflection prevent student stream burnout.",
+    },
+    "/contact": {
+      title: "Admissions & Counseling Support",
+      hint: "Book a 20-minute strategy call with faculty from IIT and NLSIU, or reach out via WhatsApp.",
+    },
     "/login": {
       title: "1-Click Demo Available",
       hint: "Select Aarav, Meera, or Vihaan for instant access without a password.",
