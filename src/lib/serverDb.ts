@@ -494,6 +494,82 @@ export async function updateBookingStatus(
 }
 
 /**
+ * Queries mentorship bookings for a student by ID, phone number, or student name.
+ */
+export async function getStudentBookings(query: {
+  bookingId?: string;
+  phone?: string;
+  studentName?: string;
+  userId?: string;
+}): Promise<MentorshipSessionRecord[]> {
+  const sql = getNeonSql();
+  const searchId = query.bookingId?.trim();
+  const phoneClean = query.phone ? query.phone.replace(/[^0-9]/g, "").slice(-10) : "";
+  const nameClean = query.studentName?.trim();
+
+  if (sql) {
+    try {
+      let rows: any[] = [];
+      if (searchId) {
+        rows = await sql`
+          SELECT * FROM mentorship_bookings 
+          WHERE id = ${searchId} OR id = ${searchId.toLowerCase()} OR id = ${searchId.toUpperCase()}
+          ORDER BY created_at DESC
+        `;
+      } else if (phoneClean && nameClean) {
+        rows = await sql`
+          SELECT * FROM mentorship_bookings 
+          WHERE parent_phone LIKE ${"%" + phoneClean} OR student_name ILIKE ${"%" + nameClean + "%"}
+          ORDER BY created_at DESC
+        `;
+      } else if (phoneClean) {
+        rows = await sql`
+          SELECT * FROM mentorship_bookings 
+          WHERE parent_phone LIKE ${"%" + phoneClean}
+          ORDER BY created_at DESC
+        `;
+      } else if (nameClean) {
+        rows = await sql`
+          SELECT * FROM mentorship_bookings 
+          WHERE student_name ILIKE ${"%" + nameClean + "%"}
+          ORDER BY created_at DESC
+        `;
+      } else {
+        rows = await sql`SELECT * FROM mentorship_bookings ORDER BY created_at DESC LIMIT 20`;
+      }
+
+      return rows.map((r: any) => ({
+        id: r.id,
+        mentorId: r.mentor_id,
+        mentorName: r.mentor_name,
+        domainTitle: r.domain_title,
+        studentName: r.student_name,
+        parentPhone: r.parent_phone,
+        date: r.date,
+        timeSlot: r.time_slot,
+        primaryQuestion: r.primary_question,
+        status: r.status,
+        meetingLink: r.meeting_link || undefined,
+        adminNotes: r.admin_notes || undefined,
+        createdAt: new Date(r.created_at).toISOString(),
+        updatedAt: new Date(r.updated_at).toISOString(),
+      }));
+    } catch (err) {
+      console.warn("Neon getStudentBookings failed, fallback to local file:", err);
+    }
+  }
+
+  // Fallback to local file
+  const store = await getDatabase();
+  return store.bookings.filter((b) => {
+    if (searchId && (b.id.toLowerCase() === searchId.toLowerCase() || b.id === searchId)) return true;
+    if (phoneClean && b.parentPhone.includes(phoneClean)) return true;
+    if (nameClean && b.studentName.toLowerCase().includes(nameClean.toLowerCase())) return true;
+    return false;
+  });
+}
+
+/**
  * Creates a Paid 10-Page Dossier unlock order.
  */
 export async function saveDossierOrder(
@@ -1025,7 +1101,13 @@ export async function getStudentPortalData(userId: string): Promise<StudentPorta
     ];
   }
 
-  return { user, diary, goals, simulations };
+  const bookings = await getStudentBookings({
+    phone: user.parentPhone,
+    studentName: user.name,
+    userId: user.id,
+  });
+
+  return { user, diary, goals, simulations, bookings };
 }
 
 export async function addStudentDiaryEntry(

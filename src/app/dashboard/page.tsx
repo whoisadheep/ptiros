@@ -46,10 +46,18 @@ import {
   BookOpen,
   Star,
   X,
+  Video,
+  Phone,
+  Loader2,
+  RefreshCw,
+  Copy,
+  CheckCheck,
 } from "lucide-react";
 import { Blobatar } from "@blobatar/react";
 import { useScrollLock } from "@/hooks/useScrollLock";
 import PtiroMascot from "@/components/PtiroMascot";
+import { MENTORS } from "@/data/mentors";
+import { MentorshipSessionRecord } from "@/types/database";
 
 type DashboardTab = "cockpit" | "planner" | "diary" | "credentials" | "analysis" | "mentorship";
 
@@ -60,6 +68,7 @@ export default function DashboardPage() {
     diary,
     goals,
     simulations,
+    bookings,
     isLoading,
     isLoggedIn,
     loginAsDemo,
@@ -68,6 +77,8 @@ export default function DashboardPage() {
     addDiaryEntry,
     toggleGoal,
     addGoal,
+    trackAndLinkBooking,
+    refresh: refreshStudentAuth,
   } = useStudentAuth();
 
   const { openBookingModal, openDossierModal } = useUserProfile();
@@ -77,6 +88,57 @@ export default function DashboardPage() {
   const [goalCategoryFilter, setGoalCategoryFilter] = useState<string>("all");
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [celebrationGoal, setCelebrationGoal] = useState<string | null>(null);
+
+  // Sync tab from URL search parameters on initial load
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get("tab") as DashboardTab | null;
+      if (tabParam && ["cockpit", "planner", "diary", "credentials", "analysis", "mentorship"].includes(tabParam)) {
+        setActiveTab(tabParam);
+      }
+    }
+  }, []);
+
+  // Mentorship tracking & linking state
+  const [trackQuery, setTrackQuery] = useState("");
+  const [isTracking, setIsTracking] = useState(false);
+  const [trackMsg, setTrackMsg] = useState<{ text: string; error?: boolean } | null>(null);
+  const [copiedBookingId, setCopiedBookingId] = useState<string | null>(null);
+
+  const activeBookings = useMemo(() => {
+    return (bookings || []).filter((b) => b.status !== "completed" && b.status !== "cancelled");
+  }, [bookings]);
+
+  const completedBookings = useMemo(() => {
+    return (bookings || []).filter((b) => b.status === "completed");
+  }, [bookings]);
+
+  const handleLinkBooking = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!trackQuery.trim()) return;
+    setIsTracking(true);
+    setTrackMsg(null);
+    try {
+      const res = await trackAndLinkBooking(trackQuery.trim());
+      if (res.success) {
+        setTrackMsg({ text: `Successfully linked ${res.found} mentorship session${res.found > 1 ? "s" : ""}!` });
+        setTrackQuery("");
+      } else {
+        setTrackMsg({ text: res.error || "No meetings found matching this reference ID or phone number.", error: true });
+      }
+    } catch {
+      setTrackMsg({ text: "Unable to query meeting lookup service.", error: true });
+    } finally {
+      setIsTracking(false);
+    }
+  };
+
+  const handleCopyId = (id: string) => {
+    navigator.clipboard?.writeText(id);
+    setCopiedBookingId(id);
+    setTimeout(() => setCopiedBookingId(null), 2500);
+  };
 
   useEffect(() => {
     if (!isLoading && !isLoggedIn) {
@@ -428,7 +490,12 @@ export default function DashboardPage() {
               { id: "diary", label: `Hansei Diary (${diary.length})`, shortLabel: `Diary (${diary.length})`, icon: FileText },
               { id: "credentials", label: "NEP 2020 Credentials", shortLabel: "NEP Vault", icon: Award },
               { id: "analysis", label: "Aptitude Diagnostics", shortLabel: "Aptitude", icon: Brain },
-              { id: "mentorship", label: "Senior Mentors & 1:1", shortLabel: "Mentors", icon: Users },
+              {
+                id: "mentorship",
+                label: activeBookings.length > 0 ? `Mentorship (${activeBookings.length} Active)` : "Senior Mentors & 1:1",
+                shortLabel: activeBookings.length > 0 ? `Mentors (${activeBookings.length})` : "Mentors",
+                icon: Users,
+              },
             ].map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -460,7 +527,62 @@ export default function DashboardPage() {
         {/* TAB 1: TRAJECTORY COCKPIT (THE EXECUTIVE FLIGHT DECK) */}
         {/* ========================================================= */}
         {activeTab === "cockpit" && (
-          <div className="space-y-8">
+          <div className="space-y-6 sm:space-y-8">
+            {/* Live Mentorship Session Alert Banner */}
+            {activeBookings.length > 0 && (
+              <div className="rounded-2xl sm:rounded-3xl border border-amber-300/80 bg-gradient-to-r from-amber-50 via-orange-50/60 to-white p-4 sm:p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-start sm:items-center gap-3.5">
+                  <div className="size-12 rounded-2xl overflow-hidden bg-white border border-amber-200 shadow-2xs flex items-center justify-center shrink-0">
+                    <Blobatar name={activeBookings[0].mentorName} size={48} animate="hover" className="size-full object-cover" />
+                  </div>
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-200/70 text-amber-900 border border-amber-300">
+                        <Clock className="size-3 animate-spin text-amber-700" />
+                        <span>Upcoming 1:1 Mentorship Session</span>
+                      </span>
+                      <span className="text-[11px] font-mono text-stone-500">
+                        ID: {activeBookings[0].id}
+                      </span>
+                    </div>
+                    <h3 className="mt-1 text-sm sm:text-base font-bold text-stone-900">
+                      Strategy Call with {activeBookings[0].mentorName} ({activeBookings[0].domainTitle})
+                    </h3>
+                    <div className="text-xs text-stone-600 flex flex-wrap items-center gap-x-3 gap-y-1 mt-0.5">
+                      <span className="flex items-center gap-1 font-semibold text-stone-800">
+                        <Calendar className="size-3.5 text-orange-600" />
+                        {activeBookings[0].date}
+                      </span>
+                      <span className="flex items-center gap-1 text-stone-700">
+                        <Clock className="size-3.5 text-stone-400" />
+                        {activeBookings[0].timeSlot}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2.5 shrink-0 self-end md:self-auto">
+                  {activeBookings[0].meetingLink ? (
+                    <a
+                      href={activeBookings[0].meetingLink}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 shadow-sm transition active:scale-95"
+                    >
+                      <Video className="size-3.5" />
+                      <span>Join Google Meet</span>
+                    </a>
+                  ) : null}
+                  <button
+                    onClick={() => setActiveTab("mentorship")}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-stone-900 text-white text-xs font-bold hover:bg-black shadow-xs transition active:scale-95 cursor-pointer"
+                  >
+                    <span>View Progress Stepper →</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* North Star Flight Card */}
             <div className="relative rounded-2xl sm:rounded-3xl bg-gradient-to-br from-stone-900 via-stone-950 to-stone-900 text-white p-5 sm:p-8 shadow-xl overflow-hidden border border-stone-800">
               <div className="absolute top-0 right-0 -mt-12 -mr-12 size-80 rounded-full bg-gradient-to-br from-orange-500/20 to-amber-500/0 blur-3xl pointer-events-none" />
@@ -1270,79 +1392,497 @@ export default function DashboardPage() {
         {/* TAB 6: SENIOR MENTORS & 1:1 SESSIONS */}
         {/* ========================================================= */}
         {activeTab === "mentorship" && (
-          <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 border border-stone-200/80 shadow-xs space-y-6 sm:space-y-8">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-stone-100">
+          <div className="space-y-6 sm:space-y-8">
+            {/* Header & Quick Action */}
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-stone-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
-                <h2 className="text-lg sm:text-xl font-display font-bold text-stone-900">
-                  PTIROS Senior Mentorship Council
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-100/70 text-orange-800 text-xs font-bold uppercase tracking-wider mb-2">
+                  <Users className="size-3.5 text-orange-600" />
+                  <span>PTIROS Gurukul Mentorship Wing</span>
+                </div>
+                <h2 className="text-xl sm:text-2xl font-display font-extrabold text-stone-900 tracking-tight">
+                  1-on-1 Mentorship Sessions & Council
                 </h2>
-                <p className="text-xs text-stone-500 mt-0.5">
-                  Elite practitioners from IITs, NLSIU, AIIMS, and Global Frontier Tech.
+                <p className="text-xs sm:text-sm text-stone-500 mt-1 max-w-2xl leading-relaxed">
+                  Track live session progress, access Google Meet rooms, review post-call debrief roadmaps, or schedule 20-minute strategic clarity calls with senior practitioners.
                 </p>
               </div>
-              <button
-                onClick={() => openBookingModal(trajectoryMeta.primaryMentor.trackId)}
-                className="w-full sm:w-auto text-center justify-center px-4 py-2 rounded-xl bg-orange-600 text-white font-bold text-xs hover:bg-orange-700 transition shadow-xs active:scale-95 cursor-pointer"
-              >
-                + Book 1:1 Session
-              </button>
+
+              <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+                <Link
+                  href="/track-booking"
+                  className="px-4 py-2.5 rounded-xl border border-stone-300 bg-white text-stone-700 font-bold text-xs hover:bg-stone-50 transition shadow-2xs active:scale-95 inline-flex items-center gap-1.5"
+                >
+                  <Clock className="size-3.5 text-stone-500" />
+                  <span>Public Tracker</span>
+                  <ExternalLink className="size-3 text-stone-400" />
+                </Link>
+                <button
+                  onClick={() => openBookingModal(trajectoryMeta.primaryMentor.trackId)}
+                  className="px-5 py-2.5 rounded-xl bg-orange-600 text-white font-bold text-xs hover:bg-orange-700 transition shadow-xs active:scale-95 cursor-pointer inline-flex items-center gap-1.5"
+                >
+                  <Plus className="size-4" />
+                  <span>Book 1:1 Session</span>
+                </button>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-              {/* Mentor 1 */}
-              <div className="p-6 rounded-2xl bg-stone-50 border border-stone-200/80 space-y-3">
-                <div className="flex items-start gap-4">
-                  <div className="size-14 rounded-2xl overflow-hidden bg-stone-100 border border-stone-200/90 shadow-xs flex items-center justify-center shrink-0">
-                    <Blobatar name={trajectoryMeta.primaryMentor.name} size={56} animate="hover" className="size-full object-cover" />
-                  </div>
-                  <div>
-                    <h3 className="font-display font-bold text-base text-stone-900">
-                      {trajectoryMeta.primaryMentor.name}
-                    </h3>
-                    <p className="text-xs text-stone-600 font-medium">{trajectoryMeta.primaryMentor.role}</p>
-                    <p className="text-[11px] text-stone-400">{trajectoryMeta.primaryMentor.pedigree}</p>
-                  </div>
-                </div>
-                <div className="pt-2 flex items-center justify-between text-xs text-stone-500 border-t border-stone-200/60">
-                  <span className="flex items-center gap-1 font-semibold text-stone-700">
-                    <Star className="size-3 text-amber-500 fill-amber-500" />
-                    <span>{trajectoryMeta.primaryMentor.rating}</span>
-                  </span>
-                  <button
-                    onClick={() => openBookingModal(trajectoryMeta.primaryMentor.trackId)}
-                    className="text-orange-600 font-bold hover:underline"
-                  >
-                    Schedule Session →
-                  </button>
+            {/* Quick Session Linker & Verification Bar */}
+            <div className="bg-stone-50/80 rounded-2xl p-4 sm:p-5 border border-stone-200/80">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+                <div>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-stone-800 flex items-center gap-1.5">
+                    <Search className="size-3.5 text-stone-500" />
+                    <span>Track / Link Another Session</span>
+                  </h3>
+                  <p className="text-[11px] text-stone-500">
+                    Booked a session earlier as guest or on another device? Enter your Booking Reference ID (e.g. bk_...) or 10-digit WhatsApp phone.
+                  </p>
                 </div>
               </div>
 
-              {/* Mentor 2 */}
-              <div className="p-6 rounded-2xl bg-stone-50 border border-stone-200/80 space-y-3">
-                <div className="flex items-start gap-4">
-                  <div className="size-14 rounded-2xl overflow-hidden bg-stone-100 border border-stone-200/90 shadow-xs flex items-center justify-center shrink-0">
-                    <Blobatar name="Pooja Krishnan" size={56} animate="hover" className="size-full object-cover" />
-                  </div>
-                  <div>
-                    <h3 className="font-display font-bold text-base text-stone-900">
-                      Pooja Krishnan
-                    </h3>
-                    <p className="text-xs text-stone-600 font-medium">Public Speaking & Debate Coach</p>
-                    <p className="text-[11px] text-stone-400">Toastmasters International • St. Stephen's Delhi</p>
-                  </div>
+              <form onSubmit={handleLinkBooking} className="flex flex-col sm:flex-row gap-2 max-w-2xl">
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    value={trackQuery}
+                    onChange={(e) => setTrackQuery(e.target.value)}
+                    placeholder="Enter Reference ID (bk_...) or 10-digit WhatsApp number"
+                    className="w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2 text-xs text-stone-800 placeholder-stone-400 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+                  />
                 </div>
-                <div className="pt-2 flex items-center justify-between text-xs text-stone-500 border-t border-stone-200/60">
-                  <span className="flex items-center gap-1 font-semibold text-stone-700">
-                    <Star className="size-3 text-amber-500 fill-amber-500" />
-                    <span>4.96</span>
+                <button
+                  type="submit"
+                  disabled={isTracking || !trackQuery.trim()}
+                  className="px-4 py-2 rounded-xl bg-stone-900 text-white text-xs font-bold hover:bg-black transition disabled:opacity-50 inline-flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
+                >
+                  {isTracking ? (
+                    <>
+                      <Loader2 className="size-3.5 animate-spin" />
+                      <span>Checking...</span>
+                    </>
+                  ) : (
+                    <span>Track & Link</span>
+                  )}
+                </button>
+              </form>
+
+              {trackMsg && (
+                <div
+                  className={`mt-2.5 inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-lg border ${
+                    trackMsg.error
+                      ? "bg-red-50 text-red-700 border-red-200"
+                      : "bg-emerald-50 text-emerald-800 border-emerald-200"
+                  }`}
+                >
+                  {trackMsg.error ? (
+                    <AlertCircle className="size-3.5 shrink-0" />
+                  ) : (
+                    <CheckCircle2 className="size-3.5 shrink-0" />
+                  )}
+                  <span>{trackMsg.text}</span>
+                </div>
+              )}
+            </div>
+
+            {/* SECTION 1: ACTIVE & UPCOMING SESSIONS */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base sm:text-lg font-display font-bold text-stone-900">
+                    Active & Upcoming Sessions
+                  </h3>
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-800">
+                    {activeBookings.length}
                   </span>
+                </div>
+                {activeBookings.length > 0 && (
                   <button
-                    onClick={() => openBookingModal("media-creative-tech")}
-                    className="text-orange-600 font-bold hover:underline"
+                    onClick={() => refreshStudentAuth()}
+                    className="text-xs text-stone-500 hover:text-stone-800 inline-flex items-center gap-1 cursor-pointer"
+                    title="Refresh live status"
                   >
-                    Schedule Session →
+                    <RefreshCw className="size-3" />
+                    <span>Sync Status</span>
+                  </button>
+                )}
+              </div>
+
+              {activeBookings.length > 0 ? (
+                <div className="space-y-4">
+                  {activeBookings.map((b) => {
+                    const isPending = b.status === "pending";
+                    const isConfirmed = b.status === "confirmed";
+                    const hasMeetLink = !!b.meetingLink;
+
+                    return (
+                      <div
+                        key={b.id}
+                        className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-7 border border-stone-200/90 shadow-sm space-y-5"
+                      >
+                        {/* Top Meta Bar */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-stone-100">
+                          <div className="flex items-start sm:items-center gap-3.5">
+                            <div className="size-14 rounded-2xl overflow-hidden bg-stone-100 border border-stone-200/90 shadow-2xs flex items-center justify-center shrink-0">
+                              <Blobatar name={b.mentorName} size={56} animate="hover" className="size-full object-cover" />
+                            </div>
+                            <div>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span
+                                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${
+                                    isPending
+                                      ? "bg-amber-100/80 text-amber-900 border-amber-300"
+                                      : hasMeetLink
+                                      ? "bg-emerald-100/80 text-emerald-900 border-emerald-300"
+                                      : "bg-sky-100/80 text-sky-900 border-sky-300"
+                                  }`}
+                                >
+                                  {isPending && <Clock className="size-3 animate-spin text-amber-700" />}
+                                  {isConfirmed && !hasMeetLink && <CheckCircle2 className="size-3 text-sky-700" />}
+                                  {hasMeetLink && <Video className="size-3 animate-pulse text-emerald-700" />}
+                                  <span>
+                                    {isPending
+                                      ? "Council Reviewing Agenda"
+                                      : hasMeetLink
+                                      ? "Meet Room Active"
+                                      : isConfirmed
+                                      ? "Confirmed & Paired"
+                                      : b.status}
+                                  </span>
+                                </span>
+
+                                <button
+                                  type="button"
+                                  onClick={() => handleCopyId(b.id)}
+                                  className="inline-flex items-center gap-1 font-mono text-[11px] text-stone-500 hover:text-stone-800 bg-stone-100 px-2 py-0.5 rounded-md border border-stone-200"
+                                  title="Click to copy Reference ID"
+                                >
+                                  <span>Ref: {b.id}</span>
+                                  {copiedBookingId === b.id ? (
+                                    <CheckCheck className="size-3 text-emerald-600" />
+                                  ) : (
+                                    <Copy className="size-3 text-stone-400" />
+                                  )}
+                                </button>
+                              </div>
+
+                              <h4 className="mt-1 text-base font-bold text-stone-900">
+                                {b.mentorName}
+                              </h4>
+                              <p className="text-xs text-stone-500">{b.domainTitle}</p>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col sm:items-end gap-1 text-xs">
+                            <span className="font-semibold text-stone-800 flex items-center gap-1.5">
+                              <Calendar className="size-3.5 text-orange-600" />
+                              {b.date}
+                            </span>
+                            <span className="text-stone-500 flex items-center gap-1.5">
+                              <Clock className="size-3.5 text-stone-400" />
+                              {b.timeSlot}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Student Inquiry Dilemma */}
+                        <div className="rounded-xl bg-stone-50 p-3.5 border border-stone-200/60 text-xs">
+                          <span className="font-bold text-stone-700 block mb-0.5">
+                            Student Agenda & Core Dilemma:
+                          </span>
+                          <p className="text-stone-600 italic">
+                            &quot;{b.primaryQuestion}&quot;
+                          </p>
+                        </div>
+
+                        {/* 4-Step Progress Stepper */}
+                        <div className="space-y-2">
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500 block">
+                            Session Execution Stepper
+                          </span>
+                          <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
+                            {/* Step 1 */}
+                            <div className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-200">
+                              <div className="flex items-center gap-1.5 text-emerald-700 font-bold text-xs mb-1">
+                                <CheckCircle2 className="size-3.5" />
+                                <span>1. Requested</span>
+                              </div>
+                              <p className="text-[11px] text-stone-600 leading-tight">
+                                Slot & student dilemma registered
+                              </p>
+                            </div>
+
+                            {/* Step 2 */}
+                            <div
+                              className={`p-3 rounded-xl border ${
+                                isConfirmed
+                                  ? "bg-emerald-50/70 border-emerald-200"
+                                  : "bg-amber-50/70 border-amber-300"
+                              }`}
+                            >
+                              <div
+                                className={`flex items-center gap-1.5 font-bold text-xs mb-1 ${
+                                  isConfirmed ? "text-emerald-700" : "text-amber-800"
+                                }`}
+                              >
+                                {isConfirmed ? (
+                                  <CheckCircle2 className="size-3.5" />
+                                ) : (
+                                  <Clock className="size-3.5 animate-spin" />
+                                )}
+                                <span>2. Council Review</span>
+                              </div>
+                              <p className="text-[11px] text-stone-600 leading-tight">
+                                {isConfirmed
+                                  ? "Dossier vetted & mentor confirmed"
+                                  : "Council reviewing student dossier"}
+                              </p>
+                            </div>
+
+                            {/* Step 3 */}
+                            <div
+                              className={`p-3 rounded-xl border ${
+                                b.meetingLink
+                                  ? "bg-emerald-50/70 border-emerald-300"
+                                  : isConfirmed
+                                  ? "bg-stone-50 border-stone-200"
+                                  : "bg-white border-stone-200/70 opacity-75"
+                              }`}
+                            >
+                              <div
+                                className={`flex items-center gap-1.5 font-semibold text-xs mb-1 ${
+                                  b.meetingLink ? "text-emerald-700 font-bold" : "text-stone-700"
+                                }`}
+                              >
+                                <Video className="size-3.5" />
+                                <span>3. Meet Link Active</span>
+                              </div>
+                              <p className="text-[11px] text-stone-500 leading-tight">
+                                {b.meetingLink
+                                  ? "Google Meet room is live"
+                                  : "Link opens 10 min prior to call"}
+                              </p>
+                            </div>
+
+                            {/* Step 4 */}
+                            <div className="p-3 rounded-xl bg-white border border-stone-200/70 opacity-75">
+                              <div className="flex items-center gap-1.5 text-stone-600 font-semibold text-xs mb-1">
+                                <ShieldCheck className="size-3.5 text-stone-400" />
+                                <span>4. Debrief & Plan</span>
+                              </div>
+                              <p className="text-[11px] text-stone-400 leading-tight">
+                                Post-call notes & Kaizen milestones
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-stone-100">
+                          <div className="flex flex-wrap items-center gap-2">
+                            {b.meetingLink && (
+                              <a
+                                href={b.meetingLink}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 shadow-sm transition active:scale-95"
+                              >
+                                <Video className="size-3.5" />
+                                <span>Join Google Meet</span>
+                              </a>
+                            )}
+                            <Link
+                              href={`/track-booking?id=${b.id}`}
+                              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-stone-900 text-white text-xs font-bold hover:bg-black transition active:scale-95"
+                            >
+                              <Clock className="size-3.5 text-orange-400" />
+                              <span>Live Tracker Page</span>
+                            </Link>
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-2">
+                            <a
+                              href={`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
+                                `1-on-1 PTIROS Gurukul Session: ${b.mentorName}`
+                              )}&details=${encodeURIComponent(
+                                `Mentor: ${b.mentorName}\nStudent: ${b.studentName}\nRef: ${b.id}\nPlatform: https://ptiros.in`
+                              )}&location=Google+Meet`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-stone-200 bg-white text-stone-700 text-xs font-semibold hover:bg-stone-50 transition"
+                            >
+                              <Calendar className="size-3 text-stone-500" />
+                              <span>Google Calendar</span>
+                            </a>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const text = `*PTIROS Mentorship Session Query*\nRef ID: ${b.id}\nStudent: ${b.studentName}\nMentor: ${b.mentorName}\nDate: ${b.date} at ${b.timeSlot}`;
+                                window.open(
+                                  `https://api.whatsapp.com/send?phone=919876543210&text=${encodeURIComponent(text)}`,
+                                  "_blank"
+                                );
+                              }}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-800 text-xs font-semibold hover:bg-emerald-100 transition"
+                            >
+                              <MessageSquare className="size-3 text-emerald-600" />
+                              <span>WhatsApp Support</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                /* Empty state when no active bookings */
+                <div className="bg-stone-50/80 rounded-2xl p-6 sm:p-8 border border-stone-200/80 text-center space-y-4">
+                  <div className="size-14 mx-auto rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center">
+                    <Compass className="size-7" />
+                  </div>
+                  <div className="max-w-md mx-auto">
+                    <h4 className="text-base font-bold text-stone-900">
+                      No Active Mentorship Sessions Scheduled
+                    </h4>
+                    <p className="text-xs text-stone-500 mt-1 leading-relaxed">
+                      Need clarity on choosing Class 11–12 streams (PCM, PCB, Commerce, Humanities) or balancing board exams with career ambitions? Schedule a 20-minute 1-on-1 strategy call with our Senior Mentors.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => openBookingModal(trajectoryMeta.primaryMentor.trackId)}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-orange-600 text-white font-bold text-xs hover:bg-orange-700 transition shadow-xs active:scale-95 cursor-pointer"
+                  >
+                    <span>Schedule 1-on-1 Strategy Call →</span>
                   </button>
                 </div>
+              )}
+            </div>
+
+            {/* SECTION 2: PAST SESSION HISTORY & MENTOR DEBRIEFS */}
+            <div className="space-y-4 pt-2">
+              <div className="flex items-center gap-2">
+                <h3 className="text-base sm:text-lg font-display font-bold text-stone-900">
+                  Past Session History & Debriefs
+                </h3>
+                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-stone-100 text-stone-600">
+                  {completedBookings.length}
+                </span>
+              </div>
+
+              {completedBookings.length > 0 ? (
+                <div className="space-y-3">
+                  {completedBookings.map((b) => (
+                    <div
+                      key={b.id}
+                      className="bg-white rounded-2xl p-5 border border-stone-200/90 shadow-2xs space-y-3"
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div className="flex items-center gap-3">
+                          <div className="size-10 rounded-xl overflow-hidden bg-stone-100 border border-stone-200 shrink-0">
+                            <Blobatar name={b.mentorName} size={40} className="size-full object-cover" />
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-bold text-stone-900">{b.mentorName}</h4>
+                            <p className="text-xs text-stone-500">{b.domainTitle}</p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 text-xs">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-semibold text-[11px]">
+                            <CheckCircle2 className="size-3" />
+                            <span>Completed</span>
+                          </span>
+                          <span className="text-stone-400">•</span>
+                          <span className="text-stone-600">{b.date}</span>
+                        </div>
+                      </div>
+
+                      <div className="rounded-xl bg-stone-50 p-3 text-xs border border-stone-200/60">
+                        <span className="font-bold text-stone-700 block mb-0.5">Primary Focus Discussed:</span>
+                        <p className="text-stone-600">&quot;{b.primaryQuestion}&quot;</p>
+                      </div>
+
+                      <div className="pt-1 flex items-center justify-between text-xs">
+                        <span className="text-stone-500 font-mono text-[11px]">Ref: {b.id}</span>
+                        <button
+                          onClick={() => openBookingModal(b.mentorId)}
+                          className="text-orange-600 font-bold hover:underline cursor-pointer"
+                        >
+                          Book Follow-up Session →
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-stone-50/60 rounded-2xl p-4 sm:p-5 border border-dashed border-stone-300 text-xs text-stone-500 flex items-start gap-3">
+                  <FileText className="size-4 text-stone-400 mt-0.5 shrink-0" />
+                  <div>
+                    <strong className="text-stone-700 block mb-0.5">Post-Session Debrief Vault</strong>
+                    <p className="leading-relaxed">
+                      After every 20-minute 1-on-1 strategy call, your mentor records strategic guidance, recommended textbook/resource lists, and target roadmap goals. They will automatically be recorded here and linked into your Kaizen Roadmap.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* SECTION 3: SENIOR MENTORSHIP COUNCIL DIRECTORY */}
+            <div className="space-y-4 pt-4 border-t border-stone-200/80">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <h3 className="text-base sm:text-lg font-display font-bold text-stone-900">
+                    Full PTIROS Senior Mentorship Council
+                  </h3>
+                  <p className="text-xs text-stone-500">
+                    Elite domain practitioners across AI, Law, Medicine, UX Architecture, Finance, and Public Policy.
+                  </p>
+                </div>
+                <span className="text-xs font-semibold text-stone-400">
+                  {MENTORS.length} Senior Mentors Available
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+                {MENTORS.map((m) => (
+                  <div
+                    key={m.id}
+                    className="p-5 rounded-2xl bg-white border border-stone-200/90 shadow-2xs hover:shadow-xs hover:border-orange-300/80 transition space-y-3 flex flex-col justify-between"
+                  >
+                    <div className="space-y-3">
+                      <div className="flex items-start gap-3.5">
+                        <div className="size-12 rounded-2xl overflow-hidden bg-stone-100 border border-stone-200/90 shadow-2xs flex items-center justify-center shrink-0">
+                          <Blobatar name={m.name} size={48} animate="hover" className="size-full object-cover" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h4 className="font-display font-bold text-sm text-stone-900 truncate">
+                            {m.name}
+                          </h4>
+                          <p className="text-xs text-orange-600 font-medium truncate">{m.domainTitle}</p>
+                          <p className="text-[11px] text-stone-400 truncate">{m.pedigree}</p>
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-stone-600 line-clamp-2 leading-relaxed">
+                        {m.specialization}
+                      </p>
+                    </div>
+
+                    <div className="pt-2 flex items-center justify-between text-xs text-stone-500 border-t border-stone-100">
+                      <span className="flex items-center gap-1 font-semibold text-stone-700">
+                        <Star className="size-3 text-amber-500 fill-amber-500" />
+                        <span>{m.rating}</span>
+                        <span className="text-stone-400 font-normal text-[11px]">({m.totalSessions}+ calls)</span>
+                      </span>
+                      <button
+                        onClick={() => openBookingModal(m.domainId)}
+                        className="text-orange-600 font-bold hover:underline cursor-pointer"
+                      >
+                        Schedule 20m →
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

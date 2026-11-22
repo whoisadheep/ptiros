@@ -10,11 +10,13 @@ const easeOutExpo = [0.16, 1, 0.3, 1] as const;
 const quickLinks = [
   { label: "Home", href: "#home" },
   { label: "About Us & Story", href: "/about" },
+  { label: "Track Meeting Progress", href: "/track-booking" },
   { label: "Career Test", href: "#career-test" },
   { label: "Roadmaps", href: "#roadmaps" },
 ];
 
 const resources = [
+  { label: "Track 1:1 Meeting", href: "/track-booking" },
   { label: "Why PTIROS", href: "#why-ptiros" },
   { label: "Simulator", href: "/simulator" },
   { label: "Our Story & Pedagogy", href: "/about" },

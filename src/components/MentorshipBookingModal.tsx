@@ -1,12 +1,28 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useUserProfile } from "@/context/UserProfileContext";
+import { useStudentAuth } from "@/context/StudentAuthContext";
 import { MENTORS } from "@/data/mentors";
 import { Mentor, MentorshipBooking } from "@/types/profile";
 import { validateIndianMobile } from "@/lib/storage";
 import { useScrollLock } from "@/hooks/useScrollLock";
-import { Building2, X, CheckCircle2, FileText, Calendar, MessageSquare, Star } from "lucide-react";
+import {
+  Building2,
+  X,
+  CheckCircle2,
+  FileText,
+  Calendar,
+  MessageSquare,
+  Star,
+  Clock,
+  ArrowRight,
+  ShieldCheck,
+  Video,
+  ExternalLink,
+  Loader2,
+} from "lucide-react";
 import { Blobatar } from "@blobatar/react";
 
 const TIME_SLOTS = [
@@ -19,7 +35,9 @@ const TIME_SLOTS = [
 ];
 
 export default function MentorshipBookingModal() {
+  const router = useRouter();
   const { isBookingModalOpen, closeBookingModal, selectedMentorTrackId, profile } = useUserProfile();
+  const { refresh: refreshStudentAuth } = useStudentAuth();
 
   const [selectedMentor, setSelectedMentor] = useState<Mentor>(MENTORS[0]);
   const [selectedDate, setSelectedDate] = useState<string>("");
@@ -29,6 +47,7 @@ export default function MentorshipBookingModal() {
   const [primaryQuestion, setPrimaryQuestion] = useState("");
   const [bookingConfirmed, setBookingConfirmed] = useState<MentorshipBooking | null>(null);
   const [phoneError, setPhoneError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Sync track when opened
   useEffect(() => {
@@ -70,7 +89,7 @@ export default function MentorshipBookingModal() {
 
   if (!isBookingModalOpen) return null;
 
-  const handleBookSession = (e: React.FormEvent) => {
+  const handleBookSession = async (e: React.FormEvent) => {
     e.preventDefault();
     const phoneVal = validateIndianMobile(parentPhone);
     if (!phoneVal.isValid) {
@@ -78,9 +97,9 @@ export default function MentorshipBookingModal() {
       return;
     }
     setPhoneError("");
+    setIsSubmitting(true);
 
     const bookingPayload = {
-      id: "BK-" + Math.floor(100000 + Math.random() * 900000),
       mentorId: selectedMentor.id,
       mentorName: selectedMentor.name,
       domainTitle: selectedMentor.domainTitle,
@@ -92,20 +111,56 @@ export default function MentorshipBookingModal() {
       createdAt: new Date().toISOString(),
     };
 
-    // Sync to server database in background
-    fetch("/api/bookings", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(bookingPayload),
-    })
-      .then(async (res) => {
-        if (res.status === 409) {
-          setPhoneError("This time slot was just booked with this mentor. Please select another slot or date.");
-        }
-      })
-      .catch(() => {});
+    try {
+      const res = await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bookingPayload),
+      });
 
-    setBookingConfirmed(bookingPayload);
+      if (res.status === 409) {
+        setPhoneError("This time slot was just booked with this mentor. Please select another slot or date.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        setPhoneError(errJson.error || "Failed to schedule session. Please try again.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      const json = await res.json();
+      const realBooking = json.data || {
+        ...bookingPayload,
+        id: "BK-" + Math.floor(100000 + Math.random() * 900000),
+      };
+
+      // Persist in localStorage for instant tracking across pages
+      try {
+        const raw = localStorage.getItem("ptiros_my_bookings");
+        const ids: string[] = raw ? JSON.parse(raw) : [];
+        if (!ids.includes(realBooking.id)) {
+          ids.unshift(realBooking.id);
+          localStorage.setItem("ptiros_my_bookings", JSON.stringify(ids));
+        }
+      } catch (err) {
+        console.warn("Failed to update localStorage ptiros_my_bookings:", err);
+      }
+
+      // Sync student auth bookings state
+      try {
+        await refreshStudentAuth();
+      } catch {}
+
+      setBookingConfirmed(realBooking);
+    } catch (err) {
+      console.error("Session booking exception:", err);
+      setPhoneError("Network error. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const generateGoogleCalendarUrl = (booking: MentorshipBooking) => {
@@ -184,24 +239,75 @@ export default function MentorshipBookingModal() {
         </div>
 
         {bookingConfirmed ? (
-          /* CONFIRMATION SCREEN */
+          /* CONFIRMATION SCREEN WITH REAL-TIME STEPPER */
           <div className="mt-6 text-center space-y-5 animate-in zoom-in-95 duration-200">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 shadow-xs">
               <CheckCircle2 className="size-8" />
             </div>
+
             <div>
-              <span className="inline-block rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200">
-                Booking ID: {bookingConfirmed.id}
-              </span>
-              <h3 className="mt-2 text-2xl font-bold text-stone-900">
-                Mentorship Session Scheduled!
+              <div className="inline-flex items-center gap-2 rounded-full bg-stone-100 px-3.5 py-1 text-xs font-semibold text-stone-800 border border-stone-200">
+                <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>Reference ID: <strong className="font-mono text-orange-600">{bookingConfirmed.id}</strong></span>
+              </div>
+              <h3 className="mt-2.5 text-2xl font-display font-extrabold text-stone-900">
+                1-on-1 Mentorship Call Reserved!
               </h3>
-              <p className="text-sm text-stone-600 max-w-md mx-auto mt-1">
-                Your 20-minute strategy call with <strong>{bookingConfirmed.mentorName}</strong> has been provisionally reserved for <strong>{bookingConfirmed.date}</strong> at <strong>{bookingConfirmed.timeSlot}</strong>.
+              <p className="text-xs sm:text-sm text-stone-600 max-w-lg mx-auto mt-1 leading-relaxed">
+                Your 20-minute strategy call with <strong>{bookingConfirmed.mentorName}</strong> ({bookingConfirmed.domainTitle}) is reserved for <strong>{bookingConfirmed.date}</strong> at <strong>{bookingConfirmed.timeSlot}</strong>.
               </p>
             </div>
 
-            <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4 text-left text-xs text-amber-950 space-y-2 max-w-lg mx-auto">
+            {/* 4-Step Meeting Progress Stepper */}
+            <div className="rounded-2xl border border-stone-200/90 bg-stone-50/80 p-4 sm:p-5 text-left max-w-xl mx-auto space-y-3">
+              <div className="flex items-center justify-between border-b border-stone-200/60 pb-2">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-stone-500">Live Progress Stepper</span>
+                <span className="text-[11px] font-semibold text-amber-700 bg-amber-100/70 px-2 py-0.5 rounded-full">
+                  Step 1 of 4 Confirmed
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 pt-1">
+                {/* Step 1 */}
+                <div className="p-2.5 rounded-xl bg-white border border-emerald-200 shadow-2xs">
+                  <div className="flex items-center gap-1.5 text-emerald-600 font-bold text-xs mb-1">
+                    <CheckCircle2 className="size-3.5" />
+                    <span>Requested</span>
+                  </div>
+                  <p className="text-[10px] text-stone-500 leading-tight">Date, slot & dilemma registered</p>
+                </div>
+
+                {/* Step 2 */}
+                <div className="p-2.5 rounded-xl bg-amber-50/60 border border-amber-300 shadow-2xs">
+                  <div className="flex items-center gap-1.5 text-amber-700 font-bold text-xs mb-1">
+                    <Clock className="size-3.5 animate-spin" />
+                    <span>In Review</span>
+                  </div>
+                  <p className="text-[10px] text-stone-600 leading-tight">Council reviewing dossier & agenda</p>
+                </div>
+
+                {/* Step 3 */}
+                <div className="p-2.5 rounded-xl bg-white border border-stone-200/70 opacity-75">
+                  <div className="flex items-center gap-1.5 text-stone-600 font-semibold text-xs mb-1">
+                    <Video className="size-3.5 text-stone-400" />
+                    <span>Meet Room</span>
+                  </div>
+                  <p className="text-[10px] text-stone-400 leading-tight">Google Meet link opens pre-call</p>
+                </div>
+
+                {/* Step 4 */}
+                <div className="p-2.5 rounded-xl bg-white border border-stone-200/70 opacity-75">
+                  <div className="flex items-center gap-1.5 text-stone-600 font-semibold text-xs mb-1">
+                    <ShieldCheck className="size-3.5 text-stone-400" />
+                    <span>Action Plan</span>
+                  </div>
+                  <p className="text-[10px] text-stone-400 leading-tight">Post-call notes & milestones</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Session Briefing Checklist */}
+            <div className="rounded-2xl border border-amber-200/80 bg-amber-50/50 p-4 text-left text-xs text-amber-950 space-y-1.5 max-w-xl mx-auto">
               <div className="font-semibold text-amber-900 flex items-center gap-2">
                 <FileText className="size-4 text-amber-700" />
                 <span>Session Briefing Checklist:</span>
@@ -211,24 +317,52 @@ export default function MentorshipBookingModal() {
               <p>• A Google Meet video link will be confirmed on WhatsApp to <strong>+91 {bookingConfirmed.parentPhone}</strong>.</p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
-              <a
-                href={generateGoogleCalendarUrl(bookingConfirmed)}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-stone-300 bg-white px-5 py-2.5 text-xs font-semibold text-stone-800 shadow-sm hover:bg-stone-50 active:scale-95 transition"
-              >
-                <Calendar className="size-4 text-stone-600" />
-                <span>Add to Google Calendar</span>
-              </a>
-              <button
-                type="button"
-                onClick={() => handleWhatsAppDispatch(bookingConfirmed)}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-semibold text-white shadow-md hover:bg-emerald-700 active:scale-95 transition"
-              >
-                <MessageSquare className="size-4 text-white" />
-                <span>Confirm via WhatsApp</span>
-              </button>
+            {/* Quick Actions Cluster */}
+            <div className="pt-2 flex flex-col gap-2.5 max-w-xl mx-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    closeBookingModal();
+                    router.push(`/track-booking?id=${bookingConfirmed.id}`);
+                  }}
+                  className="flex items-center justify-center gap-2 rounded-xl bg-stone-900 px-4 py-2.5 text-xs font-bold text-white shadow-md hover:bg-black active:scale-95 transition cursor-pointer"
+                >
+                  <Clock className="size-4 text-orange-400" />
+                  <span>Track Live Progress ➔</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    closeBookingModal();
+                    router.push("/dashboard?tab=mentorship");
+                  }}
+                  className="flex items-center justify-center gap-2 rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-xs font-bold text-stone-800 shadow-2xs hover:bg-stone-50 active:scale-95 transition cursor-pointer"
+                >
+                  <span>Student Dashboard</span>
+                  <ArrowRight className="size-3.5 text-stone-500" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <a
+                  href={generateGoogleCalendarUrl(bookingConfirmed)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-stone-200 bg-white px-4 py-2 text-[11px] font-semibold text-stone-700 shadow-2xs hover:bg-stone-50 transition"
+                >
+                  <Calendar className="size-3.5 text-stone-500" />
+                  <span>Add to Google Calendar</span>
+                </a>
+                <button
+                  type="button"
+                  onClick={() => handleWhatsAppDispatch(bookingConfirmed)}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-[11px] font-semibold text-white shadow-sm hover:bg-emerald-700 transition"
+                >
+                  <MessageSquare className="size-3.5 text-white" />
+                  <span>Confirm on WhatsApp</span>
+                </button>
+              </div>
             </div>
 
             <div className="pt-2">
@@ -393,9 +527,17 @@ export default function MentorshipBookingModal() {
               </button>
               <button
                 type="submit"
-                className="rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 px-6 py-2.5 text-sm font-semibold text-white shadow-md hover:brightness-105 active:scale-95 transition"
+                disabled={isSubmitting}
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 px-6 py-2.5 text-sm font-semibold text-white shadow-md hover:brightness-105 active:scale-95 transition disabled:opacity-50 cursor-pointer"
               >
-                Confirm 1-on-1 Mentorship Call →
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" />
+                    <span>Reserving Slot...</span>
+                  </>
+                ) : (
+                  <span>Confirm 1-on-1 Mentorship Call →</span>
+                )}
               </button>
             </div>
           </form>

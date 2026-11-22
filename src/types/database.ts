@@ -149,6 +149,7 @@ export interface StudentPortalData {
   diary: StudentDiaryEntry[];
   goals: StudentPlannerGoal[];
   simulations: StudentSimResult[];
+  bookings?: MentorshipSessionRecord[];
 }
 
 export type ApiResponse<T> =

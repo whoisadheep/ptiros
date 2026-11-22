@@ -21,6 +21,7 @@ import {
   Users,
   FileText,
   LogOut,
+  Clock,
 } from "lucide-react";
 import Link from "next/link";
 import { Blobatar } from "@blobatar/react";
@@ -29,6 +30,7 @@ import { useScrollLock } from "@/hooks/useScrollLock";
 // Streamlined desktop links — removes duplicates (Home is logo, Career Test & Portal are in actions)
 const desktopNavLinks = [
   { label: "Simulator", href: "/simulator", highlight: true },
+  { label: "Track Meeting", href: "/track-booking" },
   { label: "Roadmaps", href: "/#roadmaps" },
   { label: "Why PTIROS", href: "/#why-ptiros" },
   { label: "About", href: "/about" },
@@ -37,6 +39,7 @@ const desktopNavLinks = [
 
 // Curated mobile drawer links
 const mobileNavLinks = [
+  { label: "Track Meeting Progress", href: "/track-booking", icon: Clock, tag: "Live" },
   { label: "Career Simulator", href: "/simulator", icon: Gamepad2, tag: "Interactive" },
   { label: "Career Match Quest", href: "/career-test", icon: Brain, tag: "Free Quiz" },
   { label: "Academic Roadmaps", href: "/#roadmaps", icon: Map, tag: "Class 6–12" },

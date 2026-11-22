@@ -8,6 +8,7 @@ import {
   StudentPlannerGoal,
   StudentSimResult,
   StudentPortalData,
+  MentorshipSessionRecord,
 } from "@/types/database";
 
 interface StudentAuthContextType {
@@ -15,6 +16,7 @@ interface StudentAuthContextType {
   diary: StudentDiaryEntry[];
   goals: StudentPlannerGoal[];
   simulations: StudentSimResult[];
+  bookings: MentorshipSessionRecord[];
   isLoading: boolean;
   isLoggedIn: boolean;
   isAuthModalOpen: boolean;
@@ -39,6 +41,7 @@ interface StudentAuthContextType {
   addDiaryEntry: (title: string, content: string, category?: string) => Promise<boolean>;
   toggleGoal: (goalId: string, completed: boolean) => Promise<boolean>;
   addGoal: (title: string, timeView: "daily" | "monthly" | "yearly", deadline?: string) => Promise<boolean>;
+  trackAndLinkBooking: (query: string) => Promise<{ success: boolean; found: number; error?: string }>;
   refresh: () => Promise<void>;
 }
 
@@ -50,6 +53,7 @@ export function StudentAuthProvider({ children }: { children: React.ReactNode })
   const [diary, setDiary] = useState<StudentDiaryEntry[]>([]);
   const [goals, setGoals] = useState<StudentPlannerGoal[]>([]);
   const [simulations, setSimulations] = useState<StudentSimResult[]>([]);
+  const [bookings, setBookings] = useState<MentorshipSessionRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "signup">("login");
@@ -65,11 +69,53 @@ export function StudentAuthProvider({ children }: { children: React.ReactNode })
           setDiary(data.diary || []);
           setGoals(data.goals || []);
           setSimulations(data.simulations || []);
+          
+          // Merge server bookings with any local guest bookings
+          const serverBookings = data.bookings || [];
+          let localBookings: MentorshipSessionRecord[] = [];
+          
+          try {
+            const raw = localStorage.getItem("ptiros_my_bookings");
+            if (raw) {
+              const ids: string[] = JSON.parse(raw);
+              if (ids.length > 0) {
+                const trackRes = await fetch(`/api/bookings/track?query=${encodeURIComponent(ids.join(","))}`);
+                if (trackRes.ok) {
+                  const trackJson = await trackRes.json();
+                  if (trackJson.success && Array.isArray(trackJson.data)) {
+                    localBookings = trackJson.data;
+                  }
+                }
+              }
+            }
+          } catch {}
+
+          const map = new Map<string, MentorshipSessionRecord>();
+          serverBookings.forEach((b) => map.set(b.id, b));
+          localBookings.forEach((b) => map.set(b.id, b));
+          setBookings(Array.from(map.values()));
         } else {
           setUser(null);
           setDiary([]);
           setGoals([]);
           setSimulations([]);
+          
+          // Guest bookings check
+          try {
+            const raw = localStorage.getItem("ptiros_my_bookings");
+            if (raw) {
+              const ids: string[] = JSON.parse(raw);
+              if (ids.length > 0) {
+                const trackRes = await fetch(`/api/bookings/track?query=${encodeURIComponent(ids[0])}`);
+                if (trackRes.ok) {
+                  const trackJson = await trackRes.json();
+                  if (trackJson.success && Array.isArray(trackJson.data)) {
+                    setBookings(trackJson.data);
+                  }
+                }
+              }
+            }
+          } catch {}
         }
       }
     } catch (err) {
@@ -237,6 +283,41 @@ export function StudentAuthProvider({ children }: { children: React.ReactNode })
     return false;
   };
 
+  const trackAndLinkBooking = async (query: string): Promise<{ success: boolean; found: number; error?: string }> => {
+    try {
+      const res = await fetch(`/api/bookings/track?query=${encodeURIComponent(query.trim())}`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          const newBookings: MentorshipSessionRecord[] = json.data;
+          setBookings((prev) => {
+            const map = new Map<string, MentorshipSessionRecord>();
+            newBookings.forEach((b) => map.set(b.id, b));
+            prev.forEach((b) => {
+              if (!map.has(b.id)) map.set(b.id, b);
+            });
+            return Array.from(map.values());
+          });
+
+          // Save linked IDs to localStorage
+          try {
+            const raw = localStorage.getItem("ptiros_my_bookings");
+            const existingIds: string[] = raw ? JSON.parse(raw) : [];
+            const updated = Array.from(new Set([...existingIds, ...newBookings.map((b) => b.id)]));
+            localStorage.setItem("ptiros_my_bookings", JSON.stringify(updated));
+          } catch {}
+
+          return { success: true, found: newBookings.length };
+        } else {
+          return { success: false, found: 0, error: json.error || "No meetings found matching your search" };
+        }
+      }
+    } catch (err) {
+      console.error("Track booking error:", err);
+    }
+    return { success: false, found: 0, error: "Network error tracking meeting" };
+  };
+
   return (
     <StudentAuthContext.Provider
       value={{
@@ -244,6 +325,7 @@ export function StudentAuthProvider({ children }: { children: React.ReactNode })
         diary,
         goals,
         simulations,
+        bookings,
         isLoading,
         isLoggedIn: !!user,
         isAuthModalOpen,
@@ -257,6 +339,7 @@ export function StudentAuthProvider({ children }: { children: React.ReactNode })
         addDiaryEntry,
         toggleGoal,
         addGoal,
+        trackAndLinkBooking,
         refresh,
       }}
     >
