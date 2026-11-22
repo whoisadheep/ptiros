@@ -1,8 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { Music } from "lucide-react";
-import { FacebookIcon, InstagramIcon, TwitterIcon } from "@/components/Icons";
+import { FacebookIcon, InstagramIcon, TwitterIcon, LinkedInIcon } from "@/components/Icons";
 import Link from "next/link";
 
 const easeOutExpo = [0.16, 1, 0.3, 1] as const;
@@ -25,16 +24,16 @@ const resources = [
 ];
 
 const contactInfo = [
-  { label: "AGConsulting@reallygreatsite.com", href: "mailto:AGConsulting@reallygreatsite.com" },
+  { label: "admissions@ptiros.education", href: "mailto:admissions@ptiros.education" },
   { label: "+91 98765 43210", href: "tel:+919876543210" },
-  { label: "Chennai, Tamil Nadu, India", href: "#" },
+  { label: "Bengaluru / New Delhi / Mumbai, India", href: "#contact" },
 ];
 
 const socialLinks = [
-  { icon: FacebookIcon, label: "Facebook", href: "#" },
-  { icon: InstagramIcon, label: "Instagram", href: "#" },
-  { icon: TwitterIcon, label: "Twitter", href: "#" },
-  { icon: Music, label: "TikTok", href: "#" },
+  { icon: LinkedInIcon, label: "LinkedIn", href: "https://linkedin.com" },
+  { icon: InstagramIcon, label: "Instagram", href: "https://instagram.com" },
+  { icon: TwitterIcon, label: "Twitter", href: "https://twitter.com" },
+  { icon: FacebookIcon, label: "Facebook", href: "https://facebook.com" },
 ];
 
 const containerVariants = {

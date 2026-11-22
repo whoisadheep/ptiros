@@ -3,6 +3,7 @@ import {
   STUDENT_COOKIE_NAME,
   verifyStudentSessionToken,
   addStudentDiaryEntry,
+  deleteStudentDiaryEntry,
 } from "@/lib/serverDb";
 
 export async function POST(req: NextRequest) {
@@ -40,6 +41,38 @@ export async function POST(req: NextRequest) {
     console.error("Diary entry creation error:", error);
     return NextResponse.json(
       { success: false, error: "Failed to save diary entry" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const token = req.cookies.get(STUDENT_COOKIE_NAME)?.value;
+    const userId = verifyStudentSessionToken(token);
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized. Please log in as a student." },
+        { status: 401 }
+      );
+    }
+
+    const { searchParams } = new URL(req.url);
+    const entryId = searchParams.get("id");
+
+    if (!entryId) {
+      return NextResponse.json(
+        { success: false, error: "Entry ID is required in query (?id=...)" },
+        { status: 400 }
+      );
+    }
+
+    await deleteStudentDiaryEntry(userId, entryId);
+    return NextResponse.json({ success: true, entryId });
+  } catch (error: any) {
+    console.error("Diary entry delete error:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to delete diary entry" },
       { status: 500 }
     );
   }

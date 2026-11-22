@@ -49,6 +49,14 @@ export default function FloatingCopilot() {
       title: "Diagnostic Focus",
       hint: "Answer intuitively based on your natural curiosity, not parental pressure.",
     },
+    "/track-booking": {
+      title: "Real-Time Meeting Telemetry",
+      hint: "Enter your Booking ID or WhatsApp mobile to view live council review and Google Meet links.",
+    },
+    "/about": {
+      title: "Our Story & Pedagogy",
+      hint: "Learn how we synthesized Japanese Kaizen routines with ancient Gurukul human mentorship.",
+    },
     "/login": {
       title: "1-Click Demo Available",
       hint: "Select Aarav, Meera, or Vihaan for instant access without a password.",

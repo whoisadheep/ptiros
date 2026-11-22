@@ -22,6 +22,9 @@ import {
   Video,
   ExternalLink,
   Loader2,
+  Download,
+  Copy,
+  CheckCheck,
 } from "lucide-react";
 import { Blobatar } from "@blobatar/react";
 
@@ -48,11 +51,20 @@ export default function MentorshipBookingModal() {
   const [bookingConfirmed, setBookingConfirmed] = useState<MentorshipBooking | null>(null);
   const [phoneError, setPhoneError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
 
-  // Sync track when opened
+  // Sync track when opened (with fallback matching across simulator IDs and mentor domains)
   useEffect(() => {
     if (selectedMentorTrackId) {
-      const match = MENTORS.find((m) => m.domainId === selectedMentorTrackId);
+      const match = MENTORS.find(
+        (m) =>
+          m.domainId === selectedMentorTrackId ||
+          m.id === selectedMentorTrackId ||
+          (selectedMentorTrackId === "medicine" && m.domainId === "digital-health-medicine") ||
+          (selectedMentorTrackId === "ux-design" && m.domainId === "product-ux") ||
+          (selectedMentorTrackId === "finance" && m.domainId === "quant-finance") ||
+          (selectedMentorTrackId === "media" && m.domainId === "media-creative-tech")
+      );
       if (match) setSelectedMentor(match);
     }
   }, [selectedMentorTrackId]);
@@ -190,6 +202,50 @@ export default function MentorshipBookingModal() {
     return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dates}&details=${details}&location=Google+Meet`;
   };
 
+  const downloadIcsCalendar = (booking: MentorshipBooking) => {
+    try {
+      const [timeStr] = booking.timeSlot.split(" - ");
+      const isPM = timeStr.includes("PM");
+      const [rawHour, rawMinute] = timeStr.replace(/[^0-9:]/g, "").split(":");
+      let hour = parseInt(rawHour, 10);
+      if (isPM && hour !== 12) hour += 12;
+      if (!isPM && hour === 12) hour = 0;
+
+      const start = new Date(`${booking.date}T${String(hour).padStart(2, "0")}:${rawMinute || "00"}:00+05:30`);
+      const end = new Date(start.getTime() + 20 * 60 * 1000);
+      const formatICS = (d: Date) => d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+
+      const icsContent = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "PRODID:-//PTIROS Gurukul//Mentorship Session//EN",
+        "BEGIN:VEVENT",
+        `UID:${booking.id}@ptiros.in`,
+        `DTSTAMP:${formatICS(new Date())}`,
+        `DTSTART:${formatICS(start)}`,
+        `DTEND:${formatICS(end)}`,
+        `SUMMARY:1-on-1 PTIROS Gurukul Strategy Call: ${booking.mentorName}`,
+        `DESCRIPTION:Mentor: ${booking.mentorName} (${booking.domainTitle})\\nStudent: ${booking.studentName}\\nRef: ${booking.id}\\nPlatform: https://ptiros.in`,
+        "LOCATION:Google Meet",
+        "STATUS:CONFIRMED",
+        "END:VEVENT",
+        "END:VCALENDAR",
+      ].join("\r\n");
+
+      const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `PTIROS-Session-${booking.id}.ics`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.warn("Failed to generate .ics file:", e);
+    }
+  };
+
   const handleWhatsAppDispatch = (booking: MentorshipBooking) => {
     const text =
       `*PTIROS 1-on-1 Gurukul Mentorship Booking Confirmed*\n\n` +
@@ -246,9 +302,21 @@ export default function MentorshipBookingModal() {
             </div>
 
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-stone-100 px-3.5 py-1 text-xs font-semibold text-stone-800 border border-stone-200">
+              <div className="inline-flex items-center gap-2 rounded-full bg-stone-100 pl-3.5 pr-2 py-1 text-xs font-semibold text-stone-800 border border-stone-200">
                 <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
                 <span>Reference ID: <strong className="font-mono text-orange-600">{bookingConfirmed.id}</strong></span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(bookingConfirmed.id);
+                    setIsCopied(true);
+                    setTimeout(() => setIsCopied(false), 2000);
+                  }}
+                  className="p-1 rounded-full text-stone-500 hover:text-stone-900 transition hover:bg-stone-200 cursor-pointer"
+                  title="Copy Reference ID"
+                >
+                  {isCopied ? <CheckCheck className="size-3.5 text-emerald-600" /> : <Copy className="size-3.5" />}
+                </button>
               </div>
               <h3 className="mt-2.5 text-2xl font-display font-extrabold text-stone-900">
                 1-on-1 Mentorship Call Reserved!
@@ -344,23 +412,32 @@ export default function MentorshipBookingModal() {
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <a
                   href={generateGoogleCalendarUrl(bookingConfirmed)}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-stone-200 bg-white px-4 py-2 text-[11px] font-semibold text-stone-700 shadow-2xs hover:bg-stone-50 transition"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3 py-2 text-[11px] font-semibold text-stone-700 shadow-2xs hover:bg-stone-50 transition"
                 >
                   <Calendar className="size-3.5 text-stone-500" />
-                  <span>Add to Google Calendar</span>
+                  <span>Google Cal</span>
                 </a>
                 <button
                   type="button"
+                  onClick={() => downloadIcsCalendar(bookingConfirmed)}
+                  className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3 py-2 text-[11px] font-semibold text-stone-700 shadow-2xs hover:bg-stone-50 transition cursor-pointer"
+                  title="Download .ics for Apple Calendar & Outlook"
+                >
+                  <Download className="size-3.5 text-stone-500" />
+                  <span>.ICS File</span>
+                </button>
+                <button
+                  type="button"
                   onClick={() => handleWhatsAppDispatch(bookingConfirmed)}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-[11px] font-semibold text-white shadow-sm hover:bg-emerald-700 transition"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-2 text-[11px] font-semibold text-white shadow-sm hover:bg-emerald-700 transition cursor-pointer"
                 >
                   <MessageSquare className="size-3.5 text-white" />
-                  <span>Confirm on WhatsApp</span>
+                  <span>WhatsApp</span>
                 </button>
               </div>
             </div>

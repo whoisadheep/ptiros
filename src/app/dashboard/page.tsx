@@ -52,6 +52,7 @@ import {
   RefreshCw,
   Copy,
   CheckCheck,
+  Trash2,
 } from "lucide-react";
 import { Blobatar } from "@blobatar/react";
 import { useScrollLock } from "@/hooks/useScrollLock";
@@ -75,8 +76,10 @@ export default function DashboardPage() {
     logout,
     openAuthModal,
     addDiaryEntry,
+    deleteDiaryEntry,
     toggleGoal,
     addGoal,
+    deleteGoal,
     trackAndLinkBooking,
     refresh: refreshStudentAuth,
   } = useStudentAuth();
@@ -140,6 +143,47 @@ export default function DashboardPage() {
     setTimeout(() => setCopiedBookingId(null), 2500);
   };
 
+  const downloadIcs = (b: MentorshipSessionRecord) => {
+    try {
+      const [timeStr] = b.timeSlot.split(" - ");
+      const isPM = timeStr.includes("PM");
+      const [rawHour, rawMinute] = timeStr.replace(/[^0-9:]/g, "").split(":");
+      let hour = parseInt(rawHour, 10);
+      if (isPM && hour !== 12) hour += 12;
+      if (!isPM && hour === 12) hour = 0;
+      const start = new Date(`${b.date}T${String(hour).padStart(2, "0")}:${rawMinute || "00"}:00+05:30`);
+      const end = new Date(start.getTime() + 20 * 60 * 1000);
+      const formatICS = (d: Date) => d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+      const icsContent = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "PRODID:-//PTIROS Gurukul//Mentorship Session//EN",
+        "BEGIN:VEVENT",
+        `UID:${b.id}@ptiros.in`,
+        `DTSTAMP:${formatICS(new Date())}`,
+        `DTSTART:${formatICS(start)}`,
+        `DTEND:${formatICS(end)}`,
+        `SUMMARY:1-on-1 PTIROS Gurukul Session: ${b.mentorName}`,
+        `DESCRIPTION:Mentor: ${b.mentorName} (${b.domainTitle})\\nStudent: ${b.studentName}\\nRef: ${b.id}\\nPlatform: https://ptiros.in`,
+        "LOCATION:Google Meet",
+        "STATUS:CONFIRMED",
+        "END:VEVENT",
+        "END:VCALENDAR",
+      ].join("\r\n");
+      const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `PTIROS-Session-${b.id}.ics`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.warn("Could not download .ics:", err);
+    }
+  };
+
   useEffect(() => {
     if (!isLoading && !isLoggedIn) {
       router.replace("/login");
@@ -150,9 +194,29 @@ export default function DashboardPage() {
   const [diaryTitle, setDiaryTitle] = useState("");
   const [diaryNote, setDiaryNote] = useState("");
   const [diaryCategory, setDiaryCategory] = useState("simulator");
+  const [diaryCategoryFilter, setDiaryCategoryFilter] = useState("all");
   const [diaryEnergy, setDiaryEnergy] = useState<"high" | "steady" | "low">("high");
   const [isSavingDiary, setIsSavingDiary] = useState(false);
   const [diarySearch, setDiarySearch] = useState("");
+
+  // Career Test result from local quest
+  const [careerTestResult, setCareerTestResult] = useState<{
+    studentName: string;
+    className: string;
+    topMatch: string;
+    matchConfidence: string;
+    superpowers: string[];
+    archetype: string;
+  } | null>(null);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("ptiros_career_test_result");
+      if (raw) {
+        setCareerTestResult(JSON.parse(raw));
+      }
+    } catch {}
+  }, []);
 
   // Goal creation drawer / inline modal
   const [showGoalModal, setShowGoalModal] = useState(false);
@@ -263,10 +327,21 @@ export default function DashboardPage() {
   });
 
   const filteredDiary = diary.filter((d) => {
+    if (diaryCategoryFilter !== "all" && d.category !== diaryCategoryFilter) return false;
     if (!diarySearch.trim()) return true;
     const q = diarySearch.toLowerCase();
     return d.title.toLowerCase().includes(q) || d.content.toLowerCase().includes(q);
   });
+
+  const handleDeleteGoal = async (e: React.MouseEvent, goalId: string) => {
+    e.stopPropagation();
+    await deleteGoal(goalId);
+  };
+
+  const handleDeleteDiary = async (e: React.MouseEvent, entryId: string) => {
+    e.stopPropagation();
+    await deleteDiaryEntry(entryId);
+  };
 
   const handleDiarySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -676,6 +751,48 @@ export default function DashboardPage() {
               </div>
             </div>
 
+            {/* Career Match Quest Result (if completed) */}
+            {careerTestResult && (
+              <div className="rounded-2xl sm:rounded-3xl border border-orange-200 bg-white p-5 sm:p-6 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div className="flex items-center gap-3.5">
+                  <div className="size-11 rounded-2xl bg-orange-100 flex items-center justify-center text-orange-600 shrink-0">
+                    <Sparkles className="size-5" />
+                  </div>
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                        Quest Result • {careerTestResult.matchConfidence} Match
+                      </span>
+                      <span className="text-xs text-stone-400">
+                        {careerTestResult.archetype}
+                      </span>
+                    </div>
+                    <h3 className="text-base font-bold text-stone-900 mt-0.5">
+                      Top Match: {careerTestResult.topMatch}
+                    </h3>
+                    <p className="text-xs text-stone-500 mt-0.5">
+                      Superpowers: {careerTestResult.superpowers?.join(" • ") || "Analytical Thinking"}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2.5 shrink-0 self-end md:self-auto">
+                  <Link
+                    href="/simulator"
+                    className="px-4 py-2 rounded-xl bg-orange-600 text-white font-bold text-xs hover:bg-orange-700 transition shadow-xs active:scale-95 inline-flex items-center gap-1.5"
+                  >
+                    <span>Test-Drive in Simulator</span>
+                    <ArrowUpRight className="size-3.5" />
+                  </Link>
+                  <Link
+                    href="/career-test"
+                    className="px-3 py-2 rounded-xl border border-stone-200 text-stone-700 font-bold text-xs hover:bg-stone-50 transition"
+                  >
+                    Retake Quiz
+                  </Link>
+                </div>
+              </div>
+            )}
+
             {/* Core Command Deck Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Left Column: Kaizen Active Milestones (2 Cols on lg) */}
@@ -772,15 +889,25 @@ export default function DashboardPage() {
                           </div>
                         </div>
 
-                        <span
-                          className={`text-[11px] font-bold px-2.5 py-1 rounded-full shrink-0 ${
-                            goal.completed
-                              ? "bg-emerald-50 text-emerald-700"
-                              : "bg-amber-50 text-amber-800"
-                          }`}
-                        >
-                          {goal.completed ? "Achieved" : "Active"}
-                        </span>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span
+                            className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${
+                              goal.completed
+                                ? "bg-emerald-50 text-emerald-700"
+                                : "bg-amber-50 text-amber-800"
+                            }`}
+                          >
+                            {goal.completed ? "Achieved" : "Active"}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={(e) => handleDeleteGoal(e, goal.id)}
+                            className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-stone-400 hover:text-red-600 hover:bg-red-50 transition cursor-pointer"
+                            title="Delete milestone"
+                          >
+                            <Trash2 className="size-3.5" />
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -1070,7 +1197,7 @@ export default function DashboardPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2.5">
                       <span
                         className={`text-xs font-bold px-3 py-1 rounded-full ${
                           goal.completed
@@ -1080,6 +1207,14 @@ export default function DashboardPage() {
                       >
                         {goal.completed ? "Completed" : "In Progress"}
                       </span>
+                      <button
+                        type="button"
+                        onClick={(e) => handleDeleteGoal(e, goal.id)}
+                        className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-stone-400 hover:text-red-600 hover:bg-red-50 transition cursor-pointer"
+                        title="Delete milestone"
+                      >
+                        <Trash2 className="size-4" />
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -1127,18 +1262,52 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
+                {/* Category Filter Pills */}
+                <div className="flex flex-wrap items-center gap-1.5 pb-1">
+                  {[
+                    { id: "all", label: "All Logs" },
+                    { id: "simulator", label: "Simulation Debrief" },
+                    { id: "reflection", label: "Hansei Reflection" },
+                    { id: "academic", label: "Academic Milestone" },
+                    { id: "mentorship", label: "Mentor Strategy" },
+                  ].map((cat) => (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setDiaryCategoryFilter(cat.id)}
+                      className={`px-3 py-1 rounded-full text-xs font-semibold transition cursor-pointer ${
+                        diaryCategoryFilter === cat.id
+                          ? "bg-stone-900 text-white shadow-2xs"
+                          : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                      }`}
+                    >
+                      {cat.label}
+                    </button>
+                  ))}
+                </div>
+
                 {/* Reflections List */}
                 <div className="space-y-4">
                   {filteredDiary.map((item) => (
                     <div
                       key={item.id}
-                      className="p-4 sm:p-5 rounded-2xl bg-stone-50/70 border border-stone-200/80 hover:border-orange-300 transition-all space-y-2.5"
+                      className="p-4 sm:p-5 rounded-2xl bg-stone-50/70 border border-stone-200/80 hover:border-orange-300 transition-all space-y-2.5 group"
                     >
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-orange-600 uppercase tracking-wider">
                           {item.category || "Reflection"}
                         </span>
-                        <span className="text-xs font-medium text-stone-400">{item.date}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-medium text-stone-400">{item.date}</span>
+                          <button
+                            type="button"
+                            onClick={(e) => handleDeleteDiary(e, item.id)}
+                            className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-stone-400 hover:text-red-600 hover:bg-red-50 transition cursor-pointer"
+                            title="Delete reflection"
+                          >
+                            <Trash2 className="size-3.5" />
+                          </button>
+                        </div>
                       </div>
                       <h3 className="font-display font-bold text-base text-stone-900">
                         {item.title}
@@ -1380,8 +1549,54 @@ export default function DashboardPage() {
               ))}
 
               {simulations.length === 0 && (
-                <div className="col-span-2 text-center py-8 text-stone-400 text-xs">
-                  No simulations completed yet. Launch the PTIROS simulator to map your aptitudes!
+                <div className="col-span-1 md:col-span-2 space-y-4">
+                  <div className="p-6 rounded-2xl bg-orange-50/70 border border-orange-200 text-center space-y-2">
+                    <PtiroMascot
+                      variant="study"
+                      size={60}
+                      speech="No Simulations Logged Yet"
+                      subSpeech="Pick any workplace track below to test-drive real challenges and earn certified resilience XP."
+                      interactive={false}
+                    />
+                    <h3 className="font-display font-bold text-base text-stone-900 pt-2">
+                      Ready to Test-Drive Your Dream Career?
+                    </h3>
+                    <p className="text-xs text-stone-600 max-w-md mx-auto">
+                      Solve real-world workplace dilemmas across Autonomous AI, Clinical Medicine, Quant Finance, UX Design, or Creative Media.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                    {[
+                      { id: "ai-robotics", title: "AI & Autonomous Robotics", desc: "Debugging Kalman Filter & LiDAR telemetry", color: "border-orange-200 hover:border-orange-400" },
+                      { id: "medicine", title: "Digital Health & BioTech", desc: "Dialysis alarms & clinical bio-sensors", color: "border-emerald-200 hover:border-emerald-400" },
+                      { id: "finance", title: "Quant Finance & HFT Trading", desc: "Volatility hedges & HFT execution", color: "border-amber-200 hover:border-amber-400" },
+                      { id: "ux-design", title: "Product Architecture & UX Design", desc: "Fintech onboarding & user drop-off heuristics", color: "border-purple-200 hover:border-purple-400" },
+                      { id: "media", title: "Creative Media & Interactive Tech", desc: "Virtual production & game engine pipelines", color: "border-rose-200 hover:border-rose-400" },
+                    ].map((track) => (
+                      <Link
+                        key={track.id}
+                        href={`/simulator?track=${track.id}`}
+                        className={`p-4 rounded-xl bg-white border ${track.color} shadow-2xs hover:shadow-xs transition group flex flex-col justify-between`}
+                      >
+                        <div>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-orange-600 block mb-1">
+                            Interactive Track
+                          </span>
+                          <h4 className="font-display font-bold text-sm text-stone-900 group-hover:text-primary transition">
+                            {track.title}
+                          </h4>
+                          <p className="text-xs text-stone-500 mt-1">
+                            {track.desc}
+                          </p>
+                        </div>
+                        <div className="pt-3 flex items-center justify-between text-xs font-bold text-primary">
+                          <span>Launch Simulator</span>
+                          <span>→</span>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -1714,6 +1929,15 @@ export default function DashboardPage() {
                               <Calendar className="size-3 text-stone-500" />
                               <span>Google Calendar</span>
                             </a>
+                            <button
+                              type="button"
+                              onClick={() => downloadIcs(b)}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-stone-200 bg-white text-stone-700 text-xs font-semibold hover:bg-stone-50 transition cursor-pointer"
+                              title="Download .ics for Apple Calendar & Outlook"
+                            >
+                              <Download className="size-3 text-stone-500" />
+                              <span>.ICS File</span>
+                            </button>
                             <button
                               type="button"
                               onClick={() => {

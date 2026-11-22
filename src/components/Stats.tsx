@@ -35,7 +35,7 @@ const stats: StatItem[] = [
     suffix: "+",
     label: "yrs of teaching",
     description:
-      "after about 9+ years in teaching, mentorship and analysis from personal experience,",
+      "Distilled from over 9+ years of teaching, mentorship, and personalized career counseling across top academic boards.",
     icon: GraduationCap,
   },
 ];

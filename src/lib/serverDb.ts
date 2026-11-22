@@ -1178,3 +1178,70 @@ export async function addStudentGoal(
     createdAt: now,
   };
 }
+
+export async function deleteStudentGoal(userId: string, goalId: string): Promise<boolean> {
+  const sql = getNeonSql();
+  if (sql) {
+    try {
+      await sql`
+        DELETE FROM student_planner_goals
+        WHERE id = ${goalId} AND user_id = ${userId};
+      `;
+      return true;
+    } catch (err) {
+      console.warn("Neon deleteStudentGoal error:", err);
+    }
+  }
+  return true;
+}
+
+export async function deleteStudentDiaryEntry(userId: string, entryId: string): Promise<boolean> {
+  const sql = getNeonSql();
+  if (sql) {
+    try {
+      await sql`
+        DELETE FROM student_diary
+        WHERE id = ${entryId} AND user_id = ${userId};
+      `;
+      return true;
+    } catch (err) {
+      console.warn("Neon deleteStudentDiaryEntry error:", err);
+    }
+  }
+  return true;
+}
+
+export async function addStudentSimResult(
+  userId: string,
+  data: {
+    trackId: string;
+    trackTitle: string;
+    fitScore: number;
+    resiliencePoints: number;
+    badgeEarned?: string;
+  }
+): Promise<StudentSimResult> {
+  const id = `sim_${crypto.randomBytes(4).toString("hex")}`;
+  const now = new Date().toISOString();
+  const sql = getNeonSql();
+  if (sql) {
+    try {
+      await sql`
+        INSERT INTO student_sim_results (id, user_id, track_id, track_title, fit_score, resilience_points, badge_earned, completed_at)
+        VALUES (${id}, ${userId}, ${data.trackId}, ${data.trackTitle}, ${data.fitScore}, ${data.resiliencePoints}, ${data.badgeEarned || null}, ${now});
+      `;
+    } catch (err) {
+      console.warn("Neon addStudentSimResult error:", err);
+    }
+  }
+  return {
+    id,
+    userId,
+    trackId: data.trackId,
+    trackTitle: data.trackTitle,
+    fitScore: data.fitScore,
+    resiliencePoints: data.resiliencePoints,
+    badgeEarned: data.badgeEarned,
+    completedAt: now,
+  };
+}

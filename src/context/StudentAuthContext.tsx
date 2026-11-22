@@ -39,8 +39,17 @@ interface StudentAuthContextType {
   }) => Promise<{ success: boolean; error?: string }>;
   logout: (redirectTo?: string) => Promise<void>;
   addDiaryEntry: (title: string, content: string, category?: string) => Promise<boolean>;
+  deleteDiaryEntry: (entryId: string) => Promise<boolean>;
   toggleGoal: (goalId: string, completed: boolean) => Promise<boolean>;
   addGoal: (title: string, timeView: "daily" | "monthly" | "yearly", deadline?: string) => Promise<boolean>;
+  deleteGoal: (goalId: string) => Promise<boolean>;
+  saveSimulationResult: (simData: {
+    trackId: string;
+    trackTitle: string;
+    fitScore: number;
+    resiliencePoints: number;
+    badgeEarned?: string;
+  }) => Promise<boolean>;
   trackAndLinkBooking: (query: string) => Promise<{ success: boolean; found: number; error?: string }>;
   refresh: () => Promise<void>;
 }
@@ -94,11 +103,31 @@ export function StudentAuthProvider({ children }: { children: React.ReactNode })
           serverBookings.forEach((b) => map.set(b.id, b));
           localBookings.forEach((b) => map.set(b.id, b));
           setBookings(Array.from(map.values()));
+
+          // Merge local simulations if any
+          try {
+            const rawSim = localStorage.getItem("ptiros_my_simulations");
+            if (rawSim) {
+              const localSims: StudentSimResult[] = JSON.parse(rawSim);
+              const simMap = new Map<string, StudentSimResult>();
+              (data.simulations || []).forEach((s) => simMap.set(s.trackId, s));
+              localSims.forEach((s) => simMap.set(s.trackId, s));
+              setSimulations(Array.from(simMap.values()));
+            }
+          } catch {}
         } else {
           setUser(null);
           setDiary([]);
           setGoals([]);
           setSimulations([]);
+
+          // Guest simulation check
+          try {
+            const rawSim = localStorage.getItem("ptiros_my_simulations");
+            if (rawSim) {
+              setSimulations(JSON.parse(rawSim));
+            }
+          } catch {}
           
           // Guest bookings check
           try {
@@ -283,6 +312,71 @@ export function StudentAuthProvider({ children }: { children: React.ReactNode })
     return false;
   };
 
+  const deleteGoal = async (goalId: string): Promise<boolean> => {
+    setGoals((prev) => prev.filter((g) => g.id !== goalId));
+    try {
+      const res = await fetch(`/api/student/planner?id=${encodeURIComponent(goalId)}`, {
+        method: "DELETE",
+      });
+      return res.ok;
+    } catch (err) {
+      console.error("Delete goal error:", err);
+      return false;
+    }
+  };
+
+  const deleteDiaryEntry = async (entryId: string): Promise<boolean> => {
+    setDiary((prev) => prev.filter((d) => d.id !== entryId));
+    try {
+      const res = await fetch(`/api/student/diary?id=${encodeURIComponent(entryId)}`, {
+        method: "DELETE",
+      });
+      return res.ok;
+    } catch (err) {
+      console.error("Delete diary error:", err);
+      return false;
+    }
+  };
+
+  const saveSimulationResult = async (simData: {
+    trackId: string;
+    trackTitle: string;
+    fitScore: number;
+    resiliencePoints: number;
+    badgeEarned?: string;
+  }): Promise<boolean> => {
+    const localSim: StudentSimResult = {
+      id: `sim_${Date.now()}`,
+      userId: user?.id || "guest",
+      trackId: simData.trackId,
+      trackTitle: simData.trackTitle,
+      fitScore: simData.fitScore,
+      resiliencePoints: simData.resiliencePoints,
+      badgeEarned: simData.badgeEarned,
+      completedAt: new Date().toISOString(),
+    };
+
+    try {
+      const raw = localStorage.getItem("ptiros_my_simulations");
+      const existing: StudentSimResult[] = raw ? JSON.parse(raw) : [];
+      const updated = [localSim, ...existing.filter((s) => s.trackId !== simData.trackId)];
+      localStorage.setItem("ptiros_my_simulations", JSON.stringify(updated));
+      setSimulations((prev) => [localSim, ...prev.filter((s) => s.trackId !== simData.trackId)]);
+    } catch {}
+
+    try {
+      const res = await fetch("/api/student/simulations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(simData),
+      });
+      return res.ok;
+    } catch (err) {
+      console.error("Save simulation error:", err);
+      return false;
+    }
+  };
+
   const trackAndLinkBooking = async (query: string): Promise<{ success: boolean; found: number; error?: string }> => {
     try {
       const res = await fetch(`/api/bookings/track?query=${encodeURIComponent(query.trim())}`);
@@ -337,8 +431,11 @@ export function StudentAuthProvider({ children }: { children: React.ReactNode })
         signup,
         logout,
         addDiaryEntry,
+        deleteDiaryEntry,
         toggleGoal,
         addGoal,
+        deleteGoal,
+        saveSimulationResult,
         trackAndLinkBooking,
         refresh,
       }}

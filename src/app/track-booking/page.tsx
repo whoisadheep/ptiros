@@ -22,6 +22,7 @@ import {
   ShieldCheck,
   RefreshCw,
   Compass,
+  Download,
 } from "lucide-react";
 import { Blobatar } from "@blobatar/react";
 import PtiroMascot from "@/components/PtiroMascot";
@@ -140,6 +141,47 @@ function TrackBookingContent() {
     if (status === "confirmed") return 2;
     if (status === "pending") return 1;
     return 1;
+  };
+
+  const downloadIcs = (b: MentorshipSessionRecord) => {
+    try {
+      const [timeStr] = b.timeSlot.split(" - ");
+      const isPM = timeStr.includes("PM");
+      const [rawHour, rawMinute] = timeStr.replace(/[^0-9:]/g, "").split(":");
+      let hour = parseInt(rawHour, 10);
+      if (isPM && hour !== 12) hour += 12;
+      if (!isPM && hour === 12) hour = 0;
+      const start = new Date(`${b.date}T${String(hour).padStart(2, "0")}:${rawMinute || "00"}:00+05:30`);
+      const end = new Date(start.getTime() + 20 * 60 * 1000);
+      const formatICS = (d: Date) => d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+      const icsContent = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "PRODID:-//PTIROS Gurukul//Mentorship Session//EN",
+        "BEGIN:VEVENT",
+        `UID:${b.id}@ptiros.in`,
+        `DTSTAMP:${formatICS(new Date())}`,
+        `DTSTART:${formatICS(start)}`,
+        `DTEND:${formatICS(end)}`,
+        `SUMMARY:1-on-1 PTIROS Gurukul Session: ${b.mentorName}`,
+        `DESCRIPTION:Mentor: ${b.mentorName} (${b.domainTitle})\\nStudent: ${b.studentName}\\nRef: ${b.id}\\nPlatform: https://ptiros.in`,
+        "LOCATION:Google Meet",
+        "STATUS:CONFIRMED",
+        "END:VEVENT",
+        "END:VCALENDAR",
+      ].join("\r\n");
+      const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `PTIROS-Session-${b.id}.ics`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.warn("Could not download .ics:", err);
+    }
   };
 
   return (
@@ -406,25 +448,47 @@ function TrackBookingContent() {
                       </div>
                     )}
 
-                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                      <a
+                        href={`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
+                          `1-on-1 PTIROS Gurukul Session: ${b.mentorName}`
+                        )}&details=${encodeURIComponent(
+                          `Mentor: ${b.mentorName}\nStudent: ${b.studentName}\nRef: ${b.id}\nPlatform: https://ptiros.in`
+                        )}&location=Google+Meet`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-700 font-semibold text-xs shadow-2xs transition"
+                        title="Add to Google Calendar"
+                      >
+                        <Calendar className="size-3.5 text-stone-500" />
+                        <span>Google Cal</span>
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => downloadIcs(b)}
+                        className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-700 font-semibold text-xs shadow-2xs transition cursor-pointer"
+                        title="Download .ics for Apple Calendar & Outlook"
+                      >
+                        <Download className="size-3.5 text-stone-500" />
+                        <span>.ICS File</span>
+                      </button>
                       <a
                         href={`https://api.whatsapp.com/send?phone=919876543210&text=${encodeURIComponent(
                           `Hi PTIROS Coordinator, I am tracking my mentorship session (ID: ${b.id}) scheduled for ${b.date} at ${b.timeSlot}. Please assist me with meeting details.`
                         )}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl border border-stone-300 bg-white hover:bg-stone-50 text-stone-700 font-bold text-xs shadow-2xs transition active:scale-95"
+                        className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl border border-stone-300 bg-white hover:bg-stone-50 text-stone-700 font-bold text-xs shadow-2xs transition active:scale-95"
                       >
                         <MessageSquare className="size-3.5 text-emerald-600" />
-                        <span>WhatsApp Help</span>
+                        <span>WhatsApp</span>
                       </a>
-
                       <Link
                         href="/dashboard"
-                        className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs shadow-xs transition active:scale-95"
+                        className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs shadow-xs transition active:scale-95"
                       >
                         <Compass className="size-3.5" />
-                        <span>Open Dashboard</span>
+                        <span>Dashboard</span>
                       </Link>
                     </div>
                   </div>

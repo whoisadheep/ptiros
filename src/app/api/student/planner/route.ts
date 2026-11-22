@@ -4,6 +4,7 @@ import {
   verifyStudentSessionToken,
   toggleStudentGoal,
   addStudentGoal,
+  deleteStudentGoal,
 } from "@/lib/serverDb";
 
 export async function PATCH(req: NextRequest) {
@@ -72,6 +73,38 @@ export async function POST(req: NextRequest) {
     console.error("Planner goal post error:", error);
     return NextResponse.json(
       { success: false, error: "Failed to create goal" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const token = req.cookies.get(STUDENT_COOKIE_NAME)?.value;
+    const userId = verifyStudentSessionToken(token);
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized. Please log in as a student." },
+        { status: 401 }
+      );
+    }
+
+    const { searchParams } = new URL(req.url);
+    const goalId = searchParams.get("id");
+
+    if (!goalId) {
+      return NextResponse.json(
+        { success: false, error: "Goal ID is required in query (?id=...)" },
+        { status: 400 }
+      );
+    }
+
+    await deleteStudentGoal(userId, goalId);
+    return NextResponse.json({ success: true, goalId });
+  } catch (error: any) {
+    console.error("Planner goal delete error:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to delete goal" },
       { status: 500 }
     );
   }

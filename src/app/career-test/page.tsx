@@ -20,6 +20,7 @@ import {
   Smile,
   ShieldCheck,
   ChevronDown,
+  LayoutDashboard,
 } from "lucide-react";
 
 type Step = "register" | "quiz" | "result";
@@ -124,11 +125,42 @@ export default function CareerTestPage() {
   };
 
   const handleAnswerSelect = (optionText: string) => {
-    setAnswers({ ...answers, [currentQ]: optionText });
+    const updatedAnswers = { ...answers, [currentQ]: optionText };
+    setAnswers(updatedAnswers);
     if (currentQ < quizQuestions.length - 1) {
       setCurrentQ(currentQ + 1);
     } else {
       setStep("result");
+      const resultData = {
+        studentName: formData.name || "PTIROS Explorer",
+        className: formData.className,
+        completedAt: new Date().toISOString(),
+        topMatch: "AI & Autonomous Robotics",
+        matchConfidence: "94.8%",
+        superpowers: ["Analytical & Logical Thinking (92%)", "Creative Problem Solving (88%)"],
+        archetype: "The Pragmatic Builder",
+        answers: updatedAnswers,
+      };
+      try {
+        localStorage.setItem("ptiros_career_test_result", JSON.stringify(resultData));
+      } catch {}
+
+      // Save lead to database for follow-up
+      fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          studentName: formData.name || "Career Quest Student",
+          grade: formData.className,
+          schoolName: formData.schoolName || undefined,
+          city: formData.state || undefined,
+          parentName: formData.fatherName || formData.motherName || undefined,
+          parentPhone: formData.parentPhone || undefined,
+          parentEmail: formData.parentEmail || undefined,
+          notes: `Completed Career Match Quest. Top Match: AI & Autonomous Robotics (94.8%). Selected Options: ${Object.values(updatedAnswers).join("; ")}`,
+          source: "career-test",
+        }),
+      }).catch(() => {});
     }
   };
 
@@ -522,12 +554,20 @@ export default function CareerTestPage() {
                       Includes 10-year Indian salary trajectories, board exam Kaizen checklists, and 1:1 strategy call booking with IIT & NLSIU mentors.
                     </p>
                   </div>
-                  <button
-                    onClick={() => openDossierModal()}
-                    className="cursor-pointer whitespace-nowrap px-6 py-3.5 rounded-full bg-white text-primary font-bold text-sm shadow-xl hover:bg-neutral-100 transition-all flex items-center gap-2 shrink-0 active:scale-95"
-                  >
-                    <Download className="size-4" /> Preview Parent Dossier
-                  </button>
+                  <div className="flex flex-wrap items-center gap-3 shrink-0">
+                    <button
+                      onClick={() => openDossierModal()}
+                      className="cursor-pointer whitespace-nowrap px-6 py-3.5 rounded-full bg-white text-primary font-bold text-sm shadow-xl hover:bg-neutral-100 transition-all flex items-center gap-2 active:scale-95"
+                    >
+                      <Download className="size-4" /> Preview Parent Dossier
+                    </button>
+                    <Link
+                      href="/dashboard"
+                      className="cursor-pointer whitespace-nowrap px-5 py-3.5 rounded-full bg-white/20 hover:bg-white/30 text-white font-bold text-sm transition-all flex items-center gap-2 active:scale-95 border border-white/30"
+                    >
+                      <LayoutDashboard className="size-4" /> Open Dashboard
+                    </Link>
+                  </div>
                 </div>
               </div>
             </motion.div>

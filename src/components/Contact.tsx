@@ -15,14 +15,47 @@ export default function Contact() {
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage("");
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+
+    try {
+      const cleanPhone = formState.mobile.replace(/[^0-9]/g, "").slice(-10);
+      if (cleanPhone.length !== 10) {
+        setErrorMessage("Please enter a valid 10-digit mobile number");
+        setIsSubmitting(false);
+        return;
+      }
+
+      const res = await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          studentName: formState.fullName.trim(),
+          parentPhone: cleanPhone,
+          grade: formState.standard.includes("Class") ? formState.standard : `Class ${formState.standard.replace(/[^0-9]/g, "")}`,
+          notes: `Email: ${formState.email.trim()} | Inquiry: ${formState.message.trim()}`,
+          source: "contact_form",
+          parentConsent: true,
+        }),
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        setErrorMessage(errJson.error || "Failed to submit inquiry. Please try again.");
+        setIsSubmitting(false);
+        return;
+      }
+
       setIsSubmitted(true);
-    }, 800);
+    } catch {
+      setErrorMessage("Network error. Please try again or message us on WhatsApp.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -86,14 +119,18 @@ export default function Contact() {
                 </span>
                 <div className="mt-3 flex items-center gap-3">
                   <a
-                    href="#"
+                    href="https://facebook.com"
+                    target="_blank"
+                    rel="noreferrer"
                     className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 text-white transition-all hover:bg-white hover:text-primary"
                     aria-label="Facebook"
                   >
                     <FacebookIcon className="h-5 w-5" />
                   </a>
                   <a
-                    href="#"
+                    href="https://instagram.com"
+                    target="_blank"
+                    rel="noreferrer"
                     className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 text-white transition-all hover:bg-white hover:text-primary"
                     aria-label="Instagram"
                   >
@@ -230,6 +267,12 @@ export default function Contact() {
                       className="w-full rounded-xl border border-border/80 bg-bg/50 px-4 py-3 text-sm text-accent placeholder:text-text-muted/60 focus:border-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none"
                     />
                   </div>
+
+                  {errorMessage && (
+                    <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700">
+                      {errorMessage}
+                    </div>
+                  )}
 
                   <button
                     type="submit"

@@ -34,6 +34,7 @@ import {
   Flame,
   Check,
   Users,
+  LayoutDashboard,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import {
@@ -48,6 +49,7 @@ import WorkplaceFeed from "@/components/simulator/WorkplaceFeed";
 import ConsequenceBranching from "@/components/simulator/ConsequenceBranching";
 import ParentDossier from "@/components/simulator/ParentDossier";
 import { useUserProfile } from "@/context/UserProfileContext";
+import { useStudentAuth } from "@/context/StudentAuthContext";
 import { useScrollLock } from "@/hooks/useScrollLock";
 import PtiroMascot from "@/components/PtiroMascot";
 
@@ -863,6 +865,7 @@ function SimulatorContent() {
   const trackParam = searchParams.get("track");
 
   const { profile, openIntakeModal, openBookingModal, openDossierModal } = useUserProfile();
+  const { saveSimulationResult } = useStudentAuth();
 
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -1000,6 +1003,14 @@ function SimulatorContent() {
     } else {
       setIsCompleted(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
+      const finalFit = Math.round((score / activeTrack.missions.length) * 100);
+      saveSimulationResult({
+        trackId: activeTrack.id,
+        trackTitle: activeTrack.title,
+        fitScore: finalFit,
+        resiliencePoints: resiliencePoints + 40,
+        badgeEarned: `${activeTrack.title} Pioneer`,
+      }).catch(() => {});
     }
   };
 
@@ -1707,6 +1718,14 @@ function SimulatorContent() {
                       <Users className="h-4 w-4 text-amber-700" />
                       <span>Book Mentor Call</span>
                     </button>
+
+                    <Link
+                      href="/dashboard?tab=analysis"
+                      className="flex w-full sm:w-auto cursor-pointer items-center justify-center gap-2 rounded-full border border-orange-300 bg-orange-100/70 px-6 py-3 text-xs font-bold text-orange-900 shadow-sm transition-all hover:bg-orange-200/80 active:scale-95"
+                    >
+                      <LayoutDashboard className="h-4 w-4 text-orange-700" />
+                      <span>View in Student Dashboard</span>
+                    </Link>
 
                     <button
                       onClick={resetSimulationState}

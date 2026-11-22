@@ -77,9 +77,9 @@ export default function Hero() {
             </div>
 
             <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight text-accent">
-              Most students choose the wrong career .
+              Most students choose the wrong career.
               <br />
-              <span className="text-primary">Are you ?</span>
+              <span className="text-primary">Are you?</span>
             </h2>
 
             <p className="mt-3 text-sm sm:text-base leading-relaxed text-text-muted">
