@@ -53,14 +53,19 @@ import {
   Copy,
   CheckCheck,
   Trash2,
+  Trophy,
+  Bookmark,
 } from "lucide-react";
 import { Blobatar } from "@blobatar/react";
 import { useScrollLock } from "@/hooks/useScrollLock";
 import PtiroMascot from "@/components/PtiroMascot";
 import { MENTORS } from "@/data/mentors";
 import { MentorshipSessionRecord } from "@/types/database";
+import ActivityLocker from "@/components/dashboard/ActivityLocker";
+import SavedPathways from "@/components/dashboard/SavedPathways";
+import CareerIntelligenceFeed from "@/components/dashboard/CareerIntelligenceFeed";
 
-type DashboardTab = "cockpit" | "planner" | "diary" | "credentials" | "analysis" | "mentorship";
+type DashboardTab = "cockpit" | "planner" | "activities" | "saved" | "diary" | "credentials" | "analysis" | "mentorship";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -97,7 +102,7 @@ export default function DashboardPage() {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const tabParam = params.get("tab") as DashboardTab | null;
-      if (tabParam && ["cockpit", "planner", "diary", "credentials", "analysis", "mentorship"].includes(tabParam)) {
+      if (tabParam && ["cockpit", "planner", "activities", "saved", "diary", "credentials", "analysis", "mentorship"].includes(tabParam)) {
         setActiveTab(tabParam);
       }
     }
@@ -562,6 +567,8 @@ export default function DashboardPage() {
             {[
               { id: "cockpit", label: "Student Overview", shortLabel: "Overview", icon: Compass },
               { id: "planner", label: `Weekly Goals (${totalGoals - completedGoals} Active)`, shortLabel: `Goals (${totalGoals - completedGoals})`, icon: Calendar },
+              { id: "activities", label: "Activity Locker", shortLabel: "Activities", icon: Trophy },
+              { id: "saved", label: "Saved Pathways", shortLabel: "Saved", icon: Bookmark },
               { id: "diary", label: `Learning Journal (${diary.length})`, shortLabel: `Journal (${diary.length})`, icon: FileText },
               { id: "credentials", label: "Skills & Certificates", shortLabel: "Credentials", icon: Award },
               { id: "analysis", label: "Aptitude & Strengths", shortLabel: "Aptitude", icon: Brain },
@@ -1058,6 +1065,9 @@ export default function DashboardPage() {
                 </div>
               </div>
             </div>
+
+            {/* Field Intelligence & Day in the Life Feed */}
+            <CareerIntelligenceFeed />
           </div>
         )}
 
@@ -1230,7 +1240,21 @@ export default function DashboardPage() {
         )}
 
         {/* ========================================================= */}
-        {/* TAB 3: HANSEI STUDENT REFLECTIVE DIARY */}
+        {/* TAB 3: EXTRACURRICULAR ACTIVITY LOCKER (Unifrog Portfolio) */}
+        {/* ========================================================= */}
+        {activeTab === "activities" && (
+          <ActivityLocker userId={user?.id} userName={student.name} />
+        )}
+
+        {/* ========================================================= */}
+        {/* TAB 4: SAVED PATHWAYS & FAVORITES (Xello) */}
+        {/* ========================================================= */}
+        {activeTab === "saved" && (
+          <SavedPathways userId={user?.id} onNavigateTab={(t) => setActiveTab(t as DashboardTab)} />
+        )}
+
+        {/* ========================================================= */}
+        {/* TAB 5: STUDENT REFLECTIVE DIARY */}
         {/* ========================================================= */}
         {activeTab === "diary" && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">

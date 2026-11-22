@@ -19,6 +19,8 @@ import {
   Check,
   ArrowRight,
   ExternalLink,
+  Trophy,
+  Bookmark,
 } from "lucide-react";
 import { Blobatar } from "@blobatar/react";
 import { useStudentAuth } from "@/context/StudentAuthContext";
@@ -321,6 +323,24 @@ export default function NavProfileMenu() {
               >
                 <Target className="size-4 text-orange-600 group-hover:scale-110 transition-transform" />
                 <span>Weekly Goals & Milestones</span>
+              </Link>
+
+              <Link
+                href="/dashboard?tab=activities"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-3 px-3 py-2 rounded-xl text-stone-700 hover:bg-stone-50 hover:text-stone-950 transition text-xs font-semibold group"
+              >
+                <Trophy className="size-4 text-orange-600 group-hover:scale-110 transition-transform" />
+                <span>Activity Locker & Portfolio</span>
+              </Link>
+
+              <Link
+                href="/dashboard?tab=saved"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-3 px-3 py-2 rounded-xl text-stone-700 hover:bg-stone-50 hover:text-stone-950 transition text-xs font-semibold group"
+              >
+                <Bookmark className="size-4 text-orange-600 group-hover:scale-110 transition-transform" />
+                <span>Saved Career Pathways</span>
               </Link>
 
               <Link

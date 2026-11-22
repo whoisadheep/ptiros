@@ -144,11 +144,41 @@ export interface StudentSimResult {
   completedAt: string;
 }
 
+export interface StudentActivity {
+  id: string;
+  userId: string;
+  title: string;
+  role: string;
+  organization?: string;
+  category: "leadership" | "competition" | "creative" | "sports" | "service";
+  grade: string;
+  description: string;
+  competencies: string[];
+  createdAt: string;
+}
+
+export interface StudentSavedPathway {
+  id: string;
+  trackId: string;
+  title: string;
+  domain: string;
+  status: "primary" | "considering" | "backup";
+  entrySalary: string;
+  seniorSalary: string;
+  targetColleges: string[];
+  streamRequired: string;
+  exams: string[];
+  simulationTrackId: string;
+  savedAt: string;
+}
+
 export interface StudentPortalData {
   user: StudentUser;
   diary: StudentDiaryEntry[];
   goals: StudentPlannerGoal[];
   simulations: StudentSimResult[];
+  activities?: StudentActivity[];
+  savedPathways?: StudentSavedPathway[];
   bookings?: MentorshipSessionRecord[];
 }
 
