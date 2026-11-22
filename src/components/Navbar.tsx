@@ -301,7 +301,7 @@ export default function Navbar() {
                     </div>
 
                     <p className="text-[11px] text-stone-500 leading-relaxed">
-                      Access your personal dashboard, daily Hansei reflections, and simulator badges.
+                      Access your personal dashboard, daily reflection journal, and career simulations.
                     </p>
 
                     <button

@@ -311,7 +311,7 @@ export default function NavProfileMenu() {
                 className="flex items-center gap-3 px-3 py-2 rounded-xl text-stone-700 hover:bg-stone-50 hover:text-stone-950 transition text-xs font-semibold group"
               >
                 <Compass className="size-4 text-orange-600 group-hover:scale-110 transition-transform" />
-                <span>Career Trajectory & Flight Path</span>
+                <span>My Career Roadmap</span>
               </Link>
 
               <Link
@@ -320,7 +320,7 @@ export default function NavProfileMenu() {
                 className="flex items-center gap-3 px-3 py-2 rounded-xl text-stone-700 hover:bg-stone-50 hover:text-stone-950 transition text-xs font-semibold group"
               >
                 <Target className="size-4 text-orange-600 group-hover:scale-110 transition-transform" />
-                <span>Kaizen Weekly Milestones</span>
+                <span>Weekly Goals & Milestones</span>
               </Link>
 
               <Link
@@ -329,7 +329,7 @@ export default function NavProfileMenu() {
                 className="flex items-center gap-3 px-3 py-2 rounded-xl text-stone-700 hover:bg-stone-50 hover:text-stone-950 transition text-xs font-semibold group"
               >
                 <BookOpen className="size-4 text-orange-600 group-hover:scale-110 transition-transform" />
-                <span>Hansei Reflection Logs</span>
+                <span>Daily Reflection Journal</span>
               </Link>
 
               <Link
@@ -338,7 +338,7 @@ export default function NavProfileMenu() {
                 className="flex items-center gap-3 px-3 py-2 rounded-xl text-stone-700 hover:bg-stone-50 hover:text-stone-950 transition text-xs font-semibold group"
               >
                 <Gamepad2 className="size-4 text-orange-600 group-hover:scale-110 transition-transform" />
-                <span>Workplace Simulator Scores</span>
+                <span>Career Simulator Practice</span>
               </Link>
 
               <Link
@@ -347,7 +347,7 @@ export default function NavProfileMenu() {
                 className="flex items-center gap-3 px-3 py-2 rounded-xl text-stone-700 hover:bg-stone-50 hover:text-stone-950 transition text-xs font-semibold group"
               >
                 <Users className="size-4 text-orange-600 group-hover:scale-110 transition-transform" />
-                <span>1:1 Mentorship Sessions</span>
+                <span>1:1 Mentor Sessions</span>
               </Link>
             </div>
 

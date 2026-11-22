@@ -560,11 +560,11 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
           <nav className="flex space-x-1 sm:space-x-3 overflow-x-auto py-2 sm:py-2.5 scrollbar-none snap-x overscroll-contain">
             {[
-              { id: "cockpit", label: "Trajectory Cockpit", shortLabel: "Cockpit", icon: Compass },
-              { id: "planner", label: `Kaizen Roadmap (${totalGoals - completedGoals} Active)`, shortLabel: `Roadmap (${totalGoals - completedGoals})`, icon: Calendar },
-              { id: "diary", label: `Hansei Diary (${diary.length})`, shortLabel: `Diary (${diary.length})`, icon: FileText },
-              { id: "credentials", label: "NEP 2020 Credentials", shortLabel: "NEP Vault", icon: Award },
-              { id: "analysis", label: "Aptitude Diagnostics", shortLabel: "Aptitude", icon: Brain },
+              { id: "cockpit", label: "Student Overview", shortLabel: "Overview", icon: Compass },
+              { id: "planner", label: `Weekly Goals (${totalGoals - completedGoals} Active)`, shortLabel: `Goals (${totalGoals - completedGoals})`, icon: Calendar },
+              { id: "diary", label: `Learning Journal (${diary.length})`, shortLabel: `Journal (${diary.length})`, icon: FileText },
+              { id: "credentials", label: "Skills & Certificates", shortLabel: "Credentials", icon: Award },
+              { id: "analysis", label: "Aptitude & Strengths", shortLabel: "Aptitude", icon: Brain },
               {
                 id: "mentorship",
                 label: activeBookings.length > 0 ? `Mentorship (${activeBookings.length} Active)` : "Senior Mentors & 1:1",
@@ -801,13 +801,13 @@ export default function DashboardPage() {
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-stone-100 gap-2.5">
                     <div>
                       <h2 className="text-base sm:text-lg font-display font-bold text-stone-900 flex flex-wrap items-center gap-2">
-                        <span>Kaizen Action Board</span>
+                        <span>Weekly Action Goals</span>
                         <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-orange-100 text-orange-800 whitespace-nowrap">
                           {totalGoals - completedGoals} Pending
                         </span>
                       </h2>
                       <p className="text-xs text-stone-500 mt-0.5">
-                        Daily 1% incremental progress toward your dream university trajectory.
+                        Step-by-step milestones toward your dream university and career path.
                       </p>
                     </div>
 
@@ -1070,13 +1070,13 @@ export default function DashboardPage() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-stone-100">
                 <div>
                   <h2 className="text-lg sm:text-xl font-display font-bold text-stone-900 flex flex-wrap items-center gap-2">
-                    <span>Kaizen Academic & Career Roadmap</span>
+                    <span>Academic & Career Action Plan</span>
                     <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-orange-100 text-orange-800 whitespace-nowrap">
                       {completedGoals} / {totalGoals} Milestones
                     </span>
                   </h2>
                   <p className="text-xs text-stone-500 mt-0.5">
-                    Japanese Kaizen continuous improvement framework + Indian Gurukul discipline.
+                    Clear, step-by-step milestones for board exams, competitive entrances, and real-world skills.
                   </p>
                 </div>
 
@@ -1240,13 +1240,13 @@ export default function DashboardPage() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-stone-100">
                   <div>
                     <h2 className="text-lg sm:text-xl font-display font-bold text-stone-900 flex flex-wrap items-center gap-2">
-                      <span>Hansei Reflection Logs</span>
+                      <span>Daily Learning Journal</span>
                       <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-orange-100 text-orange-800 whitespace-nowrap">
                         {diary.length} Recorded
                       </span>
                     </h2>
                     <p className="text-xs text-stone-500 mt-0.5">
-                      Japanese deliberate self-audit. Recorded directly into Neon Database.
+                      Your private daily study journal. Track learnings, challenges, and tomorrow's focus.
                     </p>
                   </div>
 
@@ -1267,7 +1267,7 @@ export default function DashboardPage() {
                   {[
                     { id: "all", label: "All Logs" },
                     { id: "simulator", label: "Simulation Debrief" },
-                    { id: "reflection", label: "Hansei Reflection" },
+                    { id: "reflection", label: "Daily Reflection" },
                     { id: "academic", label: "Academic Milestone" },
                     { id: "mentorship", label: "Mentor Strategy" },
                   ].map((cat) => (
@@ -1339,7 +1339,7 @@ export default function DashboardPage() {
                 <div className="flex items-center justify-between border-b border-stone-100 pb-3">
                   <h3 className="font-display font-bold text-base text-stone-900 flex items-center gap-1.5">
                     <Sparkles className="size-4 text-orange-600" />
-                    Log Daily Hansei Entry
+                    Write Today's Reflection
                   </h3>
                   <span className="text-[10px] uppercase font-bold text-stone-400">Live Sync</span>
                 </div>
@@ -1348,8 +1348,8 @@ export default function DashboardPage() {
                   <PtiroMascot
                     variant="study"
                     size={64}
-                    speech="Hansei Mode"
-                    subSpeech="Daily deliberate reflection turns effort into compounding mastery."
+                    speech="Daily Journal"
+                    subSpeech="Daily reflection turns small study efforts into compounding mastery."
                     interactive={false}
                   />
                 </div>
@@ -1363,7 +1363,7 @@ export default function DashboardPage() {
                       type="text"
                       value={diaryTitle}
                       onChange={(e) => setDiaryTitle(e.target.value)}
-                      placeholder="e.g. Debugging Kalman Filter telemetry latency"
+                      placeholder="e.g. Debugging physics numericals or debate prep"
                       className="w-full px-3 py-2 rounded-xl border border-stone-200 text-sm sm:text-xs focus:ring-2 focus:ring-orange-500/30 focus:outline-none"
                     />
                   </div>
@@ -1403,7 +1403,7 @@ export default function DashboardPage() {
                     disabled={isSavingDiary}
                     className="w-full py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs shadow-xs transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 disabled:opacity-50"
                   >
-                    {isSavingDiary ? "Committing to Neon DB..." : "Save Hansei Entry"}
+                    {isSavingDiary ? "Saving to Journal..." : "Save Reflection Entry"}
                     <Sparkles className="size-3.5" />
                   </button>
                 </form>
@@ -1886,7 +1886,7 @@ export default function DashboardPage() {
                                 <span>4. Debrief & Plan</span>
                               </div>
                               <p className="text-[11px] text-stone-400 leading-tight">
-                                Post-call notes & Kaizen milestones
+                                Post-call notes & action goals
                               </p>
                             </div>
                           </div>
@@ -2044,7 +2044,7 @@ export default function DashboardPage() {
                   <div>
                     <strong className="text-stone-700 block mb-0.5">Post-Session Debrief Vault</strong>
                     <p className="leading-relaxed">
-                      After every 20-minute 1-on-1 strategy call, your mentor records strategic guidance, recommended textbook/resource lists, and target roadmap goals. They will automatically be recorded here and linked into your Kaizen Roadmap.
+                      After every 20-minute 1-on-1 strategy call, your mentor records strategic guidance, recommended textbook/resource lists, and target roadmap goals. They will automatically be recorded here and linked into your Weekly Goals.
                     </p>
                   </div>
                 </div>
@@ -2126,7 +2126,7 @@ export default function DashboardPage() {
           <div data-lenis-prevent className="w-full max-w-md max-h-[90vh] overflow-y-auto bg-white rounded-3xl p-6 shadow-2xl border border-stone-200 space-y-4 overscroll-contain">
             <div className="flex items-center justify-between border-b border-stone-100 pb-3">
               <h3 className="font-display font-bold text-lg text-stone-900">
-                Add Kaizen Milestone
+                Add New Goal Milestone
               </h3>
               <button
                 onClick={() => setShowGoalModal(false)}

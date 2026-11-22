@@ -121,13 +121,13 @@ const DOSSIER_PAGES: PageTeaser[] = [
   },
   {
     pageNumber: 9,
-    title: "Kaizen 4-Year Action Checklist (Grades 9-12)",
+    title: "4-Year Action Checklist (Grades 9-12)",
     badge: "Execution",
     icon: Zap,
     previewPoints: [
       "Quarter-by-quarter milestones: competitions, olympiads, and portfolio projects",
       "Extracurricular activities that genuinely matter to tier-1 admissions",
-      "Continuous Hansei reflection points to track growth",
+      "Continuous reflection points to track personal growth",
     ],
   },
   {

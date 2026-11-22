@@ -33,7 +33,7 @@ export default function LoginPage() {
           </Link>
           <h1 className="text-2xl font-display font-bold text-accent">Student Portal Login</h1>
           <p className="text-xs text-text-muted mt-1">
-            Access your personalized roadmap, Hansei diary, and mentorship trajectory.
+            Access your personalized roadmap, daily study journal, and mentor guidance.
           </p>
         </div>
 

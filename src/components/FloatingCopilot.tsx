@@ -38,8 +38,8 @@ export default function FloatingCopilot() {
       hint: "Most students choose the wrong stream. Take our 360° test to find your authentic path.",
     },
     "/dashboard": {
-      title: "Kaizen Momentum",
-      hint: "Check off your daily sprint tasks to build your board exam readiness score.",
+      title: "Daily Study Progress",
+      hint: "Check off your daily tasks to build your board exam readiness score.",
     },
     "/simulator": {
       title: "Experiential Test-Drive",
@@ -55,7 +55,7 @@ export default function FloatingCopilot() {
     },
     "/about": {
       title: "Our Story & Pedagogy",
-      hint: "Learn how we synthesized Japanese Kaizen routines with ancient Gurukul human mentorship.",
+      hint: "Learn how we combine daily study micro-habits with 1:1 human mentorship from top graduates.",
     },
     "/roadmaps": {
       title: "NEP 2020 Multi-Disciplinary Roadmaps",
@@ -63,7 +63,7 @@ export default function FloatingCopilot() {
     },
     "/why-ptiros": {
       title: "The Science of Clarity",
-      hint: "See how cognitive neuroscience and daily Hansei reflection prevent student stream burnout.",
+      hint: "See how cognitive neuroscience and daily reflection prevent student stream burnout.",
     },
     "/contact": {
       title: "Admissions & Counseling Support",

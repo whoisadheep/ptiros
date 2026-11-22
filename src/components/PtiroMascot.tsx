@@ -62,11 +62,11 @@ export default function PtiroMascot({
   const defaultSpeeches: Record<MascotVariant, { title: string; sub: string }> = {
     copilot: {
       title: "Hi, I'm Ptiro!",
-      sub: "Your Kaizen copilot & career guide.",
+      sub: "Your friendly study copilot & career guide.",
     },
     celebrate: {
       title: "Phenomenal Work!",
-      sub: "Milestone unlocked • +1 Kaizen Streak",
+      sub: "Milestone unlocked • +1 Study Streak",
     },
     confetti: {
       title: "Goal Completed!",

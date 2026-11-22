@@ -153,7 +153,7 @@ export default function StudentAuthModal() {
               {authMode === "login" ? "Sign in to Student Dashboard" : "Create Student Account"}
             </h2>
             <p className="text-xs text-text-muted mt-0.5">
-              Access your personalized roadmap, Hansei diary, Kaizen daily planner, and mentor notes.
+              Access your personalized roadmap, daily reflection journal, weekly goals, and mentor notes.
             </p>
 
             {/* Quick Demo Switcher Strip */}
