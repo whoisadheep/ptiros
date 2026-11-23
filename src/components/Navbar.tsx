@@ -112,10 +112,10 @@ export default function Navbar() {
         >
           {/* Brand Logo */}
           <Link href="/" className="flex items-center gap-2 group shrink-0">
-            <span className="font-display text-2xl font-black tracking-tight text-gradient">
+            <span className="font-display text-2xl font-bold tracking-tight text-stone-950">
               PTIROS
             </span>
-            <span className="hidden sm:inline-block text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded bg-orange-100 text-orange-800">
+            <span className="hidden sm:inline-block text-[10px] font-semibold px-2 py-0.5 rounded-md bg-stone-100 text-stone-700">
               NEP 2020
             </span>
           </Link>
@@ -129,18 +129,18 @@ export default function Navbar() {
                   <Link
                     href={link.href}
                     onClick={(e) => handleNavClick(e, link.href)}
-                    className={`relative cursor-pointer text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-1.5 py-1 ${
+                    className={`relative cursor-pointer text-xs font-semibold transition-colors flex items-center gap-1.5 py-1 ${
                       isActive
-                        ? "text-primary"
+                        ? "text-orange-700 font-bold"
                         : "text-stone-600 hover:text-stone-950"
                     }`}
                   >
                     <span>{link.label}</span>
                     {isActive && (
-                      <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary rounded-full" />
+                      <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-orange-600 rounded-full" />
                     )}
                     {"highlight" in link && link.highlight && !isActive && (
-                      <span className="size-1.5 rounded-full bg-orange-500 animate-pulse shrink-0" />
+                      <span className="size-1.5 rounded-full bg-orange-600 shrink-0" />
                     )}
                   </Link>
                 </li>
@@ -156,9 +156,9 @@ export default function Navbar() {
             {/* Primary Action Button */}
             <Link
               href="/career-test"
-              className="cursor-pointer rounded-full bg-primary px-4 sm:px-5 py-2 text-xs font-bold text-white shadow-md shadow-primary/20 transition-all hover:bg-primary-dark hover:shadow-lg hover:shadow-primary/25 active:scale-95 flex items-center gap-1.5"
+              className="cursor-pointer rounded-xl bg-orange-600 px-4 py-2 text-xs font-bold text-white shadow-xs transition-colors hover:bg-orange-700 active:scale-95 flex items-center gap-1.5"
             >
-              <span>Give Career Test</span>
+              <span>Career Diagnostic</span>
               <ArrowRight className="size-3.5" />
             </Link>
           </div>
@@ -203,11 +203,11 @@ export default function Navbar() {
               {/* Sidebar Header */}
               <div className="flex items-center justify-between border-b border-stone-100 px-5 py-4 bg-stone-50/70">
                 <div className="flex items-center gap-2">
-                  <span className="font-display text-xl font-black text-gradient">
+                  <span className="font-display text-xl font-bold text-stone-950">
                     PTIROS
                   </span>
-                  <span className="rounded-md bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
-                    Menu
+                  <span className="rounded-md bg-stone-100 px-2 py-0.5 text-[10px] font-semibold text-stone-700">
+                    Navigation
                   </span>
                 </div>
 

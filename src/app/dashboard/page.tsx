@@ -422,11 +422,11 @@ export default function DashboardPage() {
           {/* Brand & Student Avatar Chip */}
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <Link href="/" className="flex items-center gap-1.5 sm:gap-2 group shrink-0">
-              <span className="font-display font-black text-xl sm:text-2xl tracking-tight text-gradient">
+              <span className="font-display font-bold text-xl sm:text-2xl tracking-tight text-stone-950">
                 PTIROS
               </span>
-              <span className="hidden sm:inline-block text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-md bg-stone-900 text-stone-100">
-                COCKPIT
+              <span className="hidden sm:inline-block text-[10px] font-semibold px-2 py-0.5 rounded-md bg-stone-100 text-stone-700">
+                Student Portal
               </span>
             </Link>
 
@@ -666,14 +666,13 @@ export default function DashboardPage() {
             )}
 
             {/* North Star Flight Card */}
-            <div className="relative rounded-2xl sm:rounded-3xl bg-gradient-to-br from-stone-900 via-stone-950 to-stone-900 text-white p-5 sm:p-8 shadow-xl overflow-hidden border border-stone-800">
-              <div className="absolute top-0 right-0 -mt-12 -mr-12 size-80 rounded-full bg-gradient-to-br from-orange-500/20 to-amber-500/0 blur-3xl pointer-events-none" />
+            <div className="relative rounded-2xl sm:rounded-3xl bg-stone-900 text-white p-5 sm:p-8 shadow-xs overflow-hidden border border-stone-800">
               <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                 <div className="space-y-2.5 max-w-2xl">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-400 text-xs font-bold uppercase tracking-wider">
-                    <Target className="size-3.5" /> Active Career Trajectory
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-stone-200 text-xs font-semibold">
+                    <Target className="size-3.5 text-orange-400" /> Active Career Trajectory
                   </div>
-                  <h1 className="text-xl sm:text-3xl lg:text-4xl font-display font-black tracking-tight text-white leading-tight">
+                  <h1 className="text-xl sm:text-3xl lg:text-4xl font-display font-bold tracking-tight text-white leading-tight">
                     {trajectoryMeta.trackTitle}
                   </h1>
                   <p className="text-stone-300 text-xs sm:text-sm font-normal leading-relaxed">

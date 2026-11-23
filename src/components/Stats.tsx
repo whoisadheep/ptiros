@@ -101,43 +101,43 @@ export default function Stats() {
     <section
       id="stats"
       ref={sectionRef}
-      className="relative bg-bg py-16 sm:py-24 border-t border-b border-border/60"
+      className="relative bg-stone-50/40 py-14 sm:py-20 border-b border-stone-200/60"
       aria-label="Key Statistics"
     >
-      <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-12">
-        <div className="divide-y divide-border/60">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="divide-y divide-stone-200/80">
           {stats.map((stat, idx) => {
             const Icon = stat.icon;
             return (
               <ScrollReveal
                 key={stat.label}
-                delay={idx * 0.1}
+                delay={idx * 0.08}
                 direction="up"
-                distance={20}
+                distance={16}
               >
-                <div className="group grid grid-cols-1 items-center gap-6 py-8 sm:py-10 md:grid-cols-12 md:gap-8 transition-colors duration-200 hover:bg-primary/[0.02]">
+                <div className="grid grid-cols-1 items-center gap-6 py-6 sm:py-8 md:grid-cols-12 md:gap-8">
                   {/* Column 1: Big Number & Suffix (4 Cols) */}
                   <div className="flex items-center gap-4 md:col-span-4">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary transition-transform duration-300 group-hover:scale-110">
-                      <Icon className="h-6 w-6" strokeWidth={2} />
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-orange-700 border border-orange-200/60">
+                      <Icon className="h-5 w-5" strokeWidth={1.8} />
                     </div>
                     <div>
-                      <span className="font-display text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-accent">
+                      <span className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-stone-950">
                         <AnimatedCounter
                           target={stat.value}
                           suffix={stat.suffix}
                           isInView={isInView}
                         />
                       </span>
-                      <span className="block font-display text-base sm:text-lg font-bold text-primary">
+                      <span className="block font-display text-sm sm:text-base font-semibold text-stone-700 capitalize">
                         {stat.label}
                       </span>
                     </div>
                   </div>
 
-                  {/* Column 2: Exact Copy from Client deck (8 Cols) */}
+                  {/* Column 2: Description (8 Cols) */}
                   <div className="md:col-span-8">
-                    <p className="text-base sm:text-lg lg:text-xl font-normal leading-relaxed text-text">
+                    <p className="text-sm sm:text-base font-normal leading-relaxed text-stone-600">
                       {stat.description}
                     </p>
                   </div>

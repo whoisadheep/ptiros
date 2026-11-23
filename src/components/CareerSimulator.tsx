@@ -122,46 +122,40 @@ export default function CareerSimulator() {
   return (
     <section
       id="simulator"
-      className="relative overflow-hidden bg-[#FFFBF5] py-20 sm:py-28"
+      className="relative overflow-hidden bg-stone-50/50 py-20 sm:py-28 border-t border-stone-200/60"
       aria-label="Virtual Career Simulator Showcase"
     >
-      {/* Decorative ambient auras */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-        <div className="absolute -left-32 top-20 h-96 w-96 rounded-full bg-orange-500/8 blur-3xl" />
-        <div className="absolute -right-32 bottom-20 h-96 w-96 rounded-full bg-indigo-500/8 blur-3xl" />
-      </div>
-
-      <div className="relative mx-auto max-w-7xl px-5 sm:px-8 lg:px-12">
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <ScrollReveal direction="up" distance={20}>
           <div className="text-center max-w-3xl mx-auto">
-            <span className="inline-flex items-center gap-2 rounded-full bg-orange-100 px-4 py-1.5 text-xs sm:text-sm font-bold uppercase tracking-widest text-orange-700">
-              <Sparkles className="h-3.5 w-3.5" />
-              Interactive Career Quests
+            <span className="inline-flex items-center gap-2 rounded-full bg-stone-100 px-3.5 py-1 text-xs font-semibold text-stone-700">
+              <GraduationCap className="h-3.5 w-3.5 text-orange-700" />
+              Interactive Workplace Simulations
             </span>
 
-            <h2 className="mt-4 font-display text-3xl sm:text-5xl lg:text-6xl font-black text-gray-900 leading-tight">
+            <h2 className="mt-4 font-display text-3xl sm:text-5xl lg:text-6xl font-bold text-stone-950 leading-tight">
               Test-Drive Your{" "}
-              <span className="text-gradient">Dream Career</span> First.
+              <span className="text-orange-700">Dream Career</span> First.
             </h2>
 
-            <p className="mt-4 text-base sm:text-lg leading-relaxed text-gray-600">
+            <p className="mt-4 text-base sm:text-lg leading-relaxed text-stone-600">
               Don’t pick subjects in the dark. Experience 3-minute interactive workplace missions
               designed around real industry challenges, from AI robotics to corporate mergers.
             </p>
 
             {/* Quick Metrics */}
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-3 text-xs font-semibold text-gray-500">
-              <span className="flex items-center gap-1.5 rounded-full bg-white px-3 py-1 border border-orange-200/80 shadow-xs">
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-3 text-xs font-semibold text-stone-600">
+              <span className="flex items-center gap-1.5 rounded-full bg-white px-3 py-1 border border-stone-200 shadow-2xs">
                 <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
                 100% Free Virtual Simulations
               </span>
-              <span className="flex items-center gap-1.5 rounded-full bg-white px-3 py-1 border border-orange-200/80 shadow-xs">
-                <GraduationCap className="h-3.5 w-3.5 text-orange-600" />
+              <span className="flex items-center gap-1.5 rounded-full bg-white px-3 py-1 border border-stone-200 shadow-2xs">
+                <GraduationCap className="h-3.5 w-3.5 text-stone-500" />
                 NEP 2020 Experiential Labs
               </span>
-              <span className="flex items-center gap-1.5 rounded-full bg-white px-3 py-1 border border-orange-200/80 shadow-xs">
-                <Zap className="h-3.5 w-3.5 text-amber-500" />
+              <span className="flex items-center gap-1.5 rounded-full bg-white px-3 py-1 border border-stone-200 shadow-2xs">
+                <Zap className="h-3.5 w-3.5 text-amber-600" />
                 Instant Career Fit Score
               </span>
             </div>

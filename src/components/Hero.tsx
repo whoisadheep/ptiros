@@ -1,117 +1,106 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   ArrowRight,
-  Sparkles,
   GraduationCap,
   Award,
+  CheckCircle2,
 } from "lucide-react";
 import Link from "next/link";
-import MagneticButton from "./ui/MagneticButton";
 
 export default function Hero() {
-  const prefersReducedMotion = useReducedMotion();
-
   return (
     <section
       id="home"
-      className="relative flex flex-col justify-center overflow-hidden bg-bg pt-24 pb-14 sm:pt-28 sm:pb-16 lg:pt-32 lg:pb-20"
+      className="relative flex flex-col justify-center overflow-hidden bg-stone-50/60 pt-24 pb-14 sm:pt-28 sm:pb-16 lg:pt-32 lg:pb-20 border-b border-stone-200/60"
       aria-label="Hero"
     >
-      {/* Background Ambient Fluid Warmth */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-        <div className="absolute -left-20 top-10 h-80 w-80 sm:h-[30rem] sm:w-[30rem] rounded-full bg-primary/15 blur-[90px] sm:blur-[130px]" />
-        <div className="absolute right-0 top-20 h-96 w-96 sm:h-[34rem] sm:w-[34rem] rounded-full bg-primary-light/15 blur-[100px] sm:blur-[140px]" />
-        <div className="absolute bottom-10 left-1/3 h-72 w-72 sm:h-80 sm:w-80 rounded-full bg-secondary/15 blur-[80px] sm:blur-[110px]" />
-      </div>
-
-      <div className="relative z-10 mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-12">
-        {/* Client Top Row: "A platform to be the dream you dreamt of" (Left) & "Welcome to PTIROS" (Right) */}
-        <motion.div
-          initial={false}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-border/60 pb-4"
-        >
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-xs sm:text-sm font-semibold tracking-wide text-primary backdrop-blur-sm">
-            <Sparkles className="h-3.5 w-3.5 text-primary" />
-            <span>A platform to be the dream you dreamt of</span>
+      <div className="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        {/* Top Context Row */}
+        <div className="mb-8 flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between border-b border-stone-200/80 pb-4">
+          <div className="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-white px-3.5 py-1 text-xs font-semibold text-stone-700 shadow-2xs">
+            <span className="size-1.5 rounded-full bg-emerald-600" />
+            <span>Admissions & Stream Guidance for Classes 8–12</span>
           </div>
 
-          <div className="text-xs sm:text-sm font-bold uppercase tracking-widest text-text-muted">
-            Welcome to <span className="font-extrabold text-primary">PTIROS</span>
+          <div className="text-xs font-medium text-stone-500">
+            Aligned with <span className="font-semibold text-stone-900">NEP 2020 Multi-Disciplinary Standards</span>
           </div>
-        </motion.div>
+        </div>
 
         {/* Main Hero Split Grid */}
         <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-12 lg:gap-14">
-          {/* Left Column: Bold Headline matching design-01.png */}
-          <motion.div
-            initial={false}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="flex flex-col items-start lg:col-span-7"
-          >
-            <h1 className="font-display text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black leading-[1.04] tracking-tight text-accent">
-              ROADMAP TO
+          {/* Left Column: Focused Headline and Proposition */}
+          <div className="flex flex-col items-start lg:col-span-7 space-y-5">
+            <h1 className="font-display text-4xl sm:text-6xl md:text-7xl font-bold leading-[1.08] tracking-tight text-stone-950">
+              Roadmap to your
               <br />
-              <span className="text-gradient">YOUR DREAMS</span>
+              <span className="text-orange-700">dream career.</span>
             </h1>
 
-            <p className="mt-5 max-w-xl text-base sm:text-lg lg:text-xl leading-relaxed text-text-muted">
-              Built on the science of Japanese Kaizen routines, ancient Indian Gurukul mentorship, and NEP 2020 experiential learning to guarantee your dream career path.
+            <p className="max-w-xl text-base sm:text-lg leading-relaxed text-stone-600">
+              Test-drive real-world careers before locking in high-school subject combinations. Backed by interactive workplace simulations, board exam blueprints, and 1:1 strategy calls with IIT, NLSIU, and AIIMS alumni.
             </p>
-          </motion.div>
 
-          {/* Right Column: "Most students choose the wrong career . Are you ?" + CTA pill matching design-01.png */}
-          <motion.div
-            initial={false}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
-            className="flex flex-col items-start justify-center rounded-3xl border border-border/80 bg-white/80 p-6 sm:p-10 shadow-xl backdrop-blur-lg lg:col-span-5"
-          >
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-primary">
-              <GraduationCap className="h-4 w-4" />
-              <span>Career Assessment</span>
+            {/* Quick Proof Points */}
+            <div className="pt-2 flex flex-wrap items-center gap-4 text-xs font-semibold text-stone-600">
+              <span className="flex items-center gap-1.5">
+                <CheckCircle2 className="size-4 text-emerald-600" />
+                Zero Stream Pressure
+              </span>
+              <span className="flex items-center gap-1.5">
+                <CheckCircle2 className="size-4 text-emerald-600" />
+                Interactive Roleplay Simulations
+              </span>
+              <span className="flex items-center gap-1.5">
+                <CheckCircle2 className="size-4 text-emerald-600" />
+                10-Year Indian Salary Ladders
+              </span>
+            </div>
+          </div>
+
+          {/* Right Column: Grounded Assessment Card */}
+          <div className="flex flex-col items-start justify-center rounded-2xl sm:rounded-3xl border border-stone-200/90 bg-white p-6 sm:p-8 shadow-xs lg:col-span-5 space-y-4">
+            <div className="inline-flex items-center gap-1.5 rounded-md bg-stone-100 px-2.5 py-1 text-xs font-semibold text-stone-700">
+              <GraduationCap className="size-3.5 text-orange-700" />
+              <span>5-Minute Career Diagnostic</span>
             </div>
 
-            <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight text-accent">
-              Most students choose the wrong career.
+            <h2 className="font-display text-2xl sm:text-3xl font-bold leading-tight text-stone-950">
+              Most students choose the wrong stream.
               <br />
-              <span className="text-primary">Are you?</span>
+              <span className="text-orange-700">Are you?</span>
             </h2>
 
-            <p className="mt-3 text-sm sm:text-base leading-relaxed text-text-muted">
-              Over 93% of Indian students choose their stream without understanding their natural strengths or NEP career alignments. Take the free 5-minute discovery assessment now.
+            <p className="text-xs sm:text-sm leading-relaxed text-stone-600">
+              Over 93% of Indian students choose their stream without understanding their natural cognitive strengths or university entrance requirements. Find your authentic fit in 5 minutes.
             </p>
 
-            {/* CTA Button matching design-01.png ("GIVE CAREER TEST") */}
-            <div className="mt-6 flex w-full flex-col sm:flex-row items-stretch sm:items-center gap-3">
-              <MagneticButton href="/career-test" strength={0.2} className="w-full">
-                <div
-                  className="group flex w-full cursor-pointer items-center justify-center gap-3 rounded-full bg-primary px-8 py-4 text-base font-bold uppercase tracking-wide text-white shadow-xl shadow-primary/30 transition-all duration-200 hover:bg-primary-dark active:scale-[0.98]"
-                  style={{ minHeight: "52px" }}
-                >
-                  <span>GIVE CAREER TEST</span>
-                  <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
-                </div>
-              </MagneticButton>
-            </div>
-
-            <div className="mt-4 flex w-full items-center justify-between border-t border-border/50 pt-3 text-xs text-text-muted">
-              <span className="flex items-center gap-1.5">
-                <Award className="h-3.5 w-3.5 text-primary" />
-                Free instant report
-              </span>
+            {/* CTA Button */}
+            <div className="w-full pt-1">
               <Link
-                href="#roadmaps"
-                className="font-semibold text-primary hover:underline"
+                href="/career-test"
+                className="group flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-orange-600 px-6 py-3.5 text-sm font-bold text-white shadow-xs transition-colors hover:bg-orange-700 active:scale-[0.99]"
               >
-                Explore Roadmaps ↓
+                <span>Take Free Career Diagnostic</span>
+                <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
               </Link>
             </div>
-          </motion.div>
+
+            <div className="flex w-full items-center justify-between border-t border-stone-100 pt-3 text-xs text-stone-500">
+              <span className="flex items-center gap-1.5">
+                <Award className="size-3.5 text-stone-400" />
+                Instant personalized report
+              </span>
+              <Link
+                href="/roadmaps"
+                className="font-semibold text-stone-700 hover:text-orange-700 transition-colors"
+              >
+                Explore Roadmaps →
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </section>

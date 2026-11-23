@@ -85,10 +85,7 @@ export default function ContactPage() {
       <Navbar />
 
       {/* Hero Header */}
-      <section className="relative overflow-hidden pt-28 pb-12 sm:pt-36 sm:pb-16 border-b border-border/60 bg-gradient-to-b from-orange-50/70 via-bg to-bg">
-        <div className="absolute top-0 right-1/4 -mt-20 size-96 rounded-full bg-orange-400/10 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-10 size-80 rounded-full bg-amber-400/10 blur-3xl pointer-events-none" />
-
+      <section className="relative overflow-hidden pt-28 pb-12 sm:pt-36 sm:pb-16 border-b border-border/60 bg-stone-50/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           {/* Breadcrumbs */}
           <nav className="flex items-center gap-2 text-xs font-semibold text-text-muted mb-4" aria-label="Breadcrumb">

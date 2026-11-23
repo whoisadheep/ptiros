@@ -172,10 +172,10 @@ export default function AboutPage() {
             <span className="hidden sm:inline-block h-4 w-px bg-stone-200" />
 
             <Link href="/" className="flex items-center gap-2">
-              <span className="font-display text-xl sm:text-2xl font-black tracking-tight text-gradient">
+              <span className="font-display text-xl sm:text-2xl font-bold tracking-tight text-stone-950">
                 PTIROS
               </span>
-              <span className="hidden md:inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-orange-100 text-orange-800">
+              <span className="hidden md:inline-block text-[10px] font-semibold px-2 py-0.5 rounded-md bg-stone-100 text-stone-700">
                 Our Story
               </span>
             </Link>
@@ -208,21 +208,18 @@ export default function AboutPage() {
       </header>
 
       {/* ─── 1. HERO SECTION (The Human Purpose) ─────────── */}
-      <section className="relative overflow-hidden pt-12 pb-16 sm:pt-20 sm:pb-24 border-b border-stone-200/70">
-        <div className="absolute top-0 right-1/4 -mt-20 size-96 rounded-full bg-orange-400/10 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-10 size-80 rounded-full bg-amber-400/10 blur-3xl pointer-events-none" />
-
+      <section className="relative overflow-hidden pt-12 pb-16 sm:pt-20 sm:pb-24 border-b border-stone-200/70 bg-stone-50/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-10 lg:gap-14">
             <div className="max-w-3xl space-y-5">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-100/80 border border-orange-200/80 text-orange-900 text-xs font-bold uppercase tracking-wider">
-                <Sparkles className="size-3.5 text-primary" />
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-stone-100 border border-stone-200 text-stone-800 text-xs font-semibold">
+                <span className="size-1.5 rounded-full bg-orange-600" />
                 <span>Our Story • Born from Classroom Realities</span>
               </div>
 
-              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-display font-black tracking-tight text-stone-900 leading-[1.15]">
+              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-display font-bold tracking-tight text-stone-900 leading-[1.15]">
                 Empowering Every Student to{" "}
-                <span className="text-gradient">Create Their True Future.</span>
+                <span className="text-orange-700">Create Their True Future.</span>
               </h1>
 
               <p className="text-base sm:text-lg text-stone-600 leading-relaxed font-normal">
