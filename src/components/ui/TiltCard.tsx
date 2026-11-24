@@ -27,7 +27,13 @@ export default function TiltCard({
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
-      if (prefersReducedMotion || !cardRef.current) return;
+      if (
+        prefersReducedMotion ||
+        !cardRef.current ||
+        (typeof window !== "undefined" && !window.matchMedia("(hover: hover) and (pointer: fine)").matches)
+      ) {
+        return;
+      }
       const rect = cardRef.current.getBoundingClientRect();
       const clientX = e.clientX - rect.left;
       const clientY = e.clientY - rect.top;
@@ -43,6 +49,12 @@ export default function TiltCard({
   );
 
   const handleMouseEnter = () => {
+    if (
+      typeof window !== "undefined" &&
+      !window.matchMedia("(hover: hover) and (pointer: fine)").matches
+    ) {
+      return;
+    }
     setIsHovered(true);
   };
 

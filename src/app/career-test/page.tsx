@@ -167,16 +167,35 @@ export default function CareerTestPage() {
   return (
     <main className="min-h-screen bg-bg text-text">
       {/* Header */}
-      <header className="border-b border-border/50 bg-white/70 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto px-5 py-4 flex items-center justify-between">
-          <Link href="/" className="inline-flex items-center gap-2 text-sm font-semibold text-accent hover:text-primary transition-colors">
-            <ArrowLeft className="size-4" /> Back to Home
+      <header className="border-b border-border/50 bg-white/80 backdrop-blur-md sticky top-0 z-40">
+        <div className="max-w-6xl mx-auto px-3.5 sm:px-5 py-3 sm:py-4 flex items-center justify-between gap-2">
+          <Link href="/" className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-accent hover:text-primary transition-colors shrink-0">
+            <ArrowLeft className="size-4 shrink-0" />
+            <span className="hidden sm:inline">Back to Home</span>
+            <span className="sm:hidden">Home</span>
           </Link>
-          <div className="font-display font-bold text-xl text-gradient">PTIROS Career Match</div>
-          <div className="text-xs font-medium px-3 py-1 rounded-full bg-primary/10 text-primary">
-            {step === "register" && "Step 1 of 3: Quick Setup"}
-            {step === "quiz" && `Step 2 of 3: Quest ${currentQ + 1} of ${quizQuestions.length}`}
-            {step === "result" && "Step 3 of 3: Your Superpower Match"}
+          <div className="font-display font-bold text-base sm:text-xl text-gradient truncate">
+            PTIROS Career Match
+          </div>
+          <div className="text-[11px] sm:text-xs font-medium px-2.5 sm:px-3 py-1 rounded-full bg-primary/10 text-primary shrink-0 whitespace-nowrap">
+            {step === "register" && (
+              <>
+                <span className="hidden sm:inline">Step 1 of 3: Quick Setup</span>
+                <span className="sm:hidden">Step 1/3</span>
+              </>
+            )}
+            {step === "quiz" && (
+              <>
+                <span className="hidden sm:inline">{`Step 2 of 3: Quest ${currentQ + 1} of ${quizQuestions.length}`}</span>
+                <span className="sm:hidden">{`Quest ${currentQ + 1}/${quizQuestions.length}`}</span>
+              </>
+            )}
+            {step === "result" && (
+              <>
+                <span className="hidden sm:inline">Step 3 of 3: Your Superpower Match</span>
+                <span className="sm:hidden">Step 3/3</span>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -401,7 +420,7 @@ export default function CareerTestPage() {
                       </span>
                       <span className="text-sm sm:text-base font-medium text-accent">{opt.text}</span>
                     </div>
-                    <span className="text-xs font-semibold text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="text-xs font-semibold text-primary opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0">
                       Select →
                     </span>
                   </button>
@@ -554,16 +573,16 @@ export default function CareerTestPage() {
                       Includes 10-year Indian salary trajectories, board exam Kaizen checklists, and 1:1 strategy call booking with IIT & NLSIU mentors.
                     </p>
                   </div>
-                  <div className="flex flex-wrap items-center gap-3 shrink-0">
+                  <div className="w-full sm:w-auto flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 shrink-0">
                     <button
                       onClick={() => openDossierModal()}
-                      className="cursor-pointer whitespace-nowrap px-6 py-3.5 rounded-full bg-white text-primary font-bold text-sm shadow-xl hover:bg-neutral-100 transition-all flex items-center gap-2 active:scale-95"
+                      className="cursor-pointer whitespace-nowrap px-6 py-3.5 rounded-full bg-white text-primary font-bold text-sm shadow-xl hover:bg-neutral-100 transition-all flex items-center justify-center gap-2 active:scale-95"
                     >
                       <Download className="size-4" /> Preview Parent Dossier
                     </button>
                     <Link
                       href="/dashboard"
-                      className="cursor-pointer whitespace-nowrap px-5 py-3.5 rounded-full bg-white/20 hover:bg-white/30 text-white font-bold text-sm transition-all flex items-center gap-2 active:scale-95 border border-white/30"
+                      className="cursor-pointer whitespace-nowrap px-5 py-3.5 rounded-full bg-white/20 hover:bg-white/30 text-white font-bold text-sm transition-all flex items-center justify-center gap-2 active:scale-95 border border-white/30"
                     >
                       <LayoutDashboard className="size-4" /> Open Dashboard
                     </Link>

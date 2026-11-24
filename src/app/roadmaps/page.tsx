@@ -51,13 +51,13 @@ export default function RoadmapsPage() {
               </h1>
 
               <p className="text-base sm:text-lg text-text-muted leading-relaxed">
-                No more coercive stream choices. Discover customized Kaizen milestone blueprints for
+                No more coercive stream choices. Discover customized academic milestone blueprints for
                 <strong> CBSE</strong>, <strong>ICSE</strong>, <strong>State Boards</strong>, and <strong>IB</strong>,
                 seamlessly aligned with real-world Indian university admissions.
               </p>
 
               {/* Trust Badges */}
-              <div className="pt-2 flex flex-wrap items-center gap-3 text-xs text-stone-600">
+              <div className="pt-2 flex flex-wrap items-center gap-2.5 sm:gap-3 text-xs text-stone-600">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-border shadow-2xs">
                   <ShieldCheck className="size-3.5 text-emerald-600" />
                   <span>NCrF Bagless Days Integrated</span>
@@ -74,15 +74,15 @@ export default function RoadmapsPage() {
             </div>
 
             {/* Ptiro Mascot Guide Card */}
-            <div className="shrink-0 p-5 rounded-3xl bg-white border border-orange-200 shadow-lg max-w-sm">
+            <div className="w-full lg:max-w-sm shrink-0 p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-orange-200 shadow-xs">
               <div className="flex items-center gap-3.5">
-                <PtiroMascot variant="copilot" size={68} interactive={false} />
-                <div>
+                <PtiroMascot variant="copilot" size={64} showSpeech={false} interactive={false} />
+                <div className="min-w-0 flex-1">
                   <h3 className="font-display font-bold text-sm text-stone-900">
                     Ptiro Navigator Tip
                   </h3>
                   <p className="text-xs text-stone-600 mt-0.5 leading-relaxed">
-                    Select your current stage below to see curated subject choices, board blueprints, and milestone targets!
+                    Select your current stage below to see curated subject choices, board blueprints, and milestone targets.
                   </p>
                 </div>
               </div>

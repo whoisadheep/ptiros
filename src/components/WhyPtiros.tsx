@@ -28,7 +28,7 @@ const illustrationCards: readonly IllustrationItem[] = [
     imageSrc: "/icon_innovation.png",
     alt: "Innovation lightbulb with gear arrows",
     title: "Dynamic Innovation",
-    caption: "Continuous Kaizen cycles, practical problem solving & NEP tools.",
+    caption: "Continuous improvement cycles, practical problem solving & NEP tools.",
   },
 ] as const;
 
@@ -62,10 +62,10 @@ export default function WhyPtiros() {
   return (
     <section
       id="why-ptiros"
-      className="relative overflow-hidden bg-bg py-24 sm:py-32"
+      className="relative overflow-hidden bg-bg py-16 sm:py-24 lg:py-32"
       aria-label="Why PTIROS"
     >
-      <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-12">
+      <div className="mx-auto max-w-7xl px-4 sm:px-8 lg:px-12">
         {/* Section Heading matching design-03.png */}
         <ScrollReveal direction="up" distance={20}>
           <div className="mb-14 text-center">
@@ -112,15 +112,15 @@ export default function WhyPtiros() {
         <ScrollReveal direction="up" distance={24} delay={0.15}>
           <div className="overflow-hidden rounded-3xl border border-border/80 bg-white shadow-xl">
             {/* Table Header */}
-            <div className="grid grid-cols-12 border-b border-border/80 bg-bg-muted/80 p-5 sm:p-6 text-sm sm:text-base font-bold text-accent">
-              <div className="col-span-6 sm:col-span-6 uppercase tracking-wider text-text-muted">
+            <div className="grid grid-cols-12 border-b border-border/80 bg-bg-muted/80 p-3.5 sm:p-6 text-xs sm:text-base font-bold text-accent items-center">
+              <div className="col-span-6 uppercase tracking-wider text-text-muted">
                 Core Deliverables
               </div>
-              <div className="col-span-3 sm:col-span-3 text-center font-display text-lg sm:text-xl font-extrabold text-primary">
+              <div className="col-span-3 text-center font-display text-sm sm:text-xl font-extrabold text-primary">
                 PTIROS
               </div>
-              <div className="col-span-3 sm:col-span-3 text-center font-display text-base sm:text-lg font-bold text-text-muted">
-                Indian schools
+              <div className="col-span-3 text-center font-display text-xs sm:text-lg font-bold text-text-muted">
+                Schools
               </div>
             </div>
 

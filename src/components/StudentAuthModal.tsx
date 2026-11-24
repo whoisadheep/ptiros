@@ -112,7 +112,7 @@ export default function StudentAuthModal() {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
         {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -131,10 +131,10 @@ export default function StudentAuthModal() {
           role="dialog"
           aria-modal="true"
           data-lenis-prevent
-          className="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl border border-border/80 overflow-hidden z-10 flex flex-col max-h-[92vh] overscroll-contain"
+          className="relative w-full max-w-xl bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-border/80 overflow-y-auto z-10 flex flex-col max-h-[90dvh] overscroll-contain"
         >
           {/* Header */}
-          <div className="relative px-6 pt-6 pb-4 bg-gradient-to-r from-orange-50 via-amber-50 to-orange-100/50 border-b border-border/60">
+          <div className="relative px-4 sm:px-6 pt-5 sm:pt-6 pb-4 bg-gradient-to-r from-orange-50 via-amber-50 to-orange-100/50 border-b border-border/60">
             <button
               onClick={closeAuthModal}
               className="absolute top-5 right-5 size-9 rounded-full bg-white/80 hover:bg-white text-text-muted hover:text-accent flex items-center justify-center shadow-xs transition"

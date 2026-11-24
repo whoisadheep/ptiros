@@ -113,41 +113,41 @@ export default function ContactPage() {
               </p>
 
               {/* Fast Action Cards */}
-              <div className="pt-2 flex flex-wrap items-center gap-3">
+              <div className="pt-2 flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3">
                 <a
                   href="https://api.whatsapp.com/send?phone=919876543210&text=Hello%20PTIROS%2C%20I%20would%20like%20to%20inquire%20about%20student%20career%20mentorship."
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 transition shadow-sm active:scale-95"
+                  className="inline-flex items-center justify-center gap-2 px-4 py-3 sm:py-2.5 rounded-xl bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 transition shadow-sm active:scale-95"
                 >
-                  <MessageSquare className="size-4" />
+                  <MessageSquare className="size-4 shrink-0" />
                   <span>Instant WhatsApp Hotline</span>
                 </a>
 
                 <Link
                   href="/track-booking"
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-stone-300 bg-white text-stone-800 font-bold text-xs hover:bg-stone-50 transition shadow-2xs active:scale-95"
+                  className="inline-flex items-center justify-center gap-2 px-4 py-3 sm:py-2.5 rounded-xl border border-stone-300 bg-white text-stone-800 font-bold text-xs hover:bg-stone-50 transition shadow-2xs active:scale-95"
                 >
-                  <Clock className="size-4 text-orange-600" />
+                  <Clock className="size-4 text-orange-600 shrink-0" />
                   <span>Track Existing Meeting</span>
                 </Link>
 
                 <button
                   type="button"
                   onClick={() => openBookingModal()}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-white font-bold text-xs hover:bg-primary-dark transition shadow-md shadow-primary/25 active:scale-95 cursor-pointer"
+                  className="inline-flex items-center justify-center gap-2 px-4 py-3 sm:py-2.5 rounded-xl bg-primary text-white font-bold text-xs hover:bg-primary-dark transition shadow-md shadow-primary/25 active:scale-95 cursor-pointer"
                 >
-                  <Users className="size-4" />
+                  <Users className="size-4 shrink-0" />
                   <span>Book 1:1 Consultation</span>
                 </button>
               </div>
             </div>
 
             {/* Ptiro Mascot Help Card */}
-            <div className="shrink-0 p-5 rounded-3xl bg-white border border-orange-200 shadow-lg max-w-sm">
+            <div className="shrink-0 w-full lg:max-w-sm p-4 sm:p-5 rounded-3xl bg-white border border-orange-200 shadow-lg">
               <div className="flex items-center gap-3.5">
-                <PtiroMascot variant="copilot" size={68} interactive={false} />
-                <div>
+                <PtiroMascot variant="copilot" size={68} interactive={false} showSpeech={false} />
+                <div className="min-w-0">
                   <h3 className="font-display font-bold text-sm text-stone-900">
                     Need Direct Guidance?
                   </h3>

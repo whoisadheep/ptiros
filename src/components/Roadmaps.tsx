@@ -573,14 +573,14 @@ export default function Roadmaps() {
 
         {/* 2. Compact Grade Selector Pills for Active Stage */}
         <div className="mb-6 flex flex-col items-center">
-          <div className="flex items-center gap-1.5 rounded-full border border-border/70 bg-white/90 p-1 shadow-xs backdrop-blur-sm">
+          <div className="flex flex-wrap sm:flex-nowrap justify-center items-center gap-1 sm:gap-1.5 rounded-2xl sm:rounded-full border border-border/70 bg-white/90 p-1 shadow-xs backdrop-blur-sm max-w-full">
             {currentStage.grades.map((grade) => {
               const isSelected = activeGrade === grade;
               return (
                 <button
                   key={grade}
                   onClick={() => setActiveGrade(grade)}
-                  className="relative cursor-pointer rounded-full px-4 py-1.5 text-xs font-semibold transition-colors duration-200 sm:px-6 sm:py-2 sm:text-sm"
+                  className="relative cursor-pointer rounded-xl sm:rounded-full px-3 py-1.5 text-xs font-semibold transition-colors duration-200 sm:px-6 sm:py-2 sm:text-sm whitespace-nowrap"
                   style={{ minHeight: "38px" }}
                 >
                   {isSelected && (

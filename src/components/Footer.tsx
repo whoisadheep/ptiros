@@ -72,9 +72,9 @@ export default function Footer() {
         aria-hidden="true"
       />
 
-      <div className="mx-auto max-w-7xl px-5 py-16 lg:px-8 lg:py-20">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-12 sm:py-16 lg:px-8 lg:py-20">
         <motion.div
-          className="grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-4"
+          className="grid grid-cols-1 gap-8 sm:grid-cols-2 sm:gap-10 lg:grid-cols-4 lg:gap-12"
           variants={prefersReducedMotion ? {} : containerVariants}
           initial="hidden"
           whileInView="visible"
@@ -83,28 +83,28 @@ export default function Footer() {
           {/* Column 1 — Brand */}
           <motion.div variants={prefersReducedMotion ? {} : itemVariants}>
             <Link
-              href="#home"
-              className="mb-4 inline-block cursor-pointer font-display text-2xl font-bold text-white transition-opacity duration-200 hover:opacity-80"
+              href="/"
+              className="mb-3 inline-flex min-h-[36px] items-center cursor-pointer font-display text-2xl font-bold text-white transition-opacity duration-200 hover:opacity-80"
             >
               <span className="text-primary">P</span>TIROS
             </Link>
             <p className="text-sm leading-relaxed text-white/60">
-              A platform to be the dream you dreamt of
+              Experiential career guidance & mentorship for Classes 6–12.
             </p>
           </motion.div>
 
           {/* Column 2 — Quick Links */}
           <motion.div variants={prefersReducedMotion ? {} : itemVariants}>
-            <h3 className="mb-5 font-display text-sm font-bold uppercase tracking-widest text-white/80">
+            <h3 className="mb-4 font-display text-sm font-bold uppercase tracking-widest text-white/80">
               Quick Links
             </h3>
             <nav aria-label="Quick links">
-              <ul className="space-y-3">
+              <ul className="space-y-1.5">
                 {quickLinks.map((link) => (
                   <li key={link.label}>
                     <Link
                       href={link.href}
-                      className="cursor-pointer text-sm text-white/60 transition-colors duration-200 hover:text-primary"
+                      className="inline-block py-1 cursor-pointer text-sm text-white/60 transition-colors duration-200 hover:text-primary"
                     >
                       {link.label}
                     </Link>
@@ -116,16 +116,16 @@ export default function Footer() {
 
           {/* Column 3 — Resources */}
           <motion.div variants={prefersReducedMotion ? {} : itemVariants}>
-            <h3 className="mb-5 font-display text-sm font-bold uppercase tracking-widest text-white/80">
+            <h3 className="mb-4 font-display text-sm font-bold uppercase tracking-widest text-white/80">
               Resources
             </h3>
             <nav aria-label="Resources">
-              <ul className="space-y-3">
+              <ul className="space-y-1.5">
                 {resources.map((link) => (
                   <li key={link.label}>
                     <Link
                       href={link.href}
-                      className="cursor-pointer text-sm text-white/60 transition-colors duration-200 hover:text-primary"
+                      className="inline-block py-1 cursor-pointer text-sm text-white/60 transition-colors duration-200 hover:text-primary"
                     >
                       {link.label}
                     </Link>
@@ -137,15 +137,15 @@ export default function Footer() {
 
           {/* Column 4 — Contact */}
           <motion.div variants={prefersReducedMotion ? {} : itemVariants}>
-            <h3 className="mb-5 font-display text-sm font-bold uppercase tracking-widest text-white/80">
+            <h3 className="mb-4 font-display text-sm font-bold uppercase tracking-widest text-white/80">
               Contact
             </h3>
-            <ul className="space-y-3">
+            <ul className="space-y-1.5">
               {contactInfo.map((item) => (
                 <li key={item.label}>
                   <a
                     href={item.href}
-                    className="cursor-pointer text-sm text-white/60 transition-colors duration-200 hover:text-primary"
+                    className="inline-block py-1 cursor-pointer text-sm text-white/60 transition-colors duration-200 hover:text-primary break-words"
                   >
                     {item.label}
                   </a>
@@ -158,9 +158,9 @@ export default function Footer() {
 
       {/* Bottom bar */}
       <div className="border-t border-white/10">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-5 py-6 sm:flex-row lg:px-8">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 sm:px-6 pt-6 pb-20 sm:pb-6 sm:flex-row lg:px-8">
           <p className="text-xs text-white/40">
-            &copy; 2024 PTIROS. All rights reserved.
+            &copy; 2026 PTIROS. All rights reserved.
           </p>
 
           {/* Social icons */}
@@ -172,7 +172,7 @@ export default function Footer() {
                   key={social.label}
                   href={social.href}
                   aria-label={social.label}
-                  className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-white/40 transition-all duration-200 hover:bg-white/10 hover:text-primary"
+                  className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-white/40 transition-colors duration-200 hover:bg-white/10 hover:text-primary"
                 >
                   <SocialIcon className="h-4 w-4" />
                 </a>

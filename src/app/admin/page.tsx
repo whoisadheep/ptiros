@@ -640,7 +640,7 @@ export default function AdminPortalPage() {
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                       <input
                         type="url"
                         placeholder="Paste Google Meet link (e.g. meet.google.com/...)"
@@ -648,12 +648,12 @@ export default function AdminPortalPage() {
                         onBlur={(e) =>
                           handleUpdateBookingStatus(booking.id, booking.status, e.target.value.trim() || undefined)
                         }
-                        className="flex-1 rounded-xl border border-stone-200 px-3 py-1.5 text-xs focus:border-orange-500 focus:outline-none"
+                        className="flex-1 rounded-xl border border-stone-200 px-3 py-2 sm:py-1.5 text-xs focus:border-orange-500 focus:outline-none"
                       />
                       <button
                         type="button"
                         onClick={() => openWhatsAppToBooking(booking)}
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-emerald-700 active:scale-95 transition cursor-pointer shrink-0"
+                        className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-2 sm:py-1.5 text-xs font-bold text-white shadow-xs hover:bg-emerald-700 active:scale-95 transition cursor-pointer shrink-0"
                         title="Send confirmation & video call link to parent"
                       >
                         <MessageCircle className="h-3.5 w-3.5" />
@@ -680,7 +680,8 @@ export default function AdminPortalPage() {
             </div>
 
             <div className="overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-xs">
-              <table className="w-full text-left text-xs text-stone-600">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[640px] text-left text-xs text-stone-600">
                 <thead className="border-b border-stone-200 bg-stone-50 text-[11px] font-bold uppercase tracking-wider text-stone-500">
                   <tr>
                     <th className="px-4 py-3">Order Ref</th>
@@ -733,6 +734,7 @@ export default function AdminPortalPage() {
                   )}
                 </tbody>
               </table>
+              </div>
             </div>
           </div>
         )}

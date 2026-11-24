@@ -357,30 +357,30 @@ export default function WorkplaceFeed({
   return (
     <div className="overflow-hidden rounded-3xl border border-orange-200/80 bg-white shadow-sm flex flex-col">
       {/* Top Channel Header Bar */}
-      <div className="border-b border-orange-100 bg-[#1E1E2F] px-4 py-3 text-white">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
+      <div className="border-b border-orange-100 bg-[#1E1E2F] px-3.5 sm:px-4 py-3 text-white">
+        <div className="flex items-center justify-between gap-2 min-w-0">
+          <div className="flex items-center gap-2.5 min-w-0 flex-1">
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl overflow-hidden border border-white/20 bg-stone-900 shadow-xs">
               <Blobatar name={manager.name} size={32} animate="hover" className="size-full object-cover" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-display text-xs font-bold">{manager.name}</span>
-                <span className="text-[10px] text-gray-400 font-mono">{manager.channelName}</span>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                <span className="font-display text-xs font-bold truncate">{manager.name}</span>
+                <span className="text-[10px] text-gray-400 font-mono truncate">{manager.channelName}</span>
               </div>
-              <p className="text-[10px] text-emerald-400 font-mono leading-none mt-0.5">
+              <p className="text-[10px] text-emerald-400 font-mono leading-none mt-0.5 truncate">
                 {manager.status}
               </p>
             </div>
           </div>
 
-          <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-[10px] font-mono text-orange-300">
+          <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-[10px] font-mono text-orange-300 shrink-0 max-w-[110px] sm:max-w-none truncate">
             {companyName.split("•")[0]}
           </span>
         </div>
 
         {/* Tab Switcher */}
-        <div className="mt-3 flex items-center gap-1.5 border-t border-white/10 pt-2 text-xs font-medium">
+        <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-white/10 pt-2 text-xs font-medium">
           <button
             onClick={() => setActiveTab("slack")}
             className={`flex cursor-pointer items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs transition-colors ${
@@ -439,26 +439,26 @@ export default function WorkplaceFeed({
                     <Blobatar name={manager.name} size={28} className="size-full object-cover" />
                   </div>
 
-                  <div className="flex-1 space-y-1">
-                    <div className="flex items-center gap-2">
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-bold text-xs text-gray-900">{manager.name}</span>
                       <span className="text-[10px] text-gray-400">{msg.time}</span>
                     </div>
 
-                    <div className="rounded-2xl rounded-tl-sm bg-white p-3 text-xs leading-relaxed text-gray-800 border border-gray-200/70 shadow-xs">
+                    <div className="rounded-2xl rounded-tl-sm bg-white p-3 text-xs leading-relaxed text-gray-800 border border-gray-200/70 shadow-xs break-words">
                       {msg.text}
 
                       {/* File Attachment Pill */}
                       {msg.attachment && (
-                        <div className="mt-2.5 flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-[11px]">
-                          <div className="flex items-center gap-2">
-                            <Paperclip className="h-3.5 w-3.5 text-gray-400" />
-                            <div>
-                              <p className="font-bold text-gray-800">{msg.attachment.name}</p>
-                              <p className="text-[9px] text-gray-400">{msg.attachment.size} • {msg.attachment.type}</p>
+                        <div className="mt-2.5 flex items-center justify-between gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-[11px] min-w-0">
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                            <Paperclip className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+                            <div className="min-w-0 flex-1">
+                              <p className="font-bold text-gray-800 truncate">{msg.attachment.name}</p>
+                              <p className="text-[9px] text-gray-400 truncate">{msg.attachment.size} • {msg.attachment.type}</p>
                             </div>
                           </div>
-                          <span className="rounded-md bg-white border border-gray-200 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                          <span className="rounded-md bg-white border border-gray-200 px-2 py-0.5 text-[10px] font-semibold text-primary shrink-0">
                             Attached
                           </span>
                         </div>

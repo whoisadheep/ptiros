@@ -200,25 +200,25 @@ export default function ComprehensiveDossierModal() {
       aria-modal="true"
       aria-labelledby="dossier-sample-title"
       data-lenis-prevent
-      className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-stone-900/75 backdrop-blur-md animate-in fade-in duration-200 overscroll-contain"
+      className="fixed inset-0 z-[1000] flex items-center justify-center p-3 sm:p-4 bg-stone-900/75 backdrop-blur-md animate-in fade-in duration-200 overscroll-contain"
     >
-      <div data-lenis-prevent className="relative w-full max-w-3xl max-h-[92vh] overflow-y-auto rounded-3xl bg-white p-6 sm:p-8 shadow-2xl border border-stone-200 text-stone-900 overscroll-contain">
+      <div data-lenis-prevent className="relative w-full max-w-3xl max-h-[90dvh] overflow-y-auto rounded-2xl sm:rounded-3xl bg-white p-4 sm:p-8 shadow-2xl border border-stone-200 text-stone-900 overscroll-contain">
         {/* Header Bar */}
-        <div className="flex items-center justify-between border-b border-stone-100 pb-4">
-          <div className="flex items-center gap-3">
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-orange-100 text-orange-600">
+        <div className="flex items-start sm:items-center justify-between gap-2 border-b border-stone-100 pb-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-2xl bg-orange-100 text-orange-600">
               <FileText className="size-5" />
             </span>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 id="dossier-sample-title" className="text-xl font-bold tracking-tight text-stone-900">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 id="dossier-sample-title" className="text-base sm:text-xl font-bold tracking-tight text-stone-900">
                   PTIROS 360° Full Career Dossier
                 </h2>
-                <span className="rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-bold text-orange-800 uppercase tracking-wider">
+                <span className="rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-bold text-orange-800 uppercase tracking-wider shrink-0">
                   10 Pages
                 </span>
               </div>
-              <p className="text-xs text-stone-500">
+              <p className="text-xs text-stone-500 mt-0.5">
                 Compare the Free 3-Page Snapshot vs the Complete 10-Page Paid Parent-Student Strategic Dossier
               </p>
             </div>
@@ -226,7 +226,7 @@ export default function ComprehensiveDossierModal() {
           <button
             type="button"
             onClick={closeDossierModal}
-            className="rounded-full p-2 text-stone-400 hover:bg-stone-100 hover:text-stone-700 transition"
+            className="rounded-full p-2 text-stone-400 hover:bg-stone-100 hover:text-stone-700 transition shrink-0"
             aria-label="Close modal"
           >
             <X className="size-5" />
@@ -234,7 +234,7 @@ export default function ComprehensiveDossierModal() {
         </div>
 
         {/* Free vs Paid Tier Value Matrix */}
-        <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
           <div className="rounded-2xl border border-stone-200 bg-stone-50/60 p-3">
             <div className="font-bold text-stone-600 flex items-center gap-1.5 mb-1">
               <FileText className="size-3.5 text-stone-500" />

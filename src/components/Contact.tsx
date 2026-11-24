@@ -61,23 +61,14 @@ export default function Contact() {
   return (
     <section
       id="contact"
-      className="relative overflow-hidden bg-bg py-24 sm:py-32"
+      className="relative overflow-hidden bg-bg py-16 sm:py-24 lg:py-32"
       aria-label="Contact PTIROS"
     >
-      <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-12">
+      <div className="mx-auto max-w-7xl px-4 sm:px-8 lg:px-12">
         <ScrollReveal direction="up" distance={30} duration={0.6}>
-          <div className="grid grid-cols-1 overflow-hidden rounded-[2.5rem] border border-border/80 bg-white shadow-2xl lg:grid-cols-12">
+          <div className="grid grid-cols-1 overflow-hidden rounded-3xl sm:rounded-[2.5rem] border border-border/80 bg-white shadow-2xl lg:grid-cols-12">
             {/* Left Column: Bold Orange Panel matching design-03.png */}
-            <div className="relative flex flex-col justify-between overflow-hidden bg-gradient-to-br from-primary via-[#FA6500] to-primary-dark p-8 sm:p-12 lg:col-span-5 text-white">
-              {/* Ambient glows */}
-              <div
-                className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-white/10 blur-2xl"
-                aria-hidden="true"
-              />
-              <div
-                className="pointer-events-none absolute -bottom-16 -left-16 h-64 w-64 rounded-full bg-black/15 blur-2xl"
-                aria-hidden="true"
-              />
+            <div className="relative flex flex-col justify-between overflow-hidden bg-gradient-to-br from-primary via-[#FA6500] to-primary-dark p-6 sm:p-10 lg:p-12 lg:col-span-5 text-white">
 
               <div className="relative z-10">
                 <span className="inline-block rounded-full bg-white/20 px-3.5 py-1 text-xs font-bold uppercase tracking-widest text-white backdrop-blur-sm">
@@ -141,7 +132,7 @@ export default function Contact() {
             </div>
 
             {/* Right Column: Clean Form matching design-03.png */}
-            <div className="flex flex-col justify-center p-8 sm:p-12 lg:col-span-7 bg-white">
+            <div className="flex flex-col justify-center p-5 sm:p-10 lg:p-12 lg:col-span-7 bg-white">
               {isSubmitted ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                   <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">

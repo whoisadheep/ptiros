@@ -25,7 +25,13 @@ export default function MagneticButton({
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
-      if (prefersReducedMotion || !btnRef.current) return;
+      if (
+        prefersReducedMotion ||
+        !btnRef.current ||
+        (typeof window !== "undefined" && !window.matchMedia("(hover: hover) and (pointer: fine)").matches)
+      ) {
+        return;
+      }
       const rect = btnRef.current.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
       const centerY = rect.top + rect.height / 2;

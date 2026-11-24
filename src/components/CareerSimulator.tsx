@@ -247,7 +247,7 @@ export default function CareerSimulator() {
 
               <Link
                 href="/simulator"
-                className="group inline-flex shrink-0 items-center gap-2 rounded-full bg-primary px-8 py-3.5 font-display text-sm font-bold uppercase tracking-wider text-white shadow-xl shadow-primary/30 transition-all hover:bg-primary-dark hover:scale-105 active:scale-95"
+                className="group inline-flex w-full sm:w-auto shrink-0 items-center justify-center gap-2 rounded-full bg-primary px-6 sm:px-8 py-3.5 font-display text-sm font-bold text-white shadow-xl shadow-primary/30 transition-all hover:bg-primary-dark active:scale-95"
               >
                 <span>Explore All Simulator Labs</span>
                 <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />

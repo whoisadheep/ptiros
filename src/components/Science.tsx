@@ -63,13 +63,13 @@ export default function Science() {
   return (
     <section
       id="science"
-      className="relative overflow-hidden bg-bg py-24 sm:py-32"
+      className="relative overflow-hidden bg-bg py-16 sm:py-24 lg:py-32"
       aria-label="The Science behind PTIROS"
     >
-      <div className="mx-auto max-w-7xl px-5 sm:px-8 lg:px-12">
-        {/* Section Header matching design-02.png: "The Science behind PTIROS ?" + ArrowDownLeft icon */}
+      <div className="mx-auto max-w-7xl px-4 sm:px-8 lg:px-12">
+        {/* Section Header */}
         <ScrollReveal direction="up" distance={20}>
-          <div className="mb-14 flex flex-col md:flex-row md:items-end md:justify-between border-b border-border/60 pb-8 gap-4">
+          <div className="mb-10 sm:mb-14 flex flex-col md:flex-row md:items-end md:justify-between border-b border-border/60 pb-6 sm:pb-8 gap-4">
             <div>
               <span className="mb-2 inline-block rounded-full bg-primary/10 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-primary">
                 Core Methodology
@@ -78,7 +78,7 @@ export default function Science() {
                 <h2 className="font-display text-3xl sm:text-5xl lg:text-6xl font-black text-accent">
                   The Science behind <span className="text-primary">PTIROS ?</span>
                 </h2>
-                <ArrowDownLeft className="h-8 w-8 sm:h-12 sm:w-12 text-primary shrink-0 transition-transform duration-300 hover:rotate-45" />
+                <ArrowDownLeft className="h-7 w-7 sm:h-12 sm:w-12 text-primary shrink-0 transition-transform duration-300 hover:rotate-45" />
               </div>
             </div>
 

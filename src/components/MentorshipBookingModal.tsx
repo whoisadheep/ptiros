@@ -266,17 +266,17 @@ export default function MentorshipBookingModal() {
       aria-modal="true"
       aria-labelledby="booking-title"
       data-lenis-prevent
-      className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-stone-900/70 backdrop-blur-md animate-in fade-in duration-200 overscroll-contain"
+      className="fixed inset-0 z-[1000] flex items-center justify-center p-3 sm:p-4 bg-stone-900/70 backdrop-blur-md animate-in fade-in duration-200 overscroll-contain"
     >
-      <div data-lenis-prevent className="relative w-full max-w-2xl max-h-[92vh] overflow-y-auto rounded-3xl bg-white p-6 sm:p-8 shadow-2xl border border-stone-200 text-stone-900 overscroll-contain">
+      <div data-lenis-prevent className="relative w-full max-w-2xl max-h-[90dvh] overflow-y-auto rounded-2xl sm:rounded-3xl bg-white p-4 sm:p-8 shadow-2xl border border-stone-200 text-stone-900 overscroll-contain">
         {/* Header Bar */}
-        <div className="flex items-center justify-between border-b border-stone-100 pb-4">
-          <div className="flex items-center gap-3">
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
+        <div className="flex items-start sm:items-center justify-between gap-2 border-b border-stone-100 pb-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
               <Building2 className="size-5" />
             </span>
-            <div>
-              <h2 id="booking-title" className="text-xl font-bold tracking-tight text-stone-900">
+            <div className="min-w-0">
+              <h2 id="booking-title" className="text-lg sm:text-xl font-bold tracking-tight text-stone-900">
                 Book 1-on-1 Gurukul Mentorship Call
               </h2>
               <p className="text-xs text-stone-500">
@@ -287,7 +287,7 @@ export default function MentorshipBookingModal() {
           <button
             type="button"
             onClick={closeBookingModal}
-            className="rounded-full p-2 text-stone-400 hover:bg-stone-100 hover:text-stone-700 transition"
+            className="rounded-full p-2 text-stone-400 hover:bg-stone-100 hover:text-stone-700 transition shrink-0"
             aria-label="Close modal"
           >
             <X className="size-5" />
@@ -594,18 +594,18 @@ export default function MentorshipBookingModal() {
               />
             </div>
 
-            <div className="pt-3 flex items-center justify-between border-t border-stone-100">
+            <div className="pt-3 flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-2.5 border-t border-stone-100">
               <button
                 type="button"
                 onClick={closeBookingModal}
-                className="text-xs font-semibold text-stone-500 hover:text-stone-800"
+                className="w-full sm:w-auto py-2 text-xs font-semibold text-stone-500 hover:text-stone-800 text-center"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 px-6 py-2.5 text-sm font-semibold text-white shadow-md hover:brightness-105 active:scale-95 transition disabled:opacity-50 cursor-pointer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 px-6 py-3 sm:py-2.5 text-sm font-semibold text-white shadow-md hover:brightness-105 active:scale-95 transition disabled:opacity-50 cursor-pointer"
               >
                 {isSubmitting ? (
                   <>

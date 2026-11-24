@@ -95,17 +95,16 @@ function StatCard({
 
   return (
     <div
-      className={`group relative flex flex-col justify-between overflow-hidden rounded-[2.5rem] p-8 sm:p-12 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl h-full ${
+      className={`group relative flex flex-col justify-between overflow-hidden rounded-3xl sm:rounded-[2.5rem] p-6 sm:p-10 lg:p-12 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl h-full min-h-[210px] sm:min-h-[260px] ${
         isOrange
           ? "bg-gradient-to-br from-primary via-[#FA6500] to-primary-dark text-white"
           : "border border-border/80 bg-white text-accent"
       }`}
-      style={{ minHeight: "260px" }}
     >
-      {/* Big Percentage Number matching design-03.png */}
+      {/* Big Percentage Number */}
       <div>
         <p
-          className={`font-display text-6xl sm:text-7xl lg:text-8xl font-black tracking-tight ${
+          className={`font-display text-5xl sm:text-7xl lg:text-8xl font-black tracking-tight ${
             isOrange ? "text-white" : "text-primary"
           }`}
         >

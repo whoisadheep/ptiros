@@ -108,7 +108,7 @@ export default function NavProfileMenu() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 6, scale: 0.96 }}
               transition={{ duration: 0.2, ease: easeOutExpo }}
-              className="absolute right-0 top-full mt-2 w-80 rounded-2xl border border-stone-200 bg-white p-4 shadow-xl z-50 text-stone-900"
+              className="absolute right-0 top-full mt-2 w-80 max-w-[calc(100vw-2rem)] max-h-[calc(100dvh-5.5rem)] overflow-y-auto overscroll-contain rounded-2xl border border-stone-200 bg-white p-4 shadow-xl z-50 text-stone-900"
             >
               <div className="flex items-center justify-between pb-3 border-b border-stone-100">
                 <div className="flex items-center gap-2">
@@ -267,7 +267,7 @@ export default function NavProfileMenu() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 6, scale: 0.96 }}
             transition={{ duration: 0.2, ease: easeOutExpo }}
-            className="absolute right-0 top-full mt-2 w-80 rounded-2xl border border-stone-200 bg-white shadow-xl z-50 overflow-hidden text-stone-900"
+            className="absolute right-0 top-full mt-2 w-80 max-w-[calc(100vw-2rem)] max-h-[calc(100dvh-5.5rem)] overflow-y-auto overscroll-contain rounded-2xl border border-stone-200 bg-white shadow-xl z-50 text-stone-900"
           >
             {/* User Profile Header */}
             <div className="p-4 bg-gradient-to-br from-stone-50 via-white to-orange-50/40 border-b border-stone-100">

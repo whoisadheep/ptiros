@@ -121,7 +121,7 @@ export default function Navbar() {
           </Link>
 
           {/* Clean, Decluttered Desktop Navigation Links */}
-          <ul className="hidden items-center gap-6 xl:gap-8 lg:flex" role="list">
+          <ul className="hidden items-center gap-4 xl:gap-7 lg:flex" role="list">
             {desktopNavLinks.map((link) => {
               const isActive = pathname === link.href;
               return (
@@ -129,7 +129,7 @@ export default function Navbar() {
                   <Link
                     href={link.href}
                     onClick={(e) => handleNavClick(e, link.href)}
-                    className={`relative cursor-pointer text-xs font-semibold transition-colors flex items-center gap-1.5 py-1 ${
+                    className={`relative cursor-pointer text-xs font-semibold transition-colors flex items-center gap-1.5 py-2 whitespace-nowrap ${
                       isActive
                         ? "text-orange-700 font-bold"
                         : "text-stone-600 hover:text-stone-950"
@@ -137,7 +137,7 @@ export default function Navbar() {
                   >
                     <span>{link.label}</span>
                     {isActive && (
-                      <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-orange-600 rounded-full" />
+                      <span className="absolute -bottom-0.5 left-0 right-0 h-0.5 bg-orange-600 rounded-full" />
                     )}
                     {"highlight" in link && link.highlight && !isActive && (
                       <span className="size-1.5 rounded-full bg-orange-600 shrink-0" />
@@ -149,14 +149,14 @@ export default function Navbar() {
           </ul>
 
           {/* Desktop Right Action Cluster (Clear Hierarchy) */}
-          <div className="hidden lg:flex items-center gap-3">
+          <div className="hidden lg:flex items-center gap-2 xl:gap-3 shrink-0">
             {/* Professional Student Profile Menu */}
             <NavProfileMenu />
 
             {/* Primary Action Button */}
             <Link
               href="/career-test"
-              className="cursor-pointer rounded-xl bg-orange-600 px-4 py-2 text-xs font-bold text-white shadow-xs transition-colors hover:bg-orange-700 active:scale-95 flex items-center gap-1.5"
+              className="cursor-pointer rounded-xl bg-orange-600 px-3.5 xl:px-4 py-2 text-xs font-bold text-white shadow-xs transition-colors hover:bg-orange-700 active:scale-95 flex items-center gap-1.5 whitespace-nowrap"
             >
               <span>Career Diagnostic</span>
               <ArrowRight className="size-3.5" />

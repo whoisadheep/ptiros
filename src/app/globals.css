@@ -60,6 +60,16 @@
   
   html, body {
     overflow-x: clip;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Prevent iOS Safari unintended zoom when focusing inputs/selects on touch viewports */
+  @media (max-width: 767px) {
+    input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+    select,
+    textarea {
+      font-size: 16px !important;
+    }
   }
 
   /* Prevent modal and popup scroll-chaining to the background page */

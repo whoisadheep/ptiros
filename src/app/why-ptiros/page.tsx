@@ -76,15 +76,15 @@ export default function WhyPtirosPage() {
             </div>
 
             {/* Mascot Banner */}
-            <div className="shrink-0 p-5 rounded-3xl bg-white border border-orange-200 shadow-lg max-w-sm">
+            <div className="w-full lg:max-w-sm shrink-0 p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-white border border-orange-200 shadow-xs">
               <div className="flex items-center gap-3.5">
-                <PtiroMascot variant="study" size={68} interactive={false} />
-                <div>
+                <PtiroMascot variant="study" size={64} showSpeech={false} interactive={false} />
+                <div className="min-w-0 flex-1">
                   <h3 className="font-display font-bold text-sm text-stone-900">
-                    The Kaizen Principle
+                    1% Daily Focus Principle
                   </h3>
                   <p className="text-xs text-stone-600 mt-0.5 leading-relaxed">
-                    1% daily incremental reflection turns frantic exam anxiety into compounding lifelong mastery.
+                    Small daily reflection turns frantic exam anxiety into compounding lifelong mastery.
                   </p>
                 </div>
               </div>

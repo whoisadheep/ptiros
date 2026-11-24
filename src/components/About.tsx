@@ -49,16 +49,10 @@ export default function About() {
   return (
     <section
       id="about"
-      className="relative overflow-hidden bg-primary py-24 sm:py-32 text-white"
+      className="relative overflow-hidden bg-primary py-16 sm:py-24 lg:py-32 text-white"
       aria-label="About PTIROS & NEP 2020"
     >
-      {/* Decorative Aura / Waves */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-        <div className="absolute -right-20 top-0 h-96 w-96 rounded-full bg-white/10 blur-3xl" />
-        <div className="absolute -left-20 bottom-0 h-96 w-96 rounded-full bg-black/10 blur-3xl" />
-      </div>
-
-      <div className="relative mx-auto max-w-7xl px-5 sm:px-8 lg:px-12">
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-8 lg:px-12">
         {/* Top Header matching design-02.png */}
         <ScrollReveal direction="up" distance={24}>
           <div className="mb-12 border-b border-white/20 pb-8">

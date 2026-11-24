@@ -404,7 +404,7 @@ export default function ParentDossier({
         </div>
 
         {/* Action Buttons: WhatsApp Share & Print */}
-        <div className="flex items-center gap-2 print:hidden">
+        <div className="flex flex-wrap items-center gap-2 print:hidden">
           <button
             onClick={handleCopyWhatsAppSummary}
             className="flex cursor-pointer items-center gap-1.5 rounded-full border border-emerald-300 bg-emerald-50 px-4 py-2 text-xs font-bold text-emerald-800 shadow-xs transition-all hover:bg-emerald-100 active:scale-95"
@@ -486,7 +486,7 @@ export default function ParentDossier({
       </div>
 
       {/* ─── Navigation Subtabs ─────────────────────── */}
-      <div className="mt-6 flex border-b border-gray-100 print:hidden">
+      <div className="mt-6 flex overflow-x-auto no-scrollbar whitespace-nowrap gap-1 border-b border-gray-100 print:hidden">
         {[
           { id: "dossier", label: "Executive Parent Briefing", icon: Compass },
           { id: "institutions", label: "Top Colleges & Economics", icon: Building2 },
@@ -498,7 +498,7 @@ export default function ParentDossier({
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as typeof activeTab)}
-              className={`flex cursor-pointer items-center gap-2 border-b-2 px-4 py-3 text-xs sm:text-sm font-bold transition-all ${
+              className={`flex shrink-0 cursor-pointer items-center gap-2 border-b-2 px-4 py-3 text-xs sm:text-sm font-bold transition-all ${
                 isActive
                   ? "border-orange-500 text-orange-600 bg-orange-50/30 rounded-t-xl"
                   : "border-transparent text-gray-500 hover:text-gray-900"

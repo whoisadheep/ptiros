@@ -43,35 +43,35 @@ export function RoboticsTactileWidget({ onSolved }: { onSolved?: () => void }) {
   return (
     <div className="overflow-hidden rounded-3xl border border-indigo-900/60 bg-[#0E0E18] text-gray-200 shadow-xl">
       {/* Terminal Title Bar */}
-      <div className="flex items-center justify-between border-b border-indigo-950 bg-[#141424] px-4 py-3 text-xs font-mono">
-        <div className="flex items-center gap-2">
-          <span className="h-3 w-3 rounded-full bg-red-500/80" />
-          <span className="h-3 w-3 rounded-full bg-yellow-500/80" />
-          <span className="h-3 w-3 rounded-full bg-emerald-500/80" />
-          <span className="ml-2 font-bold text-indigo-300">ROS2 Telemetry • Obstacle Fusion Node</span>
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-indigo-950 bg-[#141424] px-3.5 sm:px-4 py-3 text-xs font-mono">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="h-3 w-3 rounded-full bg-red-500/80 shrink-0" />
+          <span className="h-3 w-3 rounded-full bg-yellow-500/80 shrink-0" />
+          <span className="h-3 w-3 rounded-full bg-emerald-500/80 shrink-0" />
+          <span className="ml-1 sm:ml-2 font-bold text-indigo-300 truncate">ROS2 Telemetry • Obstacle Fusion</span>
         </div>
-        <span className="rounded-full bg-indigo-500/20 px-2.5 py-0.5 text-[10px] font-semibold text-indigo-300">
+        <span className="rounded-full bg-indigo-500/20 px-2.5 py-0.5 text-[10px] font-semibold text-indigo-300 shrink-0">
           Live Sensor Canvas
         </span>
       </div>
 
-      <div className="p-5 space-y-5 font-mono text-xs">
+      <div className="p-4 sm:p-5 space-y-5 font-mono text-xs">
         {/* 2D Corridor Visualizer */}
-        <div className="relative h-36 w-full rounded-2xl border border-indigo-950 bg-[#080811] p-3 flex flex-col justify-between overflow-hidden">
+        <div className="relative min-h-[9rem] w-full rounded-2xl border border-indigo-950 bg-[#080811] p-3 flex flex-col justify-between gap-2 overflow-hidden">
           {/* Warehouse Aisle Grid Lines */}
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#1f293d0f_1px,transparent_1px),linear-gradient(to_bottom,#1f293d0f_1px,transparent_1px)] bg-[size:16px_16px]" />
 
-          <div className="relative z-10 flex items-center justify-between text-[11px] text-gray-400">
+          <div className="relative z-10 flex flex-wrap items-center justify-between gap-1.5 text-[11px] text-gray-400">
             <span>Fulfilment Corridor Aisle-04</span>
             <span className={isGhostObstacle ? "text-amber-400 font-bold flex items-center gap-1" : "text-emerald-400 font-bold flex items-center gap-1"}>
               {isGhostObstacle ? (
                 <>
-                  <AlertTriangle className="size-3 text-amber-400" />
+                  <AlertTriangle className="size-3 text-amber-400 shrink-0" />
                   <span>Obstacle Detected (HALTED)</span>
                 </>
               ) : (
                 <>
-                  <CheckCircle2 className="size-3 text-emerald-400" />
+                  <CheckCircle2 className="size-3 text-emerald-400 shrink-0" />
                   <span>Path Clear (DRIVING)</span>
                 </>
               )}
@@ -79,7 +79,7 @@ export function RoboticsTactileWidget({ onSolved }: { onSolved?: () => void }) {
           </div>
 
           {/* Robot & Obstacle Visual Track */}
-          <div className="relative z-10 flex items-center justify-between px-6 py-2">
+          <div className="relative z-10 flex items-center justify-between px-2 sm:px-6 py-2">
             {/* Robot Node */}
             <div className="flex flex-col items-center gap-1">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-500/30">
@@ -115,7 +115,7 @@ export function RoboticsTactileWidget({ onSolved }: { onSolved?: () => void }) {
           </div>
 
           {/* Telemetry Readout */}
-          <div className="relative z-10 flex items-center justify-between text-[10px] text-gray-400 border-t border-indigo-950/80 pt-2">
+          <div className="relative z-10 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[10px] text-gray-400 border-t border-indigo-950/80 pt-2">
             <span>Ultrasonic: 0.84m (Clear)</span>
             <span>LiDAR Stale Buffer: {resetStaleBuffer ? "CLEARED" : "STALE (240ms lag)"}</span>
             <span>Confidence: {filterThreshold}%</span>
@@ -124,12 +124,12 @@ export function RoboticsTactileWidget({ onSolved }: { onSolved?: () => void }) {
 
         {/* Interactive Controls */}
         <div className="rounded-2xl border border-indigo-900/40 bg-indigo-950/20 p-4 space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <label className="font-semibold text-indigo-200 flex items-center gap-2">
-              <Sliders className="h-4 w-4 text-indigo-400" />
+              <Sliders className="h-4 w-4 text-indigo-400 shrink-0" />
               <span>Kalman Filter Confidence Weighting:</span>
             </label>
-            <span className="rounded-lg bg-indigo-900/40 px-2.5 py-1 text-xs font-bold text-indigo-300">
+            <span className="rounded-lg bg-indigo-900/40 px-2.5 py-1 text-xs font-bold text-indigo-300 shrink-0">
               {filterThreshold}%
             </span>
           </div>
@@ -143,7 +143,7 @@ export function RoboticsTactileWidget({ onSolved }: { onSolved?: () => void }) {
             className="w-full accent-indigo-500 cursor-pointer h-2 bg-indigo-950 rounded-lg"
           />
 
-          <div className="flex items-center justify-between pt-1">
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
             <button
               onClick={() => setResetStaleBuffer(!resetStaleBuffer)}
               className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-all cursor-pointer ${
@@ -217,14 +217,14 @@ export function LawTactileWidget({ onSolved }: { onSolved?: () => void }) {
   return (
     <div className="overflow-hidden rounded-3xl border border-sky-200/80 bg-white shadow-xl">
       {/* Legal Header Bar */}
-      <div className="flex items-center justify-between border-b border-sky-100 bg-sky-50/60 px-5 py-3 text-xs">
-        <div className="flex items-center gap-2">
-          <ShieldAlert className="h-4 w-4 text-sky-700" />
-          <span className="font-display font-bold text-sky-950">
-            Share Purchase Agreement (SPA) • Redline Markup Studio
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-sky-100 bg-sky-50/60 px-4 sm:px-5 py-3 text-xs">
+        <div className="flex items-center gap-2 min-w-0">
+          <ShieldAlert className="h-4 w-4 text-sky-700 shrink-0" />
+          <span className="font-display font-bold text-sky-950 truncate">
+            Share Purchase Agreement (SPA) • Redline Studio
           </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <span className="text-[11px] font-semibold text-gray-500">Founder Protection:</span>
           <span
             className={`font-display text-xs font-black px-2.5 py-0.5 rounded-full ${
@@ -255,7 +255,7 @@ export function LawTactileWidget({ onSolved }: { onSolved?: () => void }) {
               : "bg-rose-50/60 border-rose-300 hover:border-rose-400"
           }`}
         >
-          <div className="flex items-center justify-between mb-1.5">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
             <span className="font-bold text-xs uppercase tracking-wider text-gray-700">
               Clause 14.2: Restrictive Trade Covenant
             </span>
@@ -311,7 +311,7 @@ export function LawTactileWidget({ onSolved }: { onSolved?: () => void }) {
               : "bg-rose-50/60 border-rose-300 hover:border-rose-400"
           }`}
         >
-          <div className="flex items-center justify-between mb-1.5">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
             <span className="font-bold text-xs uppercase tracking-wider text-gray-700">
               Clause 15.1: Seller Representations & Indemnity
             </span>
@@ -390,14 +390,14 @@ export function UXTactileWidget() {
   return (
     <div className="overflow-hidden rounded-3xl border border-pink-200/80 bg-white shadow-xl">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-pink-100 bg-pink-50/60 px-5 py-3 text-xs">
-        <div className="flex items-center gap-2">
-          <Smartphone className="h-4 w-4 text-pink-600" />
-          <span className="font-display font-bold text-gray-900">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-pink-100 bg-pink-50/60 px-4 sm:px-5 py-3 text-xs">
+        <div className="flex items-center gap-2 min-w-0">
+          <Smartphone className="h-4 w-4 text-pink-600 shrink-0" />
+          <span className="font-display font-bold text-gray-900 truncate">
             BharatPay Merchant KYC • Usability Lab
           </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <span className="text-[11px] font-semibold text-gray-500">Drop-off:</span>
           <span
             className={`font-display text-xs font-black px-2.5 py-0.5 rounded-full ${
@@ -628,50 +628,50 @@ export function MedicineTactileWidget() {
   return (
     <div className="overflow-hidden rounded-3xl border border-gray-800 bg-[#0A0D14] text-gray-200 shadow-2xl font-mono">
       {/* Vitals Screen Header */}
-      <div className="flex items-center justify-between border-b border-gray-800 bg-[#121622] px-5 py-3 text-xs">
-        <div className="flex items-center gap-2">
-          <Activity className="h-4 w-4 text-emerald-400 animate-pulse" />
-          <span className="font-bold text-gray-200">ICU Bedside Monitor #04 • Apollo Trauma</span>
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-800 bg-[#121622] px-4 sm:px-5 py-3 text-xs">
+        <div className="flex items-center gap-2 min-w-0">
+          <Activity className="h-4 w-4 text-emerald-400 animate-pulse shrink-0" />
+          <span className="font-bold text-gray-200 truncate">ICU Bedside Monitor #04 • Apollo Trauma</span>
         </div>
-        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-black/40 ${vitals.color}`}>
+        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-black/40 shrink-0 ${vitals.color}`}>
           {vitals.status}
         </span>
       </div>
 
-      <div className="p-5 space-y-5">
+      <div className="p-4 sm:p-5 space-y-5">
         {/* Vitals Display Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
           <div className="rounded-2xl border border-gray-800 bg-gray-900/60 p-3">
             <span className="text-[10px] text-gray-400 flex items-center justify-center gap-1">
               <Heart className="h-3 w-3 text-red-500" /> HR (BPM)
             </span>
-            <p className={`text-2xl font-black mt-1 ${vitals.color}`}>{vitals.hr}</p>
+            <p className={`text-xl sm:text-2xl font-black mt-1 ${vitals.color}`}>{vitals.hr}</p>
           </div>
           <div className="rounded-2xl border border-gray-800 bg-gray-900/60 p-3">
             <span className="text-[10px] text-gray-400">BP (mmHg)</span>
-            <p className={`text-2xl font-black mt-1 ${vitals.color}`}>{vitals.bp}</p>
+            <p className={`text-xl sm:text-2xl font-black mt-1 ${vitals.color}`}>{vitals.bp}</p>
           </div>
           <div className="rounded-2xl border border-gray-800 bg-gray-900/60 p-3">
             <span className="text-[10px] text-gray-400">SpO2 (%)</span>
-            <p className={`text-2xl font-black mt-1 ${vitals.color}`}>{vitals.spo2}%</p>
+            <p className={`text-xl sm:text-2xl font-black mt-1 ${vitals.color}`}>{vitals.spo2}%</p>
           </div>
           <div className="rounded-2xl border border-gray-800 bg-gray-900/60 p-3">
             <span className="text-[10px] text-gray-400">Resp Rate</span>
-            <p className={`text-2xl font-black mt-1 ${vitals.color}`}>{vitals.resp}/m</p>
+            <p className={`text-xl sm:text-2xl font-black mt-1 ${vitals.color}`}>{vitals.resp}/m</p>
           </div>
         </div>
 
         {/* Thoracic Diagnostic Status */}
-        <div className="rounded-2xl border border-gray-800 bg-gray-900/40 p-4 text-xs space-y-1">
-          <div className="flex justify-between">
-            <span className="text-gray-400">Trachea Deviation:</span>
-            <span className={decompressionDone ? "text-emerald-400 font-bold" : "text-red-400 font-bold"}>
+        <div className="rounded-2xl border border-gray-800 bg-gray-900/40 p-3.5 sm:p-4 text-xs space-y-2 sm:space-y-1">
+          <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-2">
+            <span className="text-gray-400 shrink-0">Trachea Deviation:</span>
+            <span className={decompressionDone ? "text-emerald-400 font-bold sm:text-right" : "text-red-400 font-bold sm:text-right"}>
               {decompressionDone ? "Centred (Normal)" : "Deviated to Right Side (Obstructive Shift)"}
             </span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-gray-400">Left Chest Auscultation:</span>
-            <span className={decompressionDone ? "text-emerald-400 font-bold" : "text-red-400 font-bold"}>
+          <div className="flex flex-col sm:flex-row sm:justify-between gap-0.5 sm:gap-2">
+            <span className="text-gray-400 shrink-0">Left Chest Auscultation:</span>
+            <span className={decompressionDone ? "text-emerald-400 font-bold sm:text-right" : "text-red-400 font-bold sm:text-right"}>
               {decompressionDone ? "Bilateral Vesicular Breath Sounds Restored" : "Absent Air Entry (Hyper-resonant)"}
             </span>
           </div>
@@ -762,15 +762,15 @@ export function FinanceTactileWidget() {
 
   return (
     <div className="overflow-hidden rounded-3xl border border-amber-200/80 bg-white shadow-xl">
-      <div className="flex items-center justify-between border-b border-amber-100 bg-amber-50/60 px-5 py-3 text-xs">
-        <div className="flex items-center gap-2">
-          <TrendingUp className="h-4 w-4 text-amber-600" />
-          <span className="font-display font-bold text-gray-900">
-            Portfolio Allocation & Inflation Simulator (₹10 Cr Corpus)
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-100 bg-amber-50/60 px-4 sm:px-5 py-3 text-xs">
+        <div className="flex items-center gap-2 min-w-0">
+          <TrendingUp className="h-4 w-4 text-amber-600 shrink-0" />
+          <span className="font-display font-bold text-gray-900 truncate">
+            Portfolio Allocation & Inflation Simulator (₹10 Cr)
           </span>
         </div>
         <span
-          className={`font-display text-xs font-black px-2.5 py-0.5 rounded-full ${
+          className={`font-display text-xs font-black px-2.5 py-0.5 rounded-full shrink-0 ${
             isWealthProtected ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"
           }`}
         >
@@ -886,15 +886,15 @@ export function MediaTactileWidget() {
 
   return (
     <div className="overflow-hidden rounded-3xl border border-purple-200/80 bg-white shadow-xl">
-      <div className="flex items-center justify-between border-b border-purple-100 bg-purple-50/60 px-5 py-3 text-xs">
-        <div className="flex items-center gap-2">
-          <Play className="h-4 w-4 text-purple-600" />
-          <span className="font-display font-bold text-gray-900">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-purple-100 bg-purple-50/60 px-4 sm:px-5 py-3 text-xs">
+        <div className="flex items-center gap-2 min-w-0">
+          <Play className="h-4 w-4 text-purple-600 shrink-0" />
+          <span className="font-display font-bold text-gray-900 truncate">
             Short-Form Video Retention Analyzer (0s – 10s)
           </span>
         </div>
         <span
-          className={`font-display text-xs font-black px-2.5 py-0.5 rounded-full ${
+          className={`font-display text-xs font-black px-2.5 py-0.5 rounded-full shrink-0 ${
             isViral ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"
           }`}
         >

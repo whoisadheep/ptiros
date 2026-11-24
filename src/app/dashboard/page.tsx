@@ -417,7 +417,8 @@ export default function DashboardPage() {
       {/* ========================================================= */}
       {/* 1. TOP GLOBAL COMMAND BAR (Command Center Status) */}
       {/* ========================================================= */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-stone-200/90 shadow-2xs">
+      <div className="sticky top-0 z-40 shadow-2xs">
+        <header className="bg-white/95 backdrop-blur-md border-b border-stone-200/90">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
           {/* Brand & Student Avatar Chip */}
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
@@ -556,12 +557,12 @@ export default function DashboardPage() {
             </button>
           </div>
         </div>
-      </header>
+        </header>
 
-      {/* ========================================================= */}
-      {/* 2. SUB-NAVIGATION TABS (Workbench Mode Switcher) */}
-      {/* ========================================================= */}
-      <div className="bg-white border-b border-stone-200/80 sticky top-14 sm:top-16 z-30 shadow-2xs">
+        {/* ========================================================= */}
+        {/* 2. SUB-NAVIGATION TABS (Workbench Mode Switcher) */}
+        {/* ========================================================= */}
+        <div className="bg-white border-b border-stone-200/80">
         <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
           <nav className="flex space-x-1 sm:space-x-3 overflow-x-auto py-2 sm:py-2.5 scrollbar-none snap-x overscroll-contain">
             {[
@@ -598,6 +599,7 @@ export default function DashboardPage() {
               );
             })}
           </nav>
+        </div>
         </div>
       </div>
 
@@ -857,16 +859,16 @@ export default function DashboardPage() {
                       <div
                         key={goal.id}
                         onClick={() => handleGoalToggle(goal.id, goal.completed, goal.title)}
-                        className={`p-4 rounded-2xl border transition-all flex items-start justify-between gap-4 cursor-pointer group ${
+                        className={`p-3.5 sm:p-4 rounded-2xl border transition-all flex items-start justify-between gap-2.5 sm:gap-4 cursor-pointer group ${
                           goal.completed
                             ? "bg-stone-50/60 border-stone-200/60 opacity-60"
                             : "bg-white border-stone-200 hover:border-orange-400 hover:shadow-xs"
                         }`}
                       >
-                        <div className="flex items-start gap-3.5">
+                        <div className="flex items-start gap-3 flex-1 min-w-0">
                           <button
                             type="button"
-                            className="mt-0.5 text-stone-400 group-hover:text-orange-500 transition"
+                            className="mt-0.5 text-stone-400 group-hover:text-orange-500 transition shrink-0"
                           >
                             {goal.completed ? (
                               <CheckCircle2 className="size-5 text-emerald-600 fill-emerald-100" />
@@ -874,30 +876,30 @@ export default function DashboardPage() {
                               <Circle className="size-5" />
                             )}
                           </button>
-                          <div>
+                          <div className="min-w-0 flex-1">
                             <div
-                              className={`text-sm font-semibold text-stone-900 ${
+                              className={`text-sm font-semibold text-stone-900 break-words ${
                                 goal.completed ? "line-through text-stone-400" : ""
                               }`}
                             >
                               {goal.title}
                             </div>
-                            <div className="flex items-center gap-2.5 mt-1 text-xs text-stone-400">
+                            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 mt-1 text-xs text-stone-400">
                               <span className="uppercase text-[10px] font-bold tracking-wider px-2 py-0.5 rounded bg-stone-100 text-stone-600">
                                 {goal.timeView}
                               </span>
                               {goal.deadline && (
                                 <span className="flex items-center gap-1 text-stone-500">
-                                  <Clock className="size-3" /> {goal.deadline}
+                                  <Clock className="size-3 shrink-0" /> {goal.deadline}
                                 </span>
                               )}
                             </div>
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2 shrink-0">
+                        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                           <span
-                            className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${
+                            className={`text-[11px] font-bold px-2.5 py-1 rounded-full whitespace-nowrap ${
                               goal.completed
                                 ? "bg-emerald-50 text-emerald-700"
                                 : "bg-amber-50 text-amber-800"
@@ -908,7 +910,7 @@ export default function DashboardPage() {
                           <button
                             type="button"
                             onClick={(e) => handleDeleteGoal(e, goal.id)}
-                            className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-stone-400 hover:text-red-600 hover:bg-red-50 transition cursor-pointer"
+                            className="opacity-70 sm:opacity-0 sm:group-hover:opacity-100 p-1 rounded-md text-stone-400 hover:text-red-600 hover:bg-red-50 transition cursor-pointer shrink-0"
                             title="Delete milestone"
                           >
                             <Trash2 className="size-3.5" />
@@ -1165,16 +1167,16 @@ export default function DashboardPage() {
                   <div
                     key={goal.id}
                     onClick={() => handleGoalToggle(goal.id, goal.completed, goal.title)}
-                    className={`p-4 rounded-2xl border transition-all flex items-center justify-between gap-4 cursor-pointer group ${
+                    className={`p-3.5 sm:p-4 rounded-2xl border transition-all flex items-start sm:items-center justify-between gap-2.5 sm:gap-4 cursor-pointer group ${
                       goal.completed
                         ? "bg-stone-50/70 border-stone-200/60 opacity-60"
                         : "bg-white border-stone-200 hover:border-orange-400 hover:shadow-xs"
                     }`}
                   >
-                    <div className="flex items-center gap-3.5">
+                    <div className="flex items-start sm:items-center gap-3 flex-1 min-w-0">
                       <button
                         type="button"
-                        className="text-stone-400 group-hover:text-orange-500 transition"
+                        className="mt-0.5 sm:mt-0 text-stone-400 group-hover:text-orange-500 transition shrink-0"
                       >
                         {goal.completed ? (
                           <CheckCircle2 className="size-5 text-emerald-600 fill-emerald-100" />
@@ -1182,21 +1184,21 @@ export default function DashboardPage() {
                           <Circle className="size-5" />
                         )}
                       </button>
-                      <div>
+                      <div className="min-w-0 flex-1">
                         <div
-                          className={`text-sm font-semibold text-stone-900 ${
+                          className={`text-sm font-semibold text-stone-900 break-words ${
                             goal.completed ? "line-through text-stone-400" : ""
                           }`}
                         >
                           {goal.title}
                         </div>
-                        <div className="flex items-center gap-3 mt-1 text-xs text-stone-400">
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs text-stone-400">
                           <span className="uppercase text-[10px] font-bold px-2 py-0.5 rounded bg-stone-100 text-stone-700">
                             {goal.timeView}
                           </span>
                           {goal.deadline && (
                             <span className="flex items-center gap-1 text-stone-500">
-                              <Clock className="size-3" /> {goal.deadline}
+                              <Clock className="size-3 shrink-0" /> {goal.deadline}
                             </span>
                           )}
                           <span className="text-[10px] text-stone-400">
@@ -1206,9 +1208,9 @@ export default function DashboardPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2.5">
+                    <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
                       <span
-                        className={`text-xs font-bold px-3 py-1 rounded-full ${
+                        className={`text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full whitespace-nowrap ${
                           goal.completed
                             ? "bg-emerald-100 text-emerald-800"
                             : "bg-orange-100 text-orange-800"
@@ -1219,7 +1221,7 @@ export default function DashboardPage() {
                       <button
                         type="button"
                         onClick={(e) => handleDeleteGoal(e, goal.id)}
-                        className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-stone-400 hover:text-red-600 hover:bg-red-50 transition cursor-pointer"
+                        className="opacity-70 sm:opacity-0 sm:group-hover:opacity-100 p-1.5 rounded-lg text-stone-400 hover:text-red-600 hover:bg-red-50 transition cursor-pointer shrink-0"
                         title="Delete milestone"
                       >
                         <Trash2 className="size-4" />

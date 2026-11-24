@@ -92,7 +92,7 @@ export default function PtiroMascot({
       : { width: size, height: size };
 
   return (
-    <div className={`relative inline-flex items-center gap-3 select-none ${className}`}>
+    <div className={`relative flex flex-wrap sm:flex-nowrap items-center justify-center sm:justify-start gap-3 max-w-full min-w-0 select-none ${className}`}>
       {/* Mascot Canvas Container */}
       <motion.div
         whileHover={interactive ? { scale: 1.05 } : undefined}
@@ -122,10 +122,10 @@ export default function PtiroMascot({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 4, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="relative max-w-xs rounded-2xl bg-white border border-orange-200/90 shadow-md p-3 text-left z-10"
+            className="relative flex-1 min-w-0 w-full sm:w-auto max-w-xs rounded-2xl bg-white border border-orange-200/90 shadow-md p-3 text-left z-10"
           >
             {/* Pointer arrow */}
-            <div className="absolute top-1/2 -left-2 -translate-y-1/2 w-0 h-0 border-y-6 border-y-transparent border-r-8 border-r-white drop-shadow-xs" />
+            <div className="hidden sm:block absolute top-1/2 -left-2 -translate-y-1/2 w-0 h-0 border-y-6 border-y-transparent border-r-8 border-r-white drop-shadow-xs" />
 
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
@@ -142,10 +142,11 @@ export default function PtiroMascot({
               <button
                 type="button"
                 onClick={() => setSpeechVisible(false)}
-                className="text-stone-300 hover:text-stone-600 transition p-0.5 rounded cursor-pointer shrink-0"
+                className="text-stone-400 hover:text-stone-700 transition p-1.5 -m-1 rounded-lg cursor-pointer shrink-0"
                 title="Dismiss tip"
+                aria-label="Dismiss tip"
               >
-                <X className="size-3" />
+                <X className="size-3.5" />
               </button>
             </div>
           </motion.div>

@@ -126,17 +126,17 @@ export default function StudentParentIntakeModal() {
       aria-modal="true"
       aria-labelledby="intake-title"
       data-lenis-prevent
-      className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-stone-900/70 backdrop-blur-md animate-in fade-in duration-200 overscroll-contain"
+      className="fixed inset-0 z-[1000] flex items-center justify-center p-3 sm:p-4 bg-stone-900/70 backdrop-blur-md animate-in fade-in duration-200 overscroll-contain"
     >
-      <div data-lenis-prevent className="relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl bg-white p-6 sm:p-8 shadow-2xl border border-stone-200 text-stone-900 overscroll-contain">
+      <div data-lenis-prevent className="relative w-full max-w-xl max-h-[90dvh] overflow-y-auto rounded-2xl sm:rounded-3xl bg-white p-4 sm:p-8 shadow-2xl border border-stone-200 text-stone-900 overscroll-contain">
         {/* Header Bar */}
-        <div className="flex items-center justify-between border-b border-stone-100 pb-4">
-          <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-orange-100 font-bold text-orange-600">
+        <div className="flex items-start sm:items-center justify-between gap-2 border-b border-stone-100 pb-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-orange-100 font-bold text-orange-600">
               {step === 1 ? <GraduationCap className="size-5" /> : <Users className="size-5" />}
             </span>
-            <div>
-              <h2 id="intake-title" className="text-xl font-bold tracking-tight text-stone-900">
+            <div className="min-w-0">
+              <h2 id="intake-title" className="text-lg sm:text-xl font-bold tracking-tight text-stone-900">
                 {step === 1 ? "Student Profile Setup" : "Parent Alignment & Aspiration"}
               </h2>
               <p className="text-xs text-stone-500">
@@ -149,7 +149,7 @@ export default function StudentParentIntakeModal() {
           <button
             type="button"
             onClick={closeIntakeModal}
-            className="rounded-full p-2 text-stone-400 hover:bg-stone-100 hover:text-stone-700 transition"
+            className="rounded-full p-2 text-stone-400 hover:bg-stone-100 hover:text-stone-700 transition shrink-0"
             aria-label="Close modal"
           >
             <X className="size-5" />
@@ -257,17 +257,17 @@ export default function StudentParentIntakeModal() {
               </div>
             </div>
 
-            <div className="pt-4 flex items-center justify-between border-t border-stone-100">
+            <div className="pt-4 flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-2.5 border-t border-stone-100">
               <button
                 type="button"
                 onClick={closeIntakeModal}
-                className="text-xs font-semibold text-stone-500 hover:text-stone-800"
+                className="w-full sm:w-auto py-2 text-xs font-semibold text-stone-500 hover:text-stone-800 text-center"
               >
                 Skip for now
               </button>
               <button
                 type="submit"
-                className="rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 px-6 py-2.5 text-sm font-semibold text-white shadow-md hover:brightness-105 active:scale-95 transition"
+                className="w-full sm:w-auto rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 px-6 py-3 sm:py-2.5 text-sm font-semibold text-white shadow-md hover:brightness-105 active:scale-95 transition text-center"
               >
                 Continue to Parent Alignment →
               </button>
@@ -358,17 +358,17 @@ export default function StudentParentIntakeModal() {
               </div>
             )}
 
-            <div className="pt-4 flex items-center justify-between border-t border-stone-100">
+            <div className="pt-4 flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-2.5 border-t border-stone-100">
               <button
                 type="button"
                 onClick={() => setStep(1)}
-                className="text-xs font-semibold text-stone-500 hover:text-stone-800"
+                className="w-full sm:w-auto py-2 text-xs font-semibold text-stone-500 hover:text-stone-800 text-center"
               >
                 ← Back to Student Details
               </button>
               <button
                 type="submit"
-                className="rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 px-6 py-2.5 text-sm font-semibold text-white shadow-md hover:brightness-105 active:scale-95 transition flex items-center gap-1.5"
+                className="w-full sm:w-auto rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 px-6 py-3 sm:py-2.5 text-sm font-semibold text-white shadow-md hover:brightness-105 active:scale-95 transition flex items-center justify-center gap-1.5"
               >
                 <span>Save Profile & Personalize Platform</span>
                 <Check className="size-4" />

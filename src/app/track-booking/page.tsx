@@ -188,33 +188,35 @@ function TrackBookingContent() {
     <div className="min-h-screen bg-[#FFFBF5] text-[#1A1A2E] font-body selection:bg-orange-500 selection:text-white">
       {/* Top Header */}
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-stone-200/80 shadow-2xs">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <Link
               href="/"
-              className="flex items-center gap-1.5 text-xs font-bold text-stone-600 hover:text-stone-900 hover:bg-stone-100 px-2.5 py-1.5 rounded-xl transition"
+              className="flex items-center gap-1.5 text-xs font-bold text-stone-600 hover:text-stone-900 hover:bg-stone-100 px-2 sm:px-2.5 py-1.5 rounded-xl transition shrink-0"
             >
-              <ArrowLeft className="size-4" />
-              <span>Back to Home</span>
+              <ArrowLeft className="size-4 shrink-0" />
+              <span className="hidden sm:inline">Back to Home</span>
+              <span className="sm:hidden">Home</span>
             </Link>
             <span className="h-4 w-px bg-stone-200 hidden sm:inline-block" />
-            <Link href="/" className="flex items-center gap-2">
-              <span className="font-display text-xl font-black tracking-tight text-gradient">
+            <Link href="/" className="flex items-center gap-2 min-w-0">
+              <span className="font-display text-lg sm:text-xl font-black tracking-tight text-gradient">
                 PTIROS
               </span>
-              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-orange-100 text-orange-800">
+              <span className="hidden sm:inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-orange-100 text-orange-800 whitespace-nowrap">
                 Meeting Tracker
               </span>
             </Link>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <Link
               href="/dashboard"
-              className="flex items-center gap-1.5 text-xs font-bold text-stone-700 hover:text-primary transition"
+              className="flex items-center gap-1.5 text-xs font-bold text-stone-700 hover:text-primary transition px-2.5 py-1.5 rounded-xl hover:bg-orange-50/70"
             >
-              <Compass className="size-4 text-primary" />
-              <span>Student Portal</span>
+              <Compass className="size-4 text-primary shrink-0" />
+              <span className="hidden sm:inline">Student Portal</span>
+              <span className="sm:hidden">Portal</span>
             </Link>
           </div>
         </div>
@@ -448,7 +450,7 @@ function TrackBookingContent() {
                       </div>
                     )}
 
-                    <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                    <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 w-full sm:w-auto">
                       <a
                         href={`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
                           `1-on-1 PTIROS Gurukul Session: ${b.mentorName}`

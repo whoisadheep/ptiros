@@ -47,16 +47,10 @@ export default function Expertise() {
   return (
     <section
       id="expertise"
-      className="relative overflow-hidden bg-primary py-24 sm:py-32 text-white"
+      className="relative overflow-hidden bg-primary py-16 sm:py-24 lg:py-32 text-white"
       aria-label="Our Areas of Expertise"
     >
-      {/* Decorative subtle glows */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-        <div className="absolute right-0 top-0 h-96 w-96 rounded-full bg-white/10 blur-3xl" />
-        <div className="absolute left-0 bottom-0 h-80 w-80 rounded-full bg-black/10 blur-3xl" />
-      </div>
-
-      <div className="relative mx-auto max-w-7xl px-5 sm:px-8 lg:px-12">
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-8 lg:px-12">
         {/* Section Heading matching design-03.png */}
         <ScrollReveal direction="up" distance={20}>
           <div className="mb-14 text-center">
@@ -69,8 +63,8 @@ export default function Expertise() {
           </div>
         </ScrollReveal>
 
-        {/* 5 Tall White-Bordered Cards matching design-03.png */}
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+        {/* 5 Tall White-Bordered Cards */}
+        <div className="grid grid-cols-1 gap-4 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           {expertiseData.map((item, idx) => {
             const Icon = item.icon;
             return (
@@ -81,8 +75,7 @@ export default function Expertise() {
                 distance={24}
               >
                 <div
-                  className="group flex flex-col justify-between rounded-3xl border border-white/30 bg-white/10 p-6 sm:p-7 backdrop-blur-md transition-all duration-300 hover:bg-white/20 hover:border-white/60 hover:-translate-y-1.5 h-full"
-                  style={{ minHeight: "340px" }}
+                  className="group flex flex-col justify-between rounded-3xl border border-white/30 bg-white/10 p-5 sm:p-7 backdrop-blur-md transition-all duration-300 hover:bg-white/20 hover:border-white/60 hover:-translate-y-1.5 h-full min-h-[240px] sm:min-h-[300px] xl:min-h-[340px]"
                 >
                   <div>
                     <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-primary shadow-lg transition-transform duration-300 group-hover:scale-110">

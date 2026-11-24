@@ -159,29 +159,30 @@ export default function AboutPage() {
     <div className="min-h-screen bg-[#FFFBF5] text-[#1A1A2E] font-body selection:bg-orange-500 selection:text-white">
       {/* ─── Top Global Command Bar ──────────────────────── */}
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-stone-200/80 shadow-2xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <Link
               href="/"
-              className="flex items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-bold text-stone-600 hover:text-stone-900 hover:bg-stone-100 transition"
+              className="flex items-center gap-1.5 rounded-xl px-2 sm:px-2.5 py-2 text-xs font-bold text-stone-600 hover:text-stone-900 hover:bg-stone-100 transition shrink-0"
             >
               <ArrowLeft className="size-4" />
-              <span>Back to Home</span>
+              <span className="hidden sm:inline">Back to Home</span>
+              <span className="sm:hidden">Home</span>
             </Link>
 
             <span className="hidden sm:inline-block h-4 w-px bg-stone-200" />
 
-            <Link href="/" className="flex items-center gap-2">
-              <span className="font-display text-xl sm:text-2xl font-bold tracking-tight text-stone-950">
+            <Link href="/" className="flex items-center gap-2 min-w-0">
+              <span className="font-display text-lg sm:text-2xl font-bold tracking-tight text-stone-950 truncate">
                 PTIROS
               </span>
-              <span className="hidden md:inline-block text-[10px] font-semibold px-2 py-0.5 rounded-md bg-stone-100 text-stone-700">
+              <span className="hidden md:inline-block text-[10px] font-semibold px-2 py-0.5 rounded-md bg-stone-100 text-stone-700 shrink-0">
                 Our Story
               </span>
             </Link>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <Link
               href="/simulator"
               className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-stone-700 hover:text-primary transition"
@@ -198,9 +199,10 @@ export default function AboutPage() {
             </Link>
             <Link
               href="/career-test"
-              className="rounded-full bg-primary px-4 sm:px-5 py-2 text-xs font-bold text-white shadow-md shadow-primary/20 hover:bg-primary-dark transition-all flex items-center gap-1.5 active:scale-95"
+              className="rounded-xl sm:rounded-full bg-primary px-3.5 sm:px-5 py-2 text-xs font-bold text-white shadow-xs hover:bg-primary-dark transition-colors flex items-center gap-1.5 active:scale-95 whitespace-nowrap"
             >
-              <span>Give Career Test</span>
+              <span className="hidden sm:inline">Give Career Test</span>
+              <span className="sm:hidden">Career Test</span>
               <ArrowRight className="size-3.5" />
             </Link>
           </div>
@@ -247,12 +249,12 @@ export default function AboutPage() {
             </div>
 
             {/* Ptiro Mascot Spotlight Card */}
-            <div className="shrink-0 flex justify-center">
-              <div className="p-6 sm:p-8 rounded-3xl bg-white border border-orange-200/90 shadow-xl max-w-sm text-center space-y-4">
+            <div className="w-full lg:w-auto shrink-0 flex justify-center">
+              <div className="w-full max-w-sm p-5 sm:p-8 rounded-2xl sm:rounded-3xl bg-white border border-orange-200/90 shadow-sm text-center space-y-4 overflow-hidden">
                 <PtiroMascot
                   variant="copilot"
-                  size={120}
-                  speech="Welcome to our story!"
+                  size={96}
+                  speech="Welcome to our story"
                   subSpeech="Discover why authentic mentorship beats blind guessing."
                 />
                 <div className="pt-2 border-t border-stone-100 text-left space-y-1">
@@ -354,12 +356,12 @@ export default function AboutPage() {
           </div>
 
           {/* Interactive Timeline Tabs */}
-          <div className="flex items-center justify-center gap-2 overflow-x-auto pb-2">
+          <div className="flex items-center justify-start sm:justify-center gap-2 overflow-x-auto no-scrollbar pb-2">
             {timelineMilestones.map((m, idx) => (
               <button
                 key={m.year}
                 onClick={() => setActiveStage(idx)}
-                className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                className={`px-4 py-2 rounded-full text-xs font-bold transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
                   activeStage === idx
                     ? "bg-stone-900 text-white shadow-xs"
                     : "bg-white text-stone-600 hover:text-stone-950 border border-stone-200"
@@ -381,7 +383,7 @@ export default function AboutPage() {
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3 }}
-                  className="rounded-3xl bg-white border border-orange-200/90 shadow-xl p-6 sm:p-10 space-y-6"
+                  className="rounded-2xl sm:rounded-3xl bg-white border border-orange-200/90 shadow-sm p-5 sm:p-10 space-y-6"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-stone-100">
                     <div className="flex items-center gap-3.5">
@@ -392,13 +394,13 @@ export default function AboutPage() {
                         <span className="text-xs font-bold text-orange-600 uppercase tracking-wider">
                           {stage.year}
                         </span>
-                        <h3 className="text-xl sm:text-2xl font-display font-bold text-stone-900">
+                        <h3 className="text-lg sm:text-2xl font-display font-bold text-stone-900">
                           {stage.title}
                         </h3>
                       </div>
                     </div>
 
-                    <div className="text-right sm:text-right shrink-0 bg-orange-50/80 px-4 py-2 rounded-2xl border border-orange-200">
+                    <div className="text-left sm:text-right self-start sm:self-auto shrink-0 bg-orange-50/80 px-4 py-2 rounded-2xl border border-orange-200">
                       <p className="text-xl font-display font-black text-orange-950">{stage.stat}</p>
                       <p className="text-[10px] font-semibold text-orange-800">{stage.statLabel}</p>
                     </div>

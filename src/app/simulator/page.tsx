@@ -1022,29 +1022,30 @@ function SimulatorContent() {
     <div className="min-h-screen bg-[#FFFBF5] text-[#1A1A2E] selection:bg-orange-500 selection:text-white">
       {/* ─── Top Brand Navigation Bar ──────────────── */}
       <header className="sticky top-0 z-40 border-b border-orange-200/60 bg-white/85 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3.5 sm:px-8">
-          <div className="flex items-center gap-3">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 sm:px-8 py-3 sm:py-3.5">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <Link
               href="/"
-              className="flex items-center gap-2 rounded-xl px-2.5 py-1.5 text-xs font-bold text-gray-600 transition-colors hover:bg-orange-50 hover:text-orange-600"
+              className="flex items-center gap-1.5 rounded-xl px-2 sm:px-2.5 py-1.5 text-xs font-bold text-gray-600 transition-colors hover:bg-orange-50 hover:text-orange-600 shrink-0"
             >
-              <ArrowLeft className="h-4 w-4" />
-              <span>Back to Home</span>
+              <ArrowLeft className="h-4 w-4 shrink-0" />
+              <span className="hidden sm:inline">Back to Home</span>
+              <span className="sm:hidden">Home</span>
             </Link>
 
             <span className="hidden h-4 w-px bg-gray-200 sm:inline-block" />
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 min-w-0">
               <span className="font-display text-lg font-black tracking-tight text-gradient">
                 PTIROS
               </span>
-              <span className="rounded-full bg-orange-100 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-orange-700">
+              <span className="hidden sm:inline-block rounded-full bg-orange-100 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-orange-700 whitespace-nowrap">
                 Career Simulator
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <Link
               href="/career-test"
               className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-gray-600 transition-colors hover:text-orange-600"
@@ -1054,9 +1055,10 @@ function SimulatorContent() {
             </Link>
             <Link
               href="/career-test"
-              className="rounded-full bg-primary px-4 py-2 text-xs font-bold uppercase tracking-wider text-white shadow-md shadow-primary/20 transition-all hover:bg-primary-dark"
+              className="rounded-full bg-primary px-3 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold uppercase tracking-wider text-white shadow-md shadow-primary/20 transition-all hover:bg-primary-dark whitespace-nowrap"
             >
-              Full Assessment
+              <span className="hidden sm:inline">Full Assessment</span>
+              <span className="sm:hidden">Diagnostic</span>
             </Link>
           </div>
         </div>
@@ -1066,16 +1068,7 @@ function SimulatorContent() {
       {!activeTrack ? (
         <main className="mx-auto max-w-7xl px-5 py-10 sm:px-8 lg:py-16">
           {/* Hero Banner */}
-          <section className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-[#1A1A2E] via-[#24243E] to-[#1A1A2E] p-8 sm:p-12 lg:p-16 text-white shadow-2xl">
-            {/* Ambient background orbs */}
-            <div
-              className="pointer-events-none absolute -right-20 -top-20 h-96 w-96 rounded-full bg-orange-500/20 blur-3xl"
-              aria-hidden="true"
-            />
-            <div
-              className="pointer-events-none absolute -bottom-20 -left-20 h-96 w-96 rounded-full bg-indigo-500/20 blur-3xl"
-              aria-hidden="true"
-            />
+          <section className="relative overflow-hidden rounded-3xl sm:rounded-[2.5rem] bg-gradient-to-br from-[#1A1A2E] via-[#24243E] to-[#1A1A2E] p-6 sm:p-12 lg:p-16 text-white shadow-2xl">
 
             <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8">
               <div className="max-w-3xl">
@@ -1131,7 +1124,7 @@ function SimulatorContent() {
           <section className="mt-12">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               {/* Category Pills */}
-              <div className="flex flex-wrap items-center gap-2 overflow-x-auto pb-2 sm:pb-0">
+              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar sm:flex-wrap pb-2 sm:pb-0 -mx-1 px-1">
                 {[
                   { id: "all", label: "All Career Tracks" },
                   { id: "tech", label: "Technology & AI" },
@@ -1304,16 +1297,16 @@ function SimulatorContent() {
         /* ─── VIEW 2: DEDICATED FULL-PAGE SIMULATION WORKSPACE ── */
         <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:py-12">
           {/* Breadcrumb & Exit Control */}
-          <div className="mb-6 flex items-center justify-between">
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
             <button
               onClick={handleExitSimulation}
-              className="flex cursor-pointer items-center gap-2 rounded-xl bg-white px-3.5 py-2 text-xs font-bold text-gray-700 border border-orange-200/80 shadow-sm transition-all hover:border-orange-400 hover:text-orange-600 active:scale-95"
+              className="flex cursor-pointer items-center gap-2 rounded-xl bg-white px-3.5 py-2 text-xs font-bold text-gray-700 border border-orange-200/80 shadow-sm transition-all hover:border-orange-400 hover:text-orange-600 active:scale-95 shrink-0"
             >
-              <ArrowLeft className="h-4 w-4" />
+              <ArrowLeft className="h-4 w-4 shrink-0" />
               <span>Exit to Career Labs</span>
             </button>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 min-w-0">
               <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-bold text-orange-700">
                 {activeTrack.companyRole}
               </span>
@@ -1326,22 +1319,22 @@ function SimulatorContent() {
           {!isCompleted && currentMission ? (
             <div className="space-y-6">
               {/* Mission Progress Header */}
-              <div className="overflow-hidden rounded-3xl border border-orange-200/80 bg-white p-6 shadow-sm">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
+              <div className="overflow-hidden rounded-3xl border border-orange-200/80 bg-white p-4 sm:p-6 shadow-sm">
+                <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0">
                     <span
                       className="text-xs font-bold uppercase tracking-wider"
                       style={{ color: activeTrack.color }}
                     >
                       {currentMission.phase}
                     </span>
-                    <h2 className="mt-1 font-display text-2xl sm:text-3xl font-black text-gray-900">
+                    <h2 className="mt-1 font-display text-xl sm:text-3xl font-black text-gray-900">
                       {activeTrack.title}
                     </h2>
                   </div>
 
                   {/* Progress Indicator */}
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3 shrink-0">
                     <div className="flex items-center gap-1.5">
                       {activeTrack.missions.map((_, i) => (
                         <div
@@ -1516,27 +1509,27 @@ function SimulatorContent() {
 
               {/* ─── View Switcher: Student Diagnostic vs Parent Dialogue Dossier ─── */}
               <div className="flex justify-center">
-                <div className="inline-flex rounded-full bg-orange-100/90 p-1 border border-orange-200 shadow-xs">
+                <div className="grid grid-cols-1 sm:inline-flex w-full sm:w-auto rounded-2xl sm:rounded-full bg-orange-100/90 p-1 border border-orange-200 shadow-xs gap-1 sm:gap-0">
                   <button
                     onClick={() => setCompletionTab("student")}
-                    className={`flex cursor-pointer items-center gap-2 rounded-full px-5 py-2.5 text-xs font-bold transition-all ${
+                    className={`flex cursor-pointer items-center justify-center gap-2 rounded-xl sm:rounded-full px-4 sm:px-5 py-2.5 text-xs font-bold transition-all ${
                       completionTab === "student"
                         ? "bg-white text-gray-900 shadow-sm"
                         : "text-gray-600 hover:text-gray-900"
                     }`}
                   >
-                    <Trophy className="h-4 w-4 text-orange-500" />
+                    <Trophy className="h-4 w-4 text-orange-500 shrink-0" />
                     <span>Student Diagnostic</span>
                   </button>
                   <button
                     onClick={() => setCompletionTab("parent")}
-                    className={`flex cursor-pointer items-center gap-2 rounded-full px-5 py-2.5 text-xs font-bold transition-all ${
+                    className={`flex cursor-pointer items-center justify-center gap-2 rounded-xl sm:rounded-full px-4 sm:px-5 py-2.5 text-xs font-bold transition-all ${
                       completionTab === "parent"
                         ? "bg-primary text-white shadow-sm"
                         : "text-gray-600 hover:text-gray-900"
                     }`}
                   >
-                    <Users className="h-4 w-4" />
+                    <Users className="h-4 w-4 shrink-0" />
                     <span>Parent-Student Dialogue Dossier</span>
                     <span className="hidden sm:inline-block rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-bold">Recommended</span>
                   </button>
@@ -1694,7 +1687,7 @@ function SimulatorContent() {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                  <div className="mt-8 flex flex-col items-stretch sm:flex-row sm:flex-wrap sm:items-center justify-center gap-3">
                     <button
                       onClick={() => setCompletionTab("parent")}
                       className="flex w-full sm:w-auto cursor-pointer items-center justify-center gap-2 rounded-full border border-orange-400 bg-orange-50 px-6 py-3 text-xs font-bold text-orange-800 shadow-sm transition-all hover:bg-orange-100 active:scale-95"
@@ -1768,7 +1761,7 @@ function SimulatorContent() {
                   role="dialog"
                   aria-modal="true"
                   data-lenis-prevent
-                  className="fixed inset-x-4 top-[6vh] z-50 mx-auto max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl bg-white p-6 sm:p-8 shadow-2xl border-4 border-amber-200 overscroll-contain"
+                  className="fixed inset-x-3 sm:inset-x-4 top-[5dvh] z-50 mx-auto max-w-xl max-h-[90dvh] overflow-y-auto rounded-3xl bg-white p-5 sm:p-8 shadow-2xl border-4 border-amber-200 overscroll-contain"
                 >
                   <div className="text-center">
                     {/* Official National Emblem / Top Seal */}
@@ -1778,15 +1771,14 @@ function SimulatorContent() {
                       </span>
                     </div>
 
-                    <span className="font-display text-2xl font-black text-gradient">
+                    <span className="font-display text-xl sm:text-2xl font-black text-gradient">
                       PTIROS ACADEMIC NETWORK
                     </span>
                     <p className="text-[11px] uppercase tracking-wider text-gray-500 mt-0.5">
                       National Career Assessment & Virtual Simulation Directorate
                     </p>
 
-                    <div className="my-6 rounded-2xl bg-gradient-to-br from-amber-50/80 via-white to-orange-50/80 border-2 border-amber-300/80 p-6 shadow-xs text-left relative overflow-hidden">
-                      <div className="absolute -right-10 -bottom-10 h-32 w-32 rounded-full bg-amber-400/10 blur-xl pointer-events-none" />
+                    <div className="my-5 sm:my-6 rounded-2xl bg-gradient-to-br from-amber-50/80 via-white to-orange-50/80 border-2 border-amber-300/80 p-4 sm:p-6 shadow-xs text-left relative overflow-hidden">
 
                       <p className="text-[11px] uppercase tracking-wider text-gray-400 font-bold">Official Credential</p>
                       <p className="text-xs text-gray-600 mt-1">This certifies that student</p>

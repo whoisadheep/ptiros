@@ -89,23 +89,23 @@ export default function FloatingCopilot() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 15 }}
             transition={{ duration: 0.2 }}
-            className="mb-3 w-80 sm:w-88 rounded-3xl bg-white/95 backdrop-blur-md border border-orange-200/90 shadow-2xl p-4 sm:p-5 text-stone-900 space-y-4"
+            className="mb-3 w-[calc(100vw-2rem)] max-w-[352px] max-h-[calc(100dvh-5rem)] overflow-y-auto overscroll-contain rounded-3xl bg-white/95 backdrop-blur-md border border-orange-200/90 shadow-2xl p-4 sm:p-5 text-stone-900 space-y-4"
           >
             {/* Header */}
             <div className="flex items-center justify-between pb-3 border-b border-stone-100">
-              <div className="flex items-center gap-2">
-                <span className="size-2 rounded-full bg-emerald-500 animate-ping" />
-                <span className="font-display font-bold text-sm text-stone-900">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="size-2 rounded-full bg-emerald-500 animate-ping shrink-0" />
+                <span className="font-display font-bold text-sm text-stone-900 truncate">
                   Ptiro Copilot
                 </span>
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-800 uppercase tracking-wider">
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-800 uppercase tracking-wider shrink-0">
                   AI Navigator
                 </span>
               </div>
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="p-1 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition cursor-pointer"
+                className="min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition cursor-pointer shrink-0"
                 title="Minimize Copilot"
               >
                 <ChevronDown className="size-4" />
