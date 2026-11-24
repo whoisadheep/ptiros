@@ -50,8 +50,8 @@ export default function FloatingCopilot() {
       hint: "Answer intuitively based on your natural curiosity, not parental pressure.",
     },
     "/track-booking": {
-      title: "Real-Time Meeting Telemetry",
-      hint: "Enter your Booking ID or WhatsApp mobile to view live council review and Google Meet links.",
+      title: "Live Mentorship Schedule",
+      hint: "Sign in to view council confirmation status, slot schedules, and Google Meet video links for your booked sessions.",
     },
     "/about": {
       title: "Our Story & Pedagogy",

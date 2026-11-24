@@ -203,15 +203,15 @@ export default function NavProfileMenu() {
                 </div>
               </div>
 
-              {/* Public Tracker Link */}
+              {/* Meetings Link */}
               <div className="mt-3 pt-2 border-t border-stone-100 flex items-center justify-between text-[11px] text-stone-500">
-                <span>Have a meeting reference ID?</span>
+                <span>Already booked a session?</span>
                 <Link
                   href="/track-booking"
                   onClick={() => setIsOpen(false)}
                   className="font-bold text-primary hover:underline inline-flex items-center gap-1"
                 >
-                  <span>Track Meeting</span>
+                  <span>My Meetings</span>
                   <ExternalLink className="size-2.5" />
                 </Link>
               </div>

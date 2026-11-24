@@ -157,6 +157,7 @@ export async function getDatabase(): Promise<DatabaseStore> {
 
       const bookings: MentorshipSessionRecord[] = bookingsRows.map((r: any) => ({
         id: r.id,
+        userId: r.user_id || undefined,
         mentorId: r.mentor_id,
         mentorName: r.mentor_name,
         domainTitle: r.domain_title,
@@ -385,10 +386,10 @@ export async function saveBooking(
 
       await sql`
         INSERT INTO mentorship_bookings (
-          id, mentor_id, mentor_name, domain_title, student_name, parent_phone,
+          id, user_id, mentor_id, mentor_name, domain_title, student_name, parent_phone,
           date, time_slot, primary_question, status
         ) VALUES (
-          ${newId}, ${bookingInput.mentorId}, ${bookingInput.mentorName}, ${bookingInput.domainTitle},
+          ${newId}, ${bookingInput.userId || null}, ${bookingInput.mentorId}, ${bookingInput.mentorName}, ${bookingInput.domainTitle},
           ${bookingInput.studentName}, ${cleanPhone}, ${bookingInput.date}, ${bookingInput.timeSlot},
           ${bookingInput.primaryQuestion}, 'pending'
         )
@@ -461,6 +462,7 @@ export async function updateBookingStatus(
       const r = rows[0];
       return {
         id: r.id,
+        userId: r.user_id || undefined,
         mentorId: r.mentor_id,
         mentorName: r.mentor_name,
         domainTitle: r.domain_title,
@@ -494,7 +496,7 @@ export async function updateBookingStatus(
 }
 
 /**
- * Queries mentorship bookings for a student by ID, phone number, or student name.
+ * Queries mentorship bookings strictly for an authenticated student account.
  */
 export async function getStudentBookings(query: {
   bookingId?: string;
@@ -505,41 +507,40 @@ export async function getStudentBookings(query: {
   const sql = getNeonSql();
   const searchId = query.bookingId?.trim();
   const phoneClean = query.phone ? query.phone.replace(/[^0-9]/g, "").slice(-10) : "";
-  const nameClean = query.studentName?.trim();
+  const userIdClean = query.userId?.trim();
 
   if (sql) {
     try {
       let rows: any[] = [];
-      if (searchId) {
+      if (userIdClean && phoneClean) {
         rows = await sql`
-          SELECT * FROM mentorship_bookings 
-          WHERE id = ${searchId} OR id = ${searchId.toLowerCase()} OR id = ${searchId.toUpperCase()}
+          SELECT * FROM mentorship_bookings
+          WHERE user_id = ${userIdClean} OR (user_id IS NULL AND parent_phone LIKE ${"%" + phoneClean})
           ORDER BY created_at DESC
         `;
-      } else if (phoneClean && nameClean) {
+      } else if (userIdClean) {
         rows = await sql`
-          SELECT * FROM mentorship_bookings 
-          WHERE parent_phone LIKE ${"%" + phoneClean} OR student_name ILIKE ${"%" + nameClean + "%"}
+          SELECT * FROM mentorship_bookings
+          WHERE user_id = ${userIdClean}
+          ORDER BY created_at DESC
+        `;
+      } else if (searchId) {
+        rows = await sql`
+          SELECT * FROM mentorship_bookings
+          WHERE id = ${searchId} OR id = ${searchId.toLowerCase()} OR id = ${searchId.toUpperCase()}
           ORDER BY created_at DESC
         `;
       } else if (phoneClean) {
         rows = await sql`
-          SELECT * FROM mentorship_bookings 
+          SELECT * FROM mentorship_bookings
           WHERE parent_phone LIKE ${"%" + phoneClean}
           ORDER BY created_at DESC
         `;
-      } else if (nameClean) {
-        rows = await sql`
-          SELECT * FROM mentorship_bookings 
-          WHERE student_name ILIKE ${"%" + nameClean + "%"}
-          ORDER BY created_at DESC
-        `;
-      } else {
-        rows = await sql`SELECT * FROM mentorship_bookings ORDER BY created_at DESC LIMIT 20`;
       }
 
       return rows.map((r: any) => ({
         id: r.id,
+        userId: r.user_id || undefined,
         mentorId: r.mentor_id,
         mentorName: r.mentor_name,
         domainTitle: r.domain_title,
@@ -562,9 +563,9 @@ export async function getStudentBookings(query: {
   // Fallback to local file
   const store = await getDatabase();
   return store.bookings.filter((b) => {
+    if (userIdClean && b.userId === userIdClean) return true;
     if (searchId && (b.id.toLowerCase() === searchId.toLowerCase() || b.id === searchId)) return true;
-    if (phoneClean && b.parentPhone.includes(phoneClean)) return true;
-    if (nameClean && b.studentName.toLowerCase().includes(nameClean.toLowerCase())) return true;
+    if (phoneClean && !b.userId && b.parentPhone.includes(phoneClean)) return true;
     return false;
   });
 }
@@ -935,29 +936,6 @@ export async function createStudentUser(data: {
         ${initials}
       );
     `;
-
-    // Seed initial welcome diary entry
-    const diaryId = `dia_${crypto.randomBytes(4).toString("hex")}`;
-    const todayStr = formatDateString();
-    await sql`
-      INSERT INTO student_diary (id, user_id, date, title, content, category)
-      VALUES (
-        ${diaryId}, ${userId}, ${todayStr},
-        'Welcome to PTIROS Mentorship Portal',
-        'My student profile has been created! Excited to map my career trajectory, track weekly milestones, and prepare for board excellence.',
-        'reflection'
-      );
-    `;
-
-    // Seed initial starter goals
-    const g1 = `g_${crypto.randomBytes(4).toString("hex")}`;
-    const g2 = `g_${crypto.randomBytes(4).toString("hex")}`;
-    await sql`
-      INSERT INTO student_planner_goals (id, user_id, title, time_view, completed, deadline)
-      VALUES
-      (${g1}, ${userId}, 'Take the PTIROS 360° Career Test & Simulator Mission', 'daily', false, 'This Week'),
-      (${g2}, ${userId}, 'Schedule first 1:1 roadmap consultation session', 'monthly', false, 'Next 2 Weeks');
-    `;
   }
 
   // Also record lead in CRM database so admin sees them immediately
@@ -1059,8 +1037,10 @@ export async function getStudentPortalData(userId: string): Promise<StudentPorta
     }
   }
 
-  // If no goals found in DB (e.g. fallback), provide realistic defaults
-  if (goals.length === 0) {
+  const isDemoUser = userId.startsWith("usr_demo_");
+
+  // Only demo accounts fall back to showcase goals if database records are unavailable
+  if (goals.length === 0 && isDemoUser) {
     goals = [
       {
         id: "g_default_1",
@@ -1102,9 +1082,8 @@ export async function getStudentPortalData(userId: string): Promise<StudentPorta
   }
 
   const bookings = await getStudentBookings({
-    phone: user.parentPhone,
-    studentName: user.name,
     userId: user.id,
+    phone: isDemoUser ? user.parentPhone : undefined,
   });
 
   return { user, diary, goals, simulations, bookings };

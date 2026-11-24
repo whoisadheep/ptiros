@@ -25,7 +25,7 @@ interface ActivityLockerProps {
 }
 
 const DEFAULT_ACTIVITIES_BY_USER: Record<string, StudentActivity[]> = {
-  student_aarav: [
+  usr_demo_aarav: [
     {
       id: "act_aarav_1",
       userId: "student_aarav",
@@ -75,7 +75,7 @@ const DEFAULT_ACTIVITIES_BY_USER: Record<string, StudentActivity[]> = {
       createdAt: "2026-08-20T14:00:00Z",
     },
   ],
-  student_meera: [
+  usr_demo_meera: [
     {
       id: "act_meera_1",
       userId: "student_meera",
@@ -125,7 +125,7 @@ const DEFAULT_ACTIVITIES_BY_USER: Record<string, StudentActivity[]> = {
       createdAt: "2026-06-18T18:00:00Z",
     },
   ],
-  student_vihaan: [
+  usr_demo_vihaan: [
     {
       id: "act_vihaan_1",
       userId: "student_vihaan",
@@ -199,8 +199,8 @@ const AVAILABLE_COMPETENCIES = [
   "Empathy",
 ];
 
-export default function ActivityLocker({ userId = "student_aarav", userName = "Student" }: ActivityLockerProps) {
-  const storageKey = `ptiros_activities_${userId}`;
+export default function ActivityLocker({ userId = "", userName = "Student" }: ActivityLockerProps) {
+  const storageKey = userId ? `ptiros_activities_${userId}` : "";
   const [activities, setActivities] = useState<StudentActivity[]>([]);
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -215,27 +215,29 @@ export default function ActivityLocker({ userId = "student_aarav", userName = "S
   const [newDesc, setNewDesc] = useState("");
   const [selectedCompetencies, setSelectedCompetencies] = useState<string[]>(["Leadership", "Problem Solving"]);
 
-  // Load activities on mount or when user changes
+  // Load activities on mount or when user changes — keep brand-new accounts empty
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(storageKey);
-      if (stored) {
-        const parsed: StudentActivity[] = JSON.parse(stored);
-        if (parsed.length > 0) {
-          setActivities(parsed);
-          return;
+    if (storageKey) {
+      try {
+        const stored = localStorage.getItem(storageKey);
+        if (stored !== null) {
+          const parsed: StudentActivity[] = JSON.parse(stored);
+          if (Array.isArray(parsed)) {
+            setActivities(parsed);
+            return;
+          }
         }
-      }
-    } catch {}
+      } catch {}
+    }
 
-    // Fallback to default persona data
-    const defaults = DEFAULT_ACTIVITIES_BY_USER[userId] || DEFAULT_ACTIVITIES_BY_USER["student_aarav"];
+    const defaults = (userId && DEFAULT_ACTIVITIES_BY_USER[userId]) || [];
     setActivities(defaults);
   }, [userId, storageKey]);
 
   // Persist whenever activities change
   const persistActivities = (updated: StudentActivity[]) => {
     setActivities(updated);
+    if (!storageKey) return;
     try {
       localStorage.setItem(storageKey, JSON.stringify(updated));
     } catch {}
@@ -293,16 +295,19 @@ export default function ActivityLocker({ userId = "student_aarav", userName = "S
 
   // Profile strength calculation
   const profileStats = useMemo(() => {
+    if (activities.length === 0) {
+      return { score: 0, categoriesCount: 0, competenciesCount: 0 };
+    }
     const categoriesPresent = new Set(activities.map((a) => a.category));
     const allCompetencies = new Set(activities.flatMap((a) => a.competencies));
 
-    // A balanced profile covers at least 3 categories and 5 competencies
+    // A balanced profile covers at least 4 categories and 6 competencies
     const categoryCoverage = Math.min(categoriesPresent.size / 4, 1);
     const competencyCoverage = Math.min(allCompetencies.size / 6, 1);
     const score = Math.round((categoryCoverage * 0.5 + competencyCoverage * 0.5) * 100);
 
     return {
-      score: Math.max(score, 60),
+      score,
       categoriesCount: categoriesPresent.size,
       competenciesCount: allCompetencies.size,
     };
@@ -345,8 +350,16 @@ export default function ActivityLocker({ userId = "student_aarav", userName = "S
               <span className="text-2xl font-extrabold text-stone-900 font-display">
                 {profileStats.score}%
               </span>
-              <span className="text-[11px] text-emerald-700 font-bold bg-emerald-100 px-2 py-0.5 rounded-full">
-                Tier-1 Competitive
+              <span
+                className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                  profileStats.score >= 70
+                    ? "text-emerald-700 bg-emerald-100"
+                    : profileStats.score > 0
+                    ? "text-amber-800 bg-amber-100"
+                    : "text-stone-600 bg-stone-200"
+                }`}
+              >
+                {profileStats.score >= 70 ? "Tier-1 Competitive" : profileStats.score > 0 ? "Building Profile" : "Not Started"}
               </span>
             </div>
             <p className="text-[11px] text-stone-400 mt-1">

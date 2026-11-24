@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useUserProfile } from "@/context/UserProfileContext";
+import { useStudentAuth } from "@/context/StudentAuthContext";
 import PtiroMascot from "@/components/PtiroMascot";
 import {
   ArrowLeft,
@@ -119,6 +120,7 @@ export default function CareerTestPage() {
   const [currentQ, setCurrentQ] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const { openDossierModal } = useUserProfile();
+  const { user } = useStudentAuth();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -142,7 +144,10 @@ export default function CareerTestPage() {
         answers: updatedAnswers,
       };
       try {
-        localStorage.setItem("ptiros_career_test_result", JSON.stringify(resultData));
+        const storageKey = user?.id
+          ? `ptiros_career_test_result_${user.id}`
+          : "ptiros_career_test_guest";
+        localStorage.setItem(storageKey, JSON.stringify(resultData));
       } catch {}
 
       // Save lead to database for follow-up

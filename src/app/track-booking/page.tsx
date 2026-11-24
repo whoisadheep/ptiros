@@ -1,99 +1,36 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { Suspense } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import {
-  Search,
   Calendar,
   Clock,
   Video,
   CheckCircle2,
   Clock3,
   AlertCircle,
-  Building2,
-  ArrowRight,
   ArrowLeft,
+  ArrowRight,
   ExternalLink,
   MessageSquare,
-  Copy,
-  Check,
   Sparkles,
   ShieldCheck,
   RefreshCw,
   Compass,
   Download,
+  Lock,
+  UserPlus,
+  Plus,
 } from "lucide-react";
 import { Blobatar } from "@blobatar/react";
 import PtiroMascot from "@/components/PtiroMascot";
+import { useStudentAuth } from "@/context/StudentAuthContext";
+import { useUserProfile } from "@/context/UserProfileContext";
 import { MentorshipSessionRecord, BookingStatus } from "@/types/database";
 
 function TrackBookingContent() {
-  const searchParams = useSearchParams();
-  const initialQuery = searchParams.get("id") || searchParams.get("phone") || searchParams.get("query") || "";
-
-  const [searchInput, setSearchInput] = useState(initialQuery);
-  const [activeQuery, setActiveQuery] = useState(initialQuery);
-  const [bookings, setBookings] = useState<MentorshipSessionRecord[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [hasSearched, setHasSearched] = useState(false);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
-
-  // Auto-load if query in URL or from localStorage
-  useEffect(() => {
-    if (initialQuery) {
-      setSearchInput(initialQuery);
-      setActiveQuery(initialQuery);
-      fetchBookings(initialQuery);
-    } else {
-      // Check localStorage for saved bookings
-      try {
-        const raw = localStorage.getItem("ptiros_my_bookings");
-        if (raw) {
-          const ids: string[] = JSON.parse(raw);
-          if (ids.length > 0) {
-            setSearchInput(ids[0]);
-            setActiveQuery(ids[0]);
-            fetchBookings(ids[0]);
-          }
-        }
-      } catch {}
-    }
-  }, [initialQuery]);
-
-  const fetchBookings = async (queryToSearch: string) => {
-    if (!queryToSearch.trim()) return;
-    setIsLoading(true);
-    setHasSearched(true);
-    try {
-      const res = await fetch(`/api/bookings/track?query=${encodeURIComponent(queryToSearch.trim())}`);
-      const json = await res.json();
-      if (json.success && Array.isArray(json.data)) {
-        setBookings(json.data);
-      } else {
-        setBookings([]);
-      }
-    } catch (err) {
-      console.error("Failed to fetch booking tracking:", err);
-      setBookings([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchInput.trim()) {
-      setActiveQuery(searchInput.trim());
-      fetchBookings(searchInput.trim());
-    }
-  };
-
-  const handleCopy = (id: string) => {
-    navigator.clipboard.writeText(id);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
-  };
+  const { user, bookings, isLoggedIn, isLoading, openAuthModal, refresh } = useStudentAuth();
+  const { openBookingModal } = useUserProfile();
 
   const getStatusBadge = (status: BookingStatus) => {
     switch (status) {
@@ -102,35 +39,30 @@ function TrackBookingContent() {
           label: "Pending Council Review",
           bg: "bg-amber-100 text-amber-900 border-amber-300",
           icon: Clock3,
-          description: "Our academic mentors are reviewing your query and aligning the Google Meet room.",
         };
       case "confirmed":
         return {
           label: "Session Confirmed",
           bg: "bg-emerald-100 text-emerald-900 border-emerald-300",
           icon: CheckCircle2,
-          description: "Your slot and mentor are locked! The Google Meet room is ready below.",
         };
       case "completed":
         return {
           label: "Session Completed",
           bg: "bg-blue-100 text-blue-900 border-blue-300",
           icon: ShieldCheck,
-          description: "This 1-on-1 strategy call was completed. Recommended roadmaps are in your dashboard.",
         };
       case "cancelled":
         return {
           label: "Cancelled / Rescheduled",
           bg: "bg-stone-100 text-stone-700 border-stone-300",
           icon: AlertCircle,
-          description: "This appointment was cancelled or moved. You can book a new slot anytime.",
         };
       default:
         return {
           label: "Processing",
           bg: "bg-stone-100 text-stone-700 border-stone-300",
           icon: Clock3,
-          description: "Processing your request.",
         };
     }
   };
@@ -159,12 +91,12 @@ function TrackBookingContent() {
         "VERSION:2.0",
         "PRODID:-//PTIROS Gurukul//Mentorship Session//EN",
         "BEGIN:VEVENT",
-        `UID:${b.id}@ptiros.in`,
+        `UID:${Date.now()}@ptiros.in`,
         `DTSTAMP:${formatICS(new Date())}`,
         `DTSTART:${formatICS(start)}`,
         `DTEND:${formatICS(end)}`,
         `SUMMARY:1-on-1 PTIROS Gurukul Session: ${b.mentorName}`,
-        `DESCRIPTION:Mentor: ${b.mentorName} (${b.domainTitle})\\nStudent: ${b.studentName}\\nRef: ${b.id}\\nPlatform: https://ptiros.in`,
+        `DESCRIPTION:Mentor: ${b.mentorName} (${b.domainTitle})\\nStudent: ${b.studentName}\\nPlatform: https://ptiros.in`,
         "LOCATION:Google Meet",
         "STATUS:CONFIRMED",
         "END:VEVENT",
@@ -174,7 +106,7 @@ function TrackBookingContent() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", `PTIROS-Session-${b.id}.ics`);
+      link.setAttribute("download", `PTIROS-Mentorship-${b.date}.ics`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -204,7 +136,7 @@ function TrackBookingContent() {
                 PTIROS
               </span>
               <span className="hidden sm:inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-orange-100 text-orange-800 whitespace-nowrap">
-                Meeting Tracker
+                My Meetings
               </span>
             </Link>
           </div>
@@ -223,75 +155,94 @@ function TrackBookingContent() {
       </header>
 
       {/* Main Container */}
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-6 sm:space-y-8">
         {/* Hero Banner */}
-        <div className="rounded-3xl bg-white border border-orange-200 p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row items-center gap-6">
+        <div className="rounded-3xl bg-white border border-orange-200 p-5 sm:p-8 shadow-sm flex flex-col sm:flex-row items-center gap-6">
           <div className="shrink-0">
-            <PtiroMascot variant="copilot" size={80} />
+            <PtiroMascot variant="copilot" size={80} showSpeech={false} />
           </div>
-          <div className="space-y-2 text-center sm:text-left">
+          <div className="space-y-2 text-center sm:text-left min-w-0 flex-1">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-100 text-orange-800 text-xs font-bold">
               <Sparkles className="size-3.5 text-primary" />
-              Live Mentorship Progress Radar
+              1-on-1 Gurukul Schedule & Status
             </div>
             <h1 className="text-2xl sm:text-3xl font-display font-black text-stone-900 tracking-tight">
-              Track Your 1-on-1 Mentorship Session
+              My Scheduled Mentorship Meetings
             </h1>
             <p className="text-xs sm:text-sm text-stone-600 leading-relaxed max-w-xl">
-              Check real-time status, meeting confirmation, assigned senior mentors, and Google Meet video links for your booked sessions.
+              View live confirmation status, upcoming mentor calls, and Google Meet links linked directly to your PTIROS Student Account.
             </p>
           </div>
         </div>
 
-        {/* Search Bar */}
-        <form onSubmit={handleSearchSubmit} className="relative">
-          <div className="flex flex-col sm:flex-row items-center gap-2.5 p-2 rounded-2xl bg-white border border-stone-200 shadow-sm focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition">
-            <div className="flex items-center gap-2.5 w-full px-3 py-1.5">
-              <Search className="size-5 text-stone-400 shrink-0" />
-              <input
-                type="text"
-                placeholder="Enter Booking Ref (e.g. bk_9395d0eb) or 10-digit Mobile Number"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                className="w-full text-xs sm:text-sm font-medium text-stone-900 placeholder:text-stone-400 focus:outline-none bg-transparent"
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-primary text-white text-xs font-bold hover:bg-primary-dark transition shrink-0 active:scale-95 disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
-            >
-              {isLoading ? (
-                <>
-                  <RefreshCw className="size-3.5 animate-spin" />
-                  <span>Checking...</span>
-                </>
-              ) : (
-                <span>Check Progress</span>
-              )}
-            </button>
-          </div>
-          <p className="text-[11px] text-stone-500 mt-2 ml-2">
-            Tip: You can search by your booking reference ID (like <strong>bk_9395d0eb</strong>) or the parent WhatsApp number used during booking.
-          </p>
-        </form>
-
-        {/* Results Section */}
+        {/* Auth Gate: First Login, Then Meeting */}
         {isLoading ? (
           <div className="rounded-3xl bg-white border border-stone-200 p-12 text-center space-y-3">
             <RefreshCw className="size-8 text-primary animate-spin mx-auto" />
-            <p className="text-sm font-semibold text-stone-700">Connecting to PTIROS Gurukul Telemetry...</p>
+            <p className="text-sm font-semibold text-stone-700">Verifying student session...</p>
+          </div>
+        ) : !isLoggedIn || !user ? (
+          <div className="rounded-3xl bg-white border border-orange-200 p-6 sm:p-10 text-center space-y-5 shadow-sm">
+            <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-orange-100 text-orange-700">
+              <Lock className="size-7" />
+            </div>
+            <div className="space-y-1.5 max-w-md mx-auto">
+              <span className="inline-block rounded-full bg-orange-100 px-3 py-0.5 text-[11px] font-bold text-orange-800">
+                Sign In Required
+              </span>
+              <h2 className="text-xl sm:text-2xl font-display font-extrabold text-stone-900">
+                First Sign In to View or Book Meetings
+              </h2>
+              <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
+                All 1-on-1 mentorship appointments and Google Meet rooms are tied securely to your student account—no reference codes needed.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 max-w-md mx-auto pt-1">
+              <button
+                type="button"
+                onClick={() => openAuthModal("login")}
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-xs sm:text-sm font-bold text-white shadow-md shadow-primary/20 hover:bg-primary-dark transition cursor-pointer"
+              >
+                <span>Sign In to My Account</span>
+                <ArrowRight className="size-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => openAuthModal("signup")}
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border border-stone-300 bg-stone-50 px-5 py-3 text-xs sm:text-sm font-bold text-stone-800 hover:bg-stone-100 transition cursor-pointer"
+              >
+                <UserPlus className="size-4 text-primary" />
+                <span>Create Student Account</span>
+              </button>
+            </div>
           </div>
         ) : bookings.length > 0 ? (
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-base font-bold text-stone-900 flex items-center gap-2">
-                <span>Mentorship Appointments Found</span>
+                <span>Scheduled Sessions for {user.name}</span>
                 <span className="size-5 rounded-full bg-orange-100 text-primary text-xs font-bold flex items-center justify-center">
                   {bookings.length}
                 </span>
               </h2>
-              <span className="text-xs text-stone-500">Live Status Updated</span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => refresh()}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-3 py-1.5 text-xs font-semibold text-stone-600 hover:bg-stone-50 transition cursor-pointer"
+                >
+                  <RefreshCw className="size-3.5" />
+                  <span>Sync Status</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openBookingModal()}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-1.5 text-xs font-bold text-white hover:bg-primary-dark transition cursor-pointer"
+                >
+                  <Plus className="size-3.5" />
+                  <span>Book 1:1 Call</span>
+                </button>
+              </div>
             </div>
 
             {bookings.map((b) => {
@@ -302,7 +253,7 @@ function TrackBookingContent() {
               return (
                 <div
                   key={b.id}
-                  className="rounded-3xl bg-white border border-orange-200/90 p-6 sm:p-8 shadow-sm space-y-6 hover:border-orange-300 transition"
+                  className="rounded-3xl bg-white border border-orange-200/90 p-5 sm:p-8 shadow-sm space-y-6 hover:border-orange-300 transition"
                 >
                   {/* Top Bar: Mentor + Status Badge */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-stone-100">
@@ -311,23 +262,12 @@ function TrackBookingContent() {
                         <Blobatar name={b.mentorName} size={56} animate="hover" className="size-full object-cover" />
                       </div>
                       <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-display font-bold text-lg text-stone-900">
-                            {b.mentorName}
-                          </h3>
-                        </div>
+                        <h3 className="font-display font-bold text-lg text-stone-900">
+                          {b.mentorName}
+                        </h3>
                         <p className="text-xs font-semibold text-orange-700">{b.domainTitle}</p>
                         <p className="text-[11px] text-stone-500">
-                          Student: <strong>{b.studentName}</strong> • Ref:{" "}
-                          <button
-                            type="button"
-                            onClick={() => handleCopy(b.id)}
-                            className="inline-flex items-center gap-1 font-mono text-stone-700 hover:text-primary transition"
-                            title="Click to copy ID"
-                          >
-                            <span>{b.id}</span>
-                            {copiedId === b.id ? <Check className="size-3 text-emerald-600" /> : <Copy className="size-3" />}
-                          </button>
+                          Student: <strong>{b.studentName}</strong>
                         </p>
                       </div>
                     </div>
@@ -346,7 +286,6 @@ function TrackBookingContent() {
                       Appointment Journey Progress
                     </p>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-                      {/* Step 1 */}
                       <div className={`p-3 rounded-2xl border text-left transition ${
                         step >= 1 ? "bg-emerald-50 border-emerald-300 text-emerald-950" : "bg-stone-50 border-stone-200 text-stone-400"
                       }`}>
@@ -359,7 +298,6 @@ function TrackBookingContent() {
                         <p className="text-[10px] text-stone-500 mt-1">Submitted & logged</p>
                       </div>
 
-                      {/* Step 2 */}
                       <div className={`p-3 rounded-2xl border text-left transition ${
                         step >= 2 ? "bg-emerald-50 border-emerald-300 text-emerald-950" : step === 1 ? "bg-amber-50 border-amber-300 text-amber-950 animate-pulse" : "bg-stone-50 border-stone-200 text-stone-400"
                       }`}>
@@ -374,7 +312,6 @@ function TrackBookingContent() {
                         </p>
                       </div>
 
-                      {/* Step 3 */}
                       <div className={`p-3 rounded-2xl border text-left transition ${
                         step >= 3 ? "bg-emerald-50 border-emerald-300 text-emerald-950" : "bg-stone-50 border-stone-200 text-stone-400"
                       }`}>
@@ -389,7 +326,6 @@ function TrackBookingContent() {
                         </p>
                       </div>
 
-                      {/* Step 4 */}
                       <div className={`p-3 rounded-2xl border text-left transition ${
                         step >= 4 ? "bg-blue-50 border-blue-300 text-blue-950" : "bg-stone-50 border-stone-200 text-stone-400"
                       }`}>
@@ -446,7 +382,7 @@ function TrackBookingContent() {
                     ) : (
                       <div className="flex items-center gap-2 text-xs text-amber-800 bg-amber-50 px-4 py-2.5 rounded-2xl border border-amber-200">
                         <Clock3 className="size-4 text-amber-600 shrink-0" />
-                        <span>Video link will be active here and sent to WhatsApp 15 minutes before the call.</span>
+                        <span>Video link will appear here and on WhatsApp before the call.</span>
                       </div>
                     )}
 
@@ -455,7 +391,7 @@ function TrackBookingContent() {
                         href={`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
                           `1-on-1 PTIROS Gurukul Session: ${b.mentorName}`
                         )}&details=${encodeURIComponent(
-                          `Mentor: ${b.mentorName}\nStudent: ${b.studentName}\nRef: ${b.id}\nPlatform: https://ptiros.in`
+                          `Mentor: ${b.mentorName}\nStudent: ${b.studentName}\nPlatform: https://ptiros.in`
                         )}&location=Google+Meet`}
                         target="_blank"
                         rel="noreferrer"
@@ -476,7 +412,7 @@ function TrackBookingContent() {
                       </button>
                       <a
                         href={`https://api.whatsapp.com/send?phone=919876543210&text=${encodeURIComponent(
-                          `Hi PTIROS Coordinator, I am tracking my mentorship session (ID: ${b.id}) scheduled for ${b.date} at ${b.timeSlot}. Please assist me with meeting details.`
+                          `Hi PTIROS Coordinator, I am checking on ${b.studentName}'s mentorship session with ${b.mentorName} scheduled for ${b.date} at ${b.timeSlot}. Please assist me with meeting details.`
                         )}`}
                         target="_blank"
                         rel="noreferrer"
@@ -486,7 +422,7 @@ function TrackBookingContent() {
                         <span>WhatsApp</span>
                       </a>
                       <Link
-                        href="/dashboard"
+                        href="/dashboard?tab=mentorship"
                         className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs shadow-xs transition active:scale-95"
                       >
                         <Compass className="size-3.5" />
@@ -498,37 +434,34 @@ function TrackBookingContent() {
               );
             })}
           </div>
-        ) : hasSearched ? (
+        ) : (
           <div className="rounded-3xl bg-white border border-stone-200 p-8 sm:p-12 text-center space-y-4">
-            <div className="size-16 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto">
-              <AlertCircle className="size-8" />
+            <div className="size-16 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center mx-auto">
+              <Calendar className="size-8" />
             </div>
             <div className="space-y-1">
-              <h3 className="text-xl font-bold text-stone-900">No Booking Found</h3>
+              <h3 className="text-xl font-bold text-stone-900">No Scheduled Mentorship Meetings Yet</h3>
               <p className="text-xs sm:text-sm text-stone-600 max-w-md mx-auto">
-                We couldn&apos;t find any mentorship session for &ldquo;<strong>{activeQuery}</strong>&rdquo;. Please verify the reference ID or phone number.
+                Your student account ({user.name}) currently has no booked 1-on-1 consultations. Pick a mentor and time slot to get started.
               </p>
             </div>
             <div className="pt-2 flex flex-wrap justify-center gap-3">
-              <Link
-                href="/about#mentors"
-                className="px-5 py-2.5 rounded-full bg-primary hover:bg-primary-dark text-white font-bold text-xs transition"
+              <button
+                type="button"
+                onClick={() => openBookingModal()}
+                className="px-5 py-2.5 rounded-full bg-primary hover:bg-primary-dark text-white font-bold text-xs transition cursor-pointer"
               >
                 Book a 1:1 Session Now
-              </Link>
-              <a
-                href={`https://api.whatsapp.com/send?phone=919876543210&text=${encodeURIComponent(
-                  `Hi PTIROS, I couldn't find my booking with reference "${activeQuery}". Could you please help me locate it?`
-                )}`}
-                target="_blank"
-                rel="noreferrer"
+              </button>
+              <Link
+                href="/dashboard?tab=mentorship"
                 className="px-5 py-2.5 rounded-full border border-stone-300 bg-white hover:bg-stone-50 text-stone-800 font-bold text-xs transition"
               >
-                Contact WhatsApp Support
-              </a>
+                Go to Dashboard Mentorship Tab
+              </Link>
             </div>
           </div>
-        ) : null}
+        )}
       </main>
     </div>
   );
@@ -536,14 +469,16 @@ function TrackBookingContent() {
 
 export default function TrackBookingPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-[#FFFBF5] flex items-center justify-center">
-        <div className="text-center space-y-3">
-          <div className="size-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-xs text-stone-500 font-semibold">Loading Meeting Tracker...</p>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#FFFBF5] flex items-center justify-center">
+          <div className="text-center space-y-3">
+            <div className="size-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+            <p className="text-xs text-stone-500 font-semibold">Loading My Meetings...</p>
+          </div>
         </div>
-      </div>
-    }>
+      }
+    >
       <TrackBookingContent />
     </Suspense>
   );

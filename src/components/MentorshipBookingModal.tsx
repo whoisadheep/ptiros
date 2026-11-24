@@ -23,8 +23,8 @@ import {
   ExternalLink,
   Loader2,
   Download,
-  Copy,
-  CheckCheck,
+  Lock,
+  UserPlus,
 } from "lucide-react";
 import { Blobatar } from "@blobatar/react";
 
@@ -39,8 +39,15 @@ const TIME_SLOTS = [
 
 export default function MentorshipBookingModal() {
   const router = useRouter();
-  const { isBookingModalOpen, closeBookingModal, selectedMentorTrackId, profile } = useUserProfile();
-  const { refresh: refreshStudentAuth } = useStudentAuth();
+  const { isBookingModalOpen, closeBookingModal, selectedMentorTrackId } = useUserProfile();
+  const {
+    user,
+    isLoggedIn,
+    isLoading: isAuthLoading,
+    isAuthModalOpen,
+    openAuthModal,
+    refresh: refreshStudentAuth,
+  } = useStudentAuth();
 
   const [selectedMentor, setSelectedMentor] = useState<Mentor>(MENTORS[0]);
   const [selectedDate, setSelectedDate] = useState<string>("");
@@ -51,7 +58,6 @@ export default function MentorshipBookingModal() {
   const [bookingConfirmed, setBookingConfirmed] = useState<MentorshipBooking | null>(null);
   const [phoneError, setPhoneError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isCopied, setIsCopied] = useState(false);
 
   // Sync track when opened (with fallback matching across simulator IDs and mentor domains)
   useEffect(() => {
@@ -69,13 +75,15 @@ export default function MentorshipBookingModal() {
     }
   }, [selectedMentorTrackId]);
 
-  // Sync profile details
+  // Sync details from authenticated student account and reset confirmation state when modal opens
   useEffect(() => {
-    if (profile) {
-      if (profile.studentName) setStudentName(profile.studentName);
-      if (profile.parentPhone) setParentPhone(profile.parentPhone);
+    if (isBookingModalOpen) {
+      setBookingConfirmed(null);
+      setPhoneError("");
+      setStudentName(user?.name || "");
+      setParentPhone(user?.parentPhone || "");
     }
-  }, [profile, isBookingModalOpen]);
+  }, [user, isBookingModalOpen]);
 
   // Set default date to tomorrow in YYYY-MM-DD
   useEffect(() => {
@@ -85,11 +93,11 @@ export default function MentorshipBookingModal() {
   }, []);
 
   // Universal scroll lock & Lenis pause
-  useScrollLock(isBookingModalOpen);
+  useScrollLock(isBookingModalOpen && !isAuthModalOpen);
 
   // Accessibility: Escape key
   useEffect(() => {
-    if (!isBookingModalOpen) return;
+    if (!isBookingModalOpen || isAuthModalOpen) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") closeBookingModal();
@@ -97,12 +105,17 @@ export default function MentorshipBookingModal() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isBookingModalOpen, closeBookingModal]);
+  }, [isBookingModalOpen, isAuthModalOpen, closeBookingModal]);
 
-  if (!isBookingModalOpen) return null;
+  if (!isBookingModalOpen || isAuthModalOpen) return null;
 
   const handleBookSession = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isLoggedIn || !user) {
+      openAuthModal("login");
+      return;
+    }
+
     const phoneVal = validateIndianMobile(parentPhone);
     if (!phoneVal.isValid) {
       setPhoneError("Please enter a valid 10-digit Indian WhatsApp number");
@@ -117,7 +130,7 @@ export default function MentorshipBookingModal() {
       domainTitle: selectedMentor.domainTitle,
       date: selectedDate,
       timeSlot: selectedSlot,
-      studentName: studentName.trim() || (profile?.studentName ?? "PTIROS Student"),
+      studentName: studentName.trim() || user.name || "PTIROS Student",
       parentPhone: phoneVal.normalized,
       primaryQuestion: primaryQuestion.trim() || "General career & Class 11-12 stream alignment guidance",
       createdAt: new Date().toISOString(),
@@ -129,6 +142,12 @@ export default function MentorshipBookingModal() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(bookingPayload),
       });
+
+      if (res.status === 401) {
+        openAuthModal("login");
+        setIsSubmitting(false);
+        return;
+      }
 
       if (res.status === 409) {
         setPhoneError("This time slot was just booked with this mentor. Please select another slot or date.");
@@ -144,24 +163,9 @@ export default function MentorshipBookingModal() {
       }
 
       const json = await res.json();
-      const realBooking = json.data || {
-        ...bookingPayload,
-        id: "BK-" + Math.floor(100000 + Math.random() * 900000),
-      };
+      const realBooking = json.data || bookingPayload;
 
-      // Persist in localStorage for instant tracking across pages
-      try {
-        const raw = localStorage.getItem("ptiros_my_bookings");
-        const ids: string[] = raw ? JSON.parse(raw) : [];
-        if (!ids.includes(realBooking.id)) {
-          ids.unshift(realBooking.id);
-          localStorage.setItem("ptiros_my_bookings", JSON.stringify(ids));
-        }
-      } catch (err) {
-        console.warn("Failed to update localStorage ptiros_my_bookings:", err);
-      }
-
-      // Sync student auth bookings state
+      // Sync student auth bookings state directly from Neon account
       try {
         await refreshStudentAuth();
       } catch {}
@@ -220,12 +224,12 @@ export default function MentorshipBookingModal() {
         "VERSION:2.0",
         "PRODID:-//PTIROS Gurukul//Mentorship Session//EN",
         "BEGIN:VEVENT",
-        `UID:${booking.id}@ptiros.in`,
+        `UID:${Date.now()}@ptiros.in`,
         `DTSTAMP:${formatICS(new Date())}`,
         `DTSTART:${formatICS(start)}`,
         `DTEND:${formatICS(end)}`,
         `SUMMARY:1-on-1 PTIROS Gurukul Strategy Call: ${booking.mentorName}`,
-        `DESCRIPTION:Mentor: ${booking.mentorName} (${booking.domainTitle})\\nStudent: ${booking.studentName}\\nRef: ${booking.id}\\nPlatform: https://ptiros.in`,
+        `DESCRIPTION:Mentor: ${booking.mentorName} (${booking.domainTitle})\\nStudent: ${booking.studentName}\\nPlatform: https://ptiros.in`,
         "LOCATION:Google Meet",
         "STATUS:CONFIRMED",
         "END:VEVENT",
@@ -236,7 +240,7 @@ export default function MentorshipBookingModal() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", `PTIROS-Session-${booking.id}.ics`);
+      link.setAttribute("download", `PTIROS-Mentorship-${booking.date}.ics`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -249,7 +253,6 @@ export default function MentorshipBookingModal() {
   const handleWhatsAppDispatch = (booking: MentorshipBooking) => {
     const text =
       `*PTIROS 1-on-1 Gurukul Mentorship Booking Confirmed*\n\n` +
-      `[Booking Ref] ${booking.id}\n` +
       `[Student] ${booking.studentName}\n` +
       `[Senior Mentor] ${booking.mentorName} (${booking.domainTitle})\n` +
       `[Date] ${booking.date}\n` +
@@ -294,7 +297,50 @@ export default function MentorshipBookingModal() {
           </button>
         </div>
 
-        {bookingConfirmed ? (
+        {isAuthLoading ? (
+          <div className="py-14 text-center space-y-3">
+            <Loader2 className="size-7 animate-spin text-primary mx-auto" />
+            <p className="text-xs font-semibold text-stone-500">Checking your student session...</p>
+          </div>
+        ) : !isLoggedIn ? (
+          /* FIRST LOGIN GATE BEFORE SCHEDULING */
+          <div className="mt-6 text-center space-y-5 py-4">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-100 text-orange-700 shadow-xs">
+              <Lock className="size-7" />
+            </div>
+
+            <div className="space-y-1.5 max-w-md mx-auto">
+              <span className="inline-block rounded-full bg-orange-100 px-3 py-0.5 text-[11px] font-bold text-orange-800">
+                Step 1 of 2: Student Account Required
+              </span>
+              <h3 className="text-xl sm:text-2xl font-display font-extrabold text-stone-900">
+                Sign In Before Scheduling Your Meeting
+              </h3>
+              <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
+                Log in or register a free student account first so your 1-on-1 mentor session, Google Meet link, and mentor notes appear directly inside your personal portal.
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 max-w-md mx-auto pt-2">
+              <button
+                type="button"
+                onClick={() => openAuthModal("login")}
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-xs sm:text-sm font-bold text-white shadow-md shadow-primary/20 hover:bg-primary-dark transition cursor-pointer"
+              >
+                <span>Sign In to Continue</span>
+                <ArrowRight className="size-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => openAuthModal("signup")}
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border border-stone-300 bg-stone-50 px-5 py-3 text-xs sm:text-sm font-bold text-stone-800 hover:bg-stone-100 transition cursor-pointer"
+              >
+                <UserPlus className="size-4 text-primary" />
+                <span>Create Account</span>
+              </button>
+            </div>
+          </div>
+        ) : bookingConfirmed ? (
           /* CONFIRMATION SCREEN WITH REAL-TIME STEPPER */
           <div className="mt-6 text-center space-y-5 animate-in zoom-in-95 duration-200">
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 shadow-xs">
@@ -302,21 +348,9 @@ export default function MentorshipBookingModal() {
             </div>
 
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-stone-100 pl-3.5 pr-2 py-1 text-xs font-semibold text-stone-800 border border-stone-200">
+              <div className="inline-flex items-center gap-2 rounded-full bg-stone-100 px-3.5 py-1 text-xs font-semibold text-stone-800 border border-stone-200">
                 <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span>Reference ID: <strong className="font-mono text-orange-600">{bookingConfirmed.id}</strong></span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    navigator.clipboard.writeText(bookingConfirmed.id);
-                    setIsCopied(true);
-                    setTimeout(() => setIsCopied(false), 2000);
-                  }}
-                  className="p-1 rounded-full text-stone-500 hover:text-stone-900 transition hover:bg-stone-200 cursor-pointer"
-                  title="Copy Reference ID"
-                >
-                  {isCopied ? <CheckCheck className="size-3.5 text-emerald-600" /> : <Copy className="size-3.5" />}
-                </button>
+                <span>Saved to Your Account: <strong>{bookingConfirmed.studentName}</strong></span>
               </div>
               <h3 className="mt-2.5 text-2xl font-display font-extrabold text-stone-900">
                 1-on-1 Mentorship Call Reserved!
@@ -392,12 +426,12 @@ export default function MentorshipBookingModal() {
                   type="button"
                   onClick={() => {
                     closeBookingModal();
-                    router.push(`/track-booking?id=${bookingConfirmed.id}`);
+                    router.push("/track-booking");
                   }}
                   className="flex items-center justify-center gap-2 rounded-xl bg-stone-900 px-4 py-2.5 text-xs font-bold text-white shadow-md hover:bg-black active:scale-95 transition cursor-pointer"
                 >
                   <Clock className="size-4 text-orange-400" />
-                  <span>Track Live Progress ➔</span>
+                  <span>View Meeting Status</span>
                 </button>
                 <button
                   type="button"

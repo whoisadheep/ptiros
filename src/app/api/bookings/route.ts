@@ -2,8 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   saveBooking,
   getDatabase,
+  getStudentUserById,
   isAuthorizedAdmin,
+  verifyStudentSessionToken,
   ADMIN_COOKIE_NAME,
+  STUDENT_COOKIE_NAME,
   normalizeIndianMobile,
 } from "@/lib/serverDb";
 import { ApiResponse, MentorshipSessionRecord } from "@/types/database";
@@ -13,10 +16,27 @@ export const runtime = "nodejs";
 
 /**
  * POST /api/bookings
- * Schedules a 20-min 1-on-1 Gurukul mentorship session.
+ * Schedules a 20-min 1-on-1 Gurukul mentorship session (requires student login).
  */
 export async function POST(req: NextRequest) {
   try {
+    const token = req.cookies.get(STUDENT_COOKIE_NAME)?.value;
+    const userId = verifyStudentSessionToken(token);
+    if (!userId) {
+      return NextResponse.json<ApiResponse<null>>(
+        { success: false, error: "Please log in to your student account before booking a mentorship call." },
+        { status: 401 }
+      );
+    }
+
+    const student = await getStudentUserById(userId);
+    if (!student) {
+      return NextResponse.json<ApiResponse<null>>(
+        { success: false, error: "Student session not found. Please sign in again." },
+        { status: 401 }
+      );
+    }
+
     const contentLength = Number(req.headers.get("content-length") || "0");
     if (contentLength > 16384) {
       return NextResponse.json<ApiResponse<null>>(
@@ -27,7 +47,7 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
 
-    if (!body.mentorId || !body.date || !body.timeSlot || !body.studentName || !body.parentPhone) {
+    if (!body.mentorId || !body.date || !body.timeSlot || !(body.studentName || student.name) || !body.parentPhone) {
       return NextResponse.json<ApiResponse<null>>(
         { success: false, error: "Missing required booking details (mentor, date, slot, student name, phone)" },
         { status: 400 }
@@ -43,10 +63,11 @@ export async function POST(req: NextRequest) {
     }
 
     const result = await saveBooking({
+      userId: student.id,
       mentorId: body.mentorId,
       mentorName: body.mentorName || "Domain Specialist",
       domainTitle: body.domainTitle || "Career Strategy",
-      studentName: String(body.studentName).slice(0, 100).trim(),
+      studentName: String(body.studentName || student.name).slice(0, 100).trim(),
       parentPhone: phoneCheck.normalized,
       date: body.date,
       timeSlot: body.timeSlot,

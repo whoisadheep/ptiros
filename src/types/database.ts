@@ -46,6 +46,7 @@ export type BookingStatus = "pending" | "confirmed" | "completed" | "cancelled";
 
 export interface MentorshipSessionRecord {
   id: string; // "bk_XXXXXXXX"
+  userId?: string;
   mentorId: string;
   mentorName: string;
   domainTitle: string;

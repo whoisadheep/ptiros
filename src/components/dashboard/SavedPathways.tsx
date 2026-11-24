@@ -113,29 +113,31 @@ const ALL_MASTER_PATHWAYS: StudentSavedPathway[] = [
 ];
 
 const DEFAULT_SAVED_BY_USER: Record<string, string[]> = {
-  student_aarav: ["ai-systems", "quant-finance", "ux-product"],
-  student_meera: ["corporate-law", "ux-product", "quant-finance"],
-  student_vihaan: ["precision-medicine", "ai-systems", "creative-media"],
+  usr_demo_aarav: ["ai-systems", "quant-finance", "ux-product"],
+  usr_demo_meera: ["corporate-law", "ux-product", "quant-finance"],
+  usr_demo_vihaan: ["precision-medicine", "ai-systems", "creative-media"],
 };
 
-export default function SavedPathways({ userId = "student_aarav", onNavigateTab }: SavedPathwaysProps) {
-  const storageKey = `ptiros_saved_pathways_${userId}`;
+export default function SavedPathways({ userId = "", onNavigateTab }: SavedPathwaysProps) {
+  const storageKey = userId ? `ptiros_saved_pathways_${userId}` : "";
   const [savedTrackIds, setSavedTrackIds] = useState<string[]>([]);
   const [activeFilter, setActiveFilter] = useState<"all" | "primary" | "considering" | "backup">("all");
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(storageKey);
-      if (stored) {
-        const parsed: string[] = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setSavedTrackIds(parsed);
-          return;
+    if (storageKey) {
+      try {
+        const stored = localStorage.getItem(storageKey);
+        if (stored !== null) {
+          const parsed: string[] = JSON.parse(stored);
+          if (Array.isArray(parsed)) {
+            setSavedTrackIds(parsed);
+            return;
+          }
         }
-      }
-    } catch {}
+      } catch {}
+    }
 
-    const defaults = DEFAULT_SAVED_BY_USER[userId] || DEFAULT_SAVED_BY_USER["student_aarav"];
+    const defaults = (userId && DEFAULT_SAVED_BY_USER[userId]) || [];
     setSavedTrackIds(defaults);
   }, [userId, storageKey]);
 
@@ -145,6 +147,7 @@ export default function SavedPathways({ userId = "student_aarav", onNavigateTab 
       : [...savedTrackIds, trackId];
 
     setSavedTrackIds(next);
+    if (!storageKey) return;
     try {
       localStorage.setItem(storageKey, JSON.stringify(next));
     } catch {}
@@ -224,8 +227,19 @@ export default function SavedPathways({ userId = "student_aarav", onNavigateTab 
       </div>
 
       {/* 2. Saved Pathways Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filteredList.map((pw) => (
+      {filteredList.length === 0 ? (
+        <div className="bg-white rounded-2xl sm:rounded-3xl p-8 border border-dashed border-stone-300 text-center space-y-2">
+          <Bookmark className="size-8 text-stone-300 mx-auto" />
+          <p className="text-sm font-semibold text-stone-800">
+            {savedList.length === 0 ? "No Saved Career Pathways Yet" : "No Pathways in This Filter"}
+          </p>
+          <p className="text-xs text-stone-500 max-w-md mx-auto">
+            Click the heart icon on any career in the library below to bookmark streams, entrance exams, and Indian salary benchmarks to your portal.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {filteredList.map((pw) => (
           <div
             key={pw.id}
             className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-stone-200/80 shadow-xs hover:border-orange-300 transition-all flex flex-col justify-between space-y-4"
@@ -320,7 +334,8 @@ export default function SavedPathways({ userId = "student_aarav", onNavigateTab 
             </div>
           </div>
         ))}
-      </div>
+        </div>
+      )}
 
       {/* 3. Browse Other Careers to Heart Strip */}
       <div className="bg-stone-50 rounded-2xl p-5 border border-stone-200/80 space-y-3">

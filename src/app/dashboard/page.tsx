@@ -50,11 +50,10 @@ import {
   Phone,
   Loader2,
   RefreshCw,
-  Copy,
-  CheckCheck,
   Trash2,
   Trophy,
   Bookmark,
+  Lock,
 } from "lucide-react";
 import { Blobatar } from "@blobatar/react";
 import { useScrollLock } from "@/hooks/useScrollLock";
@@ -85,7 +84,6 @@ export default function DashboardPage() {
     toggleGoal,
     addGoal,
     deleteGoal,
-    trackAndLinkBooking,
     refresh: refreshStudentAuth,
   } = useStudentAuth();
 
@@ -108,12 +106,6 @@ export default function DashboardPage() {
     }
   }, []);
 
-  // Mentorship tracking & linking state
-  const [trackQuery, setTrackQuery] = useState("");
-  const [isTracking, setIsTracking] = useState(false);
-  const [trackMsg, setTrackMsg] = useState<{ text: string; error?: boolean } | null>(null);
-  const [copiedBookingId, setCopiedBookingId] = useState<string | null>(null);
-
   const activeBookings = useMemo(() => {
     return (bookings || []).filter((b) => b.status !== "completed" && b.status !== "cancelled");
   }, [bookings]);
@@ -121,32 +113,6 @@ export default function DashboardPage() {
   const completedBookings = useMemo(() => {
     return (bookings || []).filter((b) => b.status === "completed");
   }, [bookings]);
-
-  const handleLinkBooking = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!trackQuery.trim()) return;
-    setIsTracking(true);
-    setTrackMsg(null);
-    try {
-      const res = await trackAndLinkBooking(trackQuery.trim());
-      if (res.success) {
-        setTrackMsg({ text: `Successfully linked ${res.found} mentorship session${res.found > 1 ? "s" : ""}!` });
-        setTrackQuery("");
-      } else {
-        setTrackMsg({ text: res.error || "No meetings found matching this reference ID or phone number.", error: true });
-      }
-    } catch {
-      setTrackMsg({ text: "Unable to query meeting lookup service.", error: true });
-    } finally {
-      setIsTracking(false);
-    }
-  };
-
-  const handleCopyId = (id: string) => {
-    navigator.clipboard?.writeText(id);
-    setCopiedBookingId(id);
-    setTimeout(() => setCopiedBookingId(null), 2500);
-  };
 
   const downloadIcs = (b: MentorshipSessionRecord) => {
     try {
@@ -164,12 +130,12 @@ export default function DashboardPage() {
         "VERSION:2.0",
         "PRODID:-//PTIROS Gurukul//Mentorship Session//EN",
         "BEGIN:VEVENT",
-        `UID:${b.id}@ptiros.in`,
+        `UID:${Date.now()}@ptiros.in`,
         `DTSTAMP:${formatICS(new Date())}`,
         `DTSTART:${formatICS(start)}`,
         `DTEND:${formatICS(end)}`,
         `SUMMARY:1-on-1 PTIROS Gurukul Session: ${b.mentorName}`,
-        `DESCRIPTION:Mentor: ${b.mentorName} (${b.domainTitle})\\nStudent: ${b.studentName}\\nRef: ${b.id}\\nPlatform: https://ptiros.in`,
+        `DESCRIPTION:Mentor: ${b.mentorName} (${b.domainTitle})\\nStudent: ${b.studentName}\\nPlatform: https://ptiros.in`,
         "LOCATION:Google Meet",
         "STATUS:CONFIRMED",
         "END:VEVENT",
@@ -179,7 +145,7 @@ export default function DashboardPage() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", `PTIROS-Session-${b.id}.ics`);
+      link.setAttribute("download", `PTIROS-Mentorship-${b.date}.ics`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -215,13 +181,21 @@ export default function DashboardPage() {
   } | null>(null);
 
   useEffect(() => {
+    if (!user?.id) {
+      setCareerTestResult(null);
+      return;
+    }
     try {
-      const raw = localStorage.getItem("ptiros_career_test_result");
+      const raw = localStorage.getItem(`ptiros_career_test_result_${user.id}`);
       if (raw) {
         setCareerTestResult(JSON.parse(raw));
+      } else {
+        setCareerTestResult(null);
       }
-    } catch {}
-  }, []);
+    } catch {
+      setCareerTestResult(null);
+    }
+  }, [user?.id]);
 
   // Goal creation drawer / inline modal
   const [showGoalModal, setShowGoalModal] = useState(false);
@@ -247,8 +221,54 @@ export default function DashboardPage() {
     createdAt: new Date().toISOString(),
   };
 
-  // Trajectory details based on active student
+  const isDemoUser =
+    student.id.startsWith("usr_demo_") || student.email.endsWith("@demo.ptiros.in");
+
+  // Trajectory details: demo showcase for demo accounts, clean live state for newly registered students
   const trajectoryMeta = useMemo(() => {
+    if (!isDemoUser) {
+      const latestSim = simulations[0];
+      const earnedCredits = Math.min(simulations.length * 4, 20);
+      const dynamicCompetencies = [
+        ...simulations.map((s) => ({
+          name: s.trackTitle,
+          score: s.fitScore,
+          status: s.fitScore >= 85 ? "Strong Fit" : s.fitScore >= 65 ? "Developing" : "Explored",
+        })),
+        ...(careerTestResult
+          ? [
+              {
+                name: careerTestResult.topMatch,
+                score: parseInt(careerTestResult.matchConfidence, 10) || 90,
+                status: "Quest Match",
+              },
+            ]
+          : []),
+      ];
+
+      return {
+        trackTitle: latestSim
+          ? latestSim.trackTitle
+          : careerTestResult
+          ? careerTestResult.topMatch
+          : "Personalized Trajectory Pending",
+        targetAspirations: student.parentDream
+          ? student.parentDream
+          : latestSim
+          ? "Explored via PTIROS Interactive Career Simulator"
+          : "Take the 360° Career Match Quest or complete a Career Simulation Lab to define your pathway",
+        primaryMentor: {
+          name: MENTORS[0].name,
+          role: MENTORS[0].domainTitle,
+          pedigree: MENTORS[0].pedigree,
+          trackId: MENTORS[0].domainId,
+        },
+        competencies: dynamicCompetencies,
+        nepCredits: earnedCredits,
+        boardReadiness: Math.min(simulations.length * 16, 100),
+      };
+    }
+
     if (student.name.includes("Meera") || student.grade === "Class 11") {
       return {
         trackTitle: "Corporate Law, Tech M&A & Public Leadership",
@@ -296,7 +316,7 @@ export default function DashboardPage() {
         boardReadiness: 86,
       };
     }
-    // Default: Aarav Sharma (AI & Robotics)
+    // Demo default: Aarav Sharma (AI & Robotics)
     return {
       trackTitle: "AI Systems Architecture & Autonomous Robotics",
       targetAspirations: "IIT Bombay / IIT Delhi CSE • Carnegie Mellon Robotics Institute",
@@ -319,12 +339,12 @@ export default function DashboardPage() {
       nepCredits: 14,
       boardReadiness: 74,
     };
-  }, [student]);
+  }, [student, isDemoUser, simulations, careerTestResult]);
 
   // Goal stats
   const completedGoals = goals.filter((g) => g.completed).length;
-  const totalGoals = goals.length || 6;
-  const completionPercent = Math.round((completedGoals / totalGoals) * 100);
+  const totalGoals = goals.length;
+  const completionPercent = totalGoals > 0 ? Math.round((completedGoals / totalGoals) * 100) : 0;
 
   const filteredGoals = goals.filter((g) => {
     if (plannerFilter !== "all" && g.timeView !== plannerFilter) return false;
@@ -447,42 +467,44 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Desktop Demo Switcher Segment */}
-          <div className="hidden md:flex items-center bg-stone-100 p-1 rounded-xl border border-stone-200/80">
-            <span className="hidden lg:inline-block text-[11px] font-bold text-stone-400 px-2 uppercase tracking-wider">
-              Profile:
-            </span>
-            <button
-              onClick={() => loginAsDemo("aarav")}
-              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                student.email === "aarav@demo.ptiros.in"
-                  ? "bg-white text-orange-600 shadow-xs border border-stone-200/60"
-                  : "text-stone-600 hover:text-stone-900"
-              }`}
-            >
-              Aarav <span className="text-[10px] opacity-75 font-normal hidden sm:inline">(AI)</span>
-            </button>
-            <button
-              onClick={() => loginAsDemo("meera")}
-              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                student.email === "meera@demo.ptiros.in"
-                  ? "bg-white text-orange-600 shadow-xs border border-stone-200/60"
-                  : "text-stone-600 hover:text-stone-900"
-              }`}
-            >
-              Meera <span className="text-[10px] opacity-75 font-normal hidden sm:inline">(Law)</span>
-            </button>
-            <button
-              onClick={() => loginAsDemo("vihaan")}
-              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                student.email === "vihaan@demo.ptiros.in"
-                  ? "bg-white text-orange-600 shadow-xs border border-stone-200/60"
-                  : "text-stone-600 hover:text-stone-900"
-              }`}
-            >
-              Vihaan <span className="text-[10px] opacity-75 font-normal hidden sm:inline">(Med)</span>
-            </button>
-          </div>
+          {/* Desktop Demo Switcher Segment (Demo Accounts Only) */}
+          {isDemoUser && (
+            <div className="hidden md:flex items-center bg-stone-100 p-1 rounded-xl border border-stone-200/80">
+              <span className="hidden lg:inline-block text-[11px] font-bold text-stone-400 px-2 uppercase tracking-wider">
+                Demo:
+              </span>
+              <button
+                onClick={() => loginAsDemo("aarav")}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  student.email === "aarav@demo.ptiros.in"
+                    ? "bg-white text-orange-600 shadow-xs border border-stone-200/60"
+                    : "text-stone-600 hover:text-stone-900"
+                }`}
+              >
+                Aarav <span className="text-[10px] opacity-75 font-normal hidden sm:inline">(AI)</span>
+              </button>
+              <button
+                onClick={() => loginAsDemo("meera")}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  student.email === "meera@demo.ptiros.in"
+                    ? "bg-white text-orange-600 shadow-xs border border-stone-200/60"
+                    : "text-stone-600 hover:text-stone-900"
+                }`}
+              >
+                Meera <span className="text-[10px] opacity-75 font-normal hidden sm:inline">(Law)</span>
+              </button>
+              <button
+                onClick={() => loginAsDemo("vihaan")}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  student.email === "vihaan@demo.ptiros.in"
+                    ? "bg-white text-orange-600 shadow-xs border border-stone-200/60"
+                    : "text-stone-600 hover:text-stone-900"
+                }`}
+              >
+                Vihaan <span className="text-[10px] opacity-75 font-normal hidden sm:inline">(Med)</span>
+              </button>
+            </div>
+          )}
 
           {/* Right Action Stack */}
           <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
@@ -519,44 +541,46 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Mobile Profile Switcher Bar */}
-        <div className="flex md:hidden items-center justify-between px-3 py-1.5 bg-stone-50/90 border-t border-stone-200/70 text-xs overflow-x-auto scrollbar-none">
-          <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider shrink-0 mr-1.5">
-            Switch:
-          </span>
-          <div className="flex items-center gap-1.5 min-w-0 flex-1 justify-end">
-            <button
-              onClick={() => loginAsDemo("aarav")}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer whitespace-nowrap ${
-                student.email === "aarav@demo.ptiros.in"
-                  ? "bg-white text-orange-600 shadow-2xs border border-stone-200"
-                  : "text-stone-500 hover:text-stone-800"
-              }`}
-            >
-              Aarav (AI)
-            </button>
-            <button
-              onClick={() => loginAsDemo("meera")}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer whitespace-nowrap ${
-                student.email === "meera@demo.ptiros.in"
-                  ? "bg-white text-orange-600 shadow-2xs border border-stone-200"
-                  : "text-stone-500 hover:text-stone-800"
-              }`}
-            >
-              Meera (Law)
-            </button>
-            <button
-              onClick={() => loginAsDemo("vihaan")}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer whitespace-nowrap ${
-                student.email === "vihaan@demo.ptiros.in"
-                  ? "bg-white text-orange-600 shadow-2xs border border-stone-200"
-                  : "text-stone-500 hover:text-stone-800"
-              }`}
-            >
-              Vihaan (Med)
-            </button>
+        {/* Mobile Profile Switcher Bar (Demo Accounts Only) */}
+        {isDemoUser && (
+          <div className="flex md:hidden items-center justify-between px-3 py-1.5 bg-stone-50/90 border-t border-stone-200/70 text-xs overflow-x-auto scrollbar-none">
+            <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider shrink-0 mr-1.5">
+              Demo:
+            </span>
+            <div className="flex items-center gap-1.5 min-w-0 flex-1 justify-end">
+              <button
+                onClick={() => loginAsDemo("aarav")}
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer whitespace-nowrap ${
+                  student.email === "aarav@demo.ptiros.in"
+                    ? "bg-white text-orange-600 shadow-2xs border border-stone-200"
+                    : "text-stone-500 hover:text-stone-800"
+                }`}
+              >
+                Aarav (AI)
+              </button>
+              <button
+                onClick={() => loginAsDemo("meera")}
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer whitespace-nowrap ${
+                  student.email === "meera@demo.ptiros.in"
+                    ? "bg-white text-orange-600 shadow-2xs border border-stone-200"
+                    : "text-stone-500 hover:text-stone-800"
+                }`}
+              >
+                Meera (Law)
+              </button>
+              <button
+                onClick={() => loginAsDemo("vihaan")}
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer whitespace-nowrap ${
+                  student.email === "vihaan@demo.ptiros.in"
+                    ? "bg-white text-orange-600 shadow-2xs border border-stone-200"
+                    : "text-stone-500 hover:text-stone-800"
+                }`}
+              >
+                Vihaan (Med)
+              </button>
+            </div>
           </div>
-        </div>
+        )}
         </header>
 
         {/* ========================================================= */}
@@ -625,9 +649,6 @@ export default function DashboardPage() {
                         <Clock className="size-3 animate-spin text-amber-700" />
                         <span>Upcoming 1:1 Mentorship Session</span>
                       </span>
-                      <span className="text-[11px] font-mono text-stone-500">
-                        ID: {activeBookings[0].id}
-                      </span>
                     </div>
                     <h3 className="mt-1 text-sm sm:text-base font-bold text-stone-900">
                       Strategy Call with {activeBookings[0].mentorName} ({activeBookings[0].domainTitle})
@@ -689,10 +710,12 @@ export default function DashboardPage() {
                       <Building className="size-3.5 text-orange-400" />
                       {student.schoolName || student.city}
                     </span>
-                    <span className="flex items-center gap-1.5 bg-stone-800/80 px-2.5 py-1 rounded-lg border border-stone-700/60 text-[11px] sm:text-xs">
-                      <ShieldCheck className="size-3.5 text-emerald-400" />
-                      NEP 2020 NSQF Level 4 Certified
-                    </span>
+                    {(isDemoUser || simulations.length > 0) && (
+                      <span className="flex items-center gap-1.5 bg-stone-800/80 px-2.5 py-1 rounded-lg border border-stone-700/60 text-[11px] sm:text-xs">
+                        <ShieldCheck className="size-3.5 text-emerald-400" />
+                        NEP 2020 NSQF Level 4 Certified
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -701,8 +724,14 @@ export default function DashboardPage() {
                   <PtiroMascot
                     variant="copilot"
                     size={75}
-                    speech="Trajectory Optimal!"
-                    subSpeech={`${trajectoryMeta.boardReadiness}% Board readiness on track.`}
+                    speech={isDemoUser ? "Trajectory Optimal!" : "Welcome Aboard!"}
+                    subSpeech={
+                      isDemoUser
+                        ? `${trajectoryMeta.boardReadiness}% Board readiness on track.`
+                        : simulations.length > 0
+                        ? `${simulations.length} career simulator(s) completed.`
+                        : "Start a simulator lab or add your first milestone."
+                    }
                   />
                 </div>
 
@@ -712,7 +741,9 @@ export default function DashboardPage() {
                     <span className="text-xs font-bold uppercase tracking-wider text-stone-400">
                       Trajectory Readiness
                     </span>
-                    <span className="text-xs font-black text-emerald-400">ON TRACK</span>
+                    <span className="text-xs font-black text-emerald-400">
+                      {isDemoUser ? "ON TRACK" : goals.length > 0 || simulations.length > 0 ? "ACTIVE" : "FRESH START"}
+                    </span>
                   </div>
 
                   <div className="space-y-3">
@@ -731,13 +762,15 @@ export default function DashboardPage() {
 
                     <div>
                       <div className="flex justify-between text-xs mb-1">
-                        <span className="text-stone-300">Board Exam Mastery</span>
-                        <span className="font-mono font-bold text-white">{trajectoryMeta.boardReadiness}%</span>
+                        <span className="text-stone-300">{isDemoUser ? "Board Exam Mastery" : "Simulator Progress"}</span>
+                        <span className="font-mono font-bold text-white">
+                          {isDemoUser ? `${trajectoryMeta.boardReadiness}%` : `${simulations.length} / 6`}
+                        </span>
                       </div>
                       <div className="w-full h-2 rounded-full bg-stone-700 overflow-hidden">
                         <div
                           className="h-full bg-emerald-500 transition-all duration-700"
-                          style={{ width: `${trajectoryMeta.boardReadiness}%` }}
+                          style={{ width: `${isDemoUser ? trajectoryMeta.boardReadiness : Math.min((simulations.length / 6) * 100, 100)}%` }}
                         />
                       </div>
                     </div>
@@ -855,6 +888,15 @@ export default function DashboardPage() {
                       </motion.div>
                     )}
 
+                    {goals.length === 0 && (
+                      <div className="rounded-2xl border border-dashed border-stone-300 bg-stone-50/70 p-6 text-center space-y-2">
+                        <p className="text-sm font-semibold text-stone-700">No Weekly Goals Added Yet</p>
+                        <p className="text-xs text-stone-500 max-w-md mx-auto">
+                          Create your own daily focus or monthly sprint targets using &ldquo;+ Add Milestone&rdquo; above.
+                        </p>
+                      </div>
+                    )}
+
                     {goals.slice(0, 5).map((goal) => (
                       <div
                         key={goal.id}
@@ -950,26 +992,51 @@ export default function DashboardPage() {
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    {trajectoryMeta.competencies.map((comp, idx) => (
-                      <div key={idx} className="p-3.5 rounded-2xl bg-stone-50 border border-stone-200/70 space-y-2">
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="font-bold text-stone-800">{comp.name}</span>
-                          <span className="font-mono font-bold text-orange-600">{comp.score}%</span>
-                        </div>
-                        <div className="w-full h-1.5 rounded-full bg-stone-200 overflow-hidden">
-                          <div
-                            className="h-full bg-gradient-to-r from-orange-500 to-amber-500"
-                            style={{ width: `${comp.score}%` }}
-                          />
-                        </div>
-                        <div className="flex items-center justify-between text-[10px] text-stone-400">
-                          <span>Status: {comp.status}</span>
-                          <span className="text-emerald-600 font-semibold">NEP Calibrated</span>
-                        </div>
+                  {trajectoryMeta.competencies.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-stone-300 bg-stone-50/70 p-6 text-center space-y-3">
+                      <p className="text-sm font-semibold text-stone-800">
+                        No Diagnostic Metrics Recorded Yet
+                      </p>
+                      <p className="text-xs text-stone-500 max-w-md mx-auto">
+                        Complete the 360° Career Match Test or finish an interactive Simulation Lab to generate your personal aptitude metrics.
+                      </p>
+                      <div className="flex flex-wrap justify-center gap-2 pt-1">
+                        <Link
+                          href="/career-test"
+                          className="px-4 py-2 rounded-xl bg-orange-600 text-white text-xs font-bold hover:bg-orange-700 transition"
+                        >
+                          Take Career Test
+                        </Link>
+                        <Link
+                          href="/simulator"
+                          className="px-4 py-2 rounded-xl border border-stone-300 bg-white text-stone-800 text-xs font-bold hover:bg-stone-50 transition"
+                        >
+                          Launch Simulator
+                        </Link>
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                      {trajectoryMeta.competencies.map((comp, idx) => (
+                        <div key={idx} className="p-3.5 rounded-2xl bg-stone-50 border border-stone-200/70 space-y-2">
+                          <div className="flex items-center justify-between text-xs gap-2">
+                            <span className="font-bold text-stone-800 truncate">{comp.name}</span>
+                            <span className="font-mono font-bold text-orange-600 shrink-0">{comp.score}%</span>
+                          </div>
+                          <div className="w-full h-1.5 rounded-full bg-stone-200 overflow-hidden">
+                            <div
+                              className="h-full bg-gradient-to-r from-orange-500 to-amber-500"
+                              style={{ width: `${comp.score}%` }}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between text-[10px] text-stone-400">
+                            <span>Status: {comp.status}</span>
+                            <span className="text-emerald-600 font-semibold">NEP Calibrated</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1004,30 +1071,57 @@ export default function DashboardPage() {
                     </div>
                   </div>
 
-                  {/* Upcoming Consultation Box */}
-                  <div className="p-3.5 rounded-2xl bg-white border border-orange-200/60 shadow-xs space-y-2">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-bold text-stone-900 flex items-center gap-1.5">
-                        <CalendarDays className="size-3.5 text-orange-600" />
-                        Next Consultation
-                      </span>
-                      <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
-                        Confirmed
-                      </span>
+                  {/* Upcoming Consultation Box — Live from Real Account Bookings */}
+                  {activeBookings.length > 0 ? (
+                    <div className="p-3.5 rounded-2xl bg-white border border-orange-200/60 shadow-xs space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-bold text-stone-900 flex items-center gap-1.5">
+                          <CalendarDays className="size-3.5 text-orange-600" />
+                          Next Scheduled Call
+                        </span>
+                        <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full capitalize">
+                          {activeBookings[0].status}
+                        </span>
+                      </div>
+                      <div className="text-sm font-display font-bold text-stone-800">
+                        {activeBookings[0].date} • {activeBookings[0].timeSlot}
+                      </div>
+                      <p className="text-[11px] text-stone-500 line-clamp-2">
+                        With {activeBookings[0].mentorName}: {activeBookings[0].primaryQuestion}
+                      </p>
                     </div>
-                    <div className="text-sm font-display font-bold text-stone-800">
-                      Tomorrow • 5:00 PM - 5:20 PM IST
+                  ) : isDemoUser ? (
+                    <div className="p-3.5 rounded-2xl bg-white border border-orange-200/60 shadow-xs space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-bold text-stone-900 flex items-center gap-1.5">
+                          <CalendarDays className="size-3.5 text-orange-600" />
+                          Sample Consultation
+                        </span>
+                        <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                          Demo Preview
+                        </span>
+                      </div>
+                      <div className="text-sm font-display font-bold text-stone-800">
+                        Tomorrow • 5:00 PM - 5:20 PM IST
+                      </div>
+                      <p className="text-[11px] text-stone-500">
+                        Agenda: Term 2 syllabus strategy + stream dilemma debrief with parents.
+                      </p>
                     </div>
-                    <p className="text-[11px] text-stone-500">
-                      Agenda: Term 2 syllabus strategy + stream dilemma debrief with parents.
-                    </p>
-                  </div>
+                  ) : (
+                    <div className="p-3.5 rounded-2xl bg-white border border-dashed border-orange-200 text-xs text-stone-600 space-y-1">
+                      <span className="font-bold text-stone-800 block">No 1:1 Session Scheduled Yet</span>
+                      <p className="text-[11px] text-stone-500">
+                        Book your first 20-minute strategy call with a senior practitioner anytime below.
+                      </p>
+                    </div>
+                  )}
 
                   <button
                     onClick={() => openBookingModal(trajectoryMeta.primaryMentor.trackId)}
                     className="w-full py-2.5 rounded-xl bg-orange-600 text-white font-bold text-xs hover:bg-orange-700 transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
                   >
-                    <span>Schedule Additional Session</span>
+                    <span>{activeBookings.length > 0 ? "Schedule Additional Session" : "Book 1:1 Mentor Call"}</span>
                     <ArrowUpRight className="size-3.5" />
                   </button>
                 </div>
@@ -1040,7 +1134,7 @@ export default function DashboardPage() {
                       Parent Career Briefing
                     </h3>
                     <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-stone-100 text-stone-700">
-                      Synced
+                      {student.parentDream ? "Synced" : "Not Set"}
                     </span>
                   </div>
 
@@ -1052,7 +1146,7 @@ export default function DashboardPage() {
                       {student.parentName ? `Guardian: ${student.parentName}` : "Parent Alignment"}
                     </p>
                     <p className="text-xs text-stone-600 leading-relaxed">
-                      "{student.parentDream || 'Wants stable high-growth technology career with national prestige'}"
+                      {student.parentDream ? `"${student.parentDream}"` : "No parent career expectation saved yet."}
                     </p>
                   </div>
 
@@ -1351,7 +1445,9 @@ export default function DashboardPage() {
 
                   {filteredDiary.length === 0 && (
                     <div className="text-center py-12 text-stone-400 text-xs">
-                      No diary entries matching your search. Add a new reflection on the right!
+                      {diary.length === 0
+                        ? "Your learning journal is currently empty. Write your first reflection on the right!"
+                        : "No diary entries matching your search."}
                     </div>
                   )}
                 </div>
@@ -1468,65 +1564,116 @@ export default function DashboardPage() {
               </div>
 
               {/* Certificate Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Certificate 1 */}
-                <div className="rounded-2xl border-2 border-stone-200 bg-stone-50/50 p-6 space-y-4 relative overflow-hidden">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-orange-600 bg-orange-100 px-2 py-0.5 rounded">
-                      NSQF LEVEL 4
-                    </span>
-                    <span className="text-xs font-mono text-stone-400">CERT-2026-0814</span>
-                  </div>
-                  <div>
-                    <h3 className="text-base font-display font-bold text-stone-900">
-                      {trajectoryMeta.trackTitle} — Professional Simulation
-                    </h3>
-                    <p className="text-xs text-stone-500 mt-1">
-                      Awarded to <strong className="text-stone-800">{student.name}</strong> for completing 15+ hours of real-world mission telemetry and ethical dilemma resolution.
-                    </p>
-                  </div>
-                  <div className="p-3 rounded-xl bg-white border border-stone-200/80 flex items-center justify-between text-xs">
-                    <div>
-                      <div className="text-[10px] text-stone-400">Accredited Body</div>
-                      <div className="font-bold text-stone-800">PTIROS Advisory Council</div>
+              {isDemoUser ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Certificate 1 */}
+                  <div className="rounded-2xl border-2 border-stone-200 bg-stone-50/50 p-6 space-y-4 relative overflow-hidden">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-orange-600 bg-orange-100 px-2 py-0.5 rounded">
+                        NSQF LEVEL 4
+                      </span>
+                      <span className="text-xs font-mono text-stone-400">CERT-2026-0814</span>
                     </div>
-                    <div className="text-right">
-                      <div className="text-[10px] text-stone-400">Date Issued</div>
-                      <div className="font-bold text-stone-800">Nov 12, 2026</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Certificate 2 */}
-                <div className="rounded-2xl border-2 border-stone-200 bg-stone-50/50 p-6 space-y-4 relative overflow-hidden">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">
-                      EXPERIENTIAL LEARNING
-                    </span>
-                    <span className="text-xs font-mono text-stone-400">BAGLESS-10D-042</span>
-                  </div>
-                  <div>
-                    <h3 className="text-base font-display font-bold text-stone-900">
-                      NEP 2020 10-Bagless Days Vocational Immersion
-                    </h3>
-                    <p className="text-xs text-stone-500 mt-1">
-                      Validates {trajectoryMeta.nepCredits} credits of hands-on vocational immersion aligned with school board annual evaluation norms.
-                    </p>
-                  </div>
-                  <div className="p-3 rounded-xl bg-white border border-stone-200/80 flex items-center justify-between text-xs">
                     <div>
-                      <div className="text-[10px] text-stone-400">Verification Status</div>
-                      <div className="font-bold text-emerald-700 flex items-center gap-1">
-                        <Check className="size-3.5" /> Registry Confirmed
+                      <h3 className="text-base font-display font-bold text-stone-900">
+                        {trajectoryMeta.trackTitle} — Professional Simulation
+                      </h3>
+                      <p className="text-xs text-stone-500 mt-1">
+                        Awarded to <strong className="text-stone-800">{student.name}</strong> for completing 15+ hours of real-world mission telemetry and ethical dilemma resolution.
+                      </p>
+                    </div>
+                    <div className="p-3 rounded-xl bg-white border border-stone-200/80 flex items-center justify-between text-xs">
+                      <div>
+                        <div className="text-[10px] text-stone-400">Accredited Body</div>
+                        <div className="font-bold text-stone-800">PTIROS Advisory Council</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-[10px] text-stone-400">Date Issued</div>
+                        <div className="font-bold text-stone-800">Nov 12, 2026</div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-[10px] text-stone-400">Credits Granted</div>
-                      <div className="font-bold text-stone-800">{trajectoryMeta.nepCredits} NCrF Credits</div>
+                  </div>
+
+                  {/* Certificate 2 */}
+                  <div className="rounded-2xl border-2 border-stone-200 bg-stone-50/50 p-6 space-y-4 relative overflow-hidden">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">
+                        EXPERIENTIAL LEARNING
+                      </span>
+                      <span className="text-xs font-mono text-stone-400">BAGLESS-10D-042</span>
+                    </div>
+                    <div>
+                      <h3 className="text-base font-display font-bold text-stone-900">
+                        NEP 2020 10-Bagless Days Vocational Immersion
+                      </h3>
+                      <p className="text-xs text-stone-500 mt-1">
+                        Validates {trajectoryMeta.nepCredits} credits of hands-on vocational immersion aligned with school board annual evaluation norms.
+                      </p>
+                    </div>
+                    <div className="p-3 rounded-xl bg-white border border-stone-200/80 flex items-center justify-between text-xs">
+                      <div>
+                        <div className="text-[10px] text-stone-400">Verification Status</div>
+                        <div className="font-bold text-emerald-700 flex items-center gap-1">
+                          <Check className="size-3.5" /> Registry Confirmed
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-[10px] text-stone-400">Credits Granted</div>
+                        <div className="font-bold text-stone-800">{trajectoryMeta.nepCredits} NCrF Credits</div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              ) : simulations.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {simulations.map((sim) => (
+                    <div key={sim.id} className="rounded-2xl border-2 border-stone-200 bg-stone-50/50 p-6 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-orange-600 bg-orange-100 px-2 py-0.5 rounded">
+                          SIMULATION VERIFIED
+                        </span>
+                        <span className="text-xs font-mono text-stone-500">{sim.fitScore}% Fit</span>
+                      </div>
+                      <div>
+                        <h3 className="text-base font-display font-bold text-stone-900">
+                          {sim.trackTitle} — Experiential Lab
+                        </h3>
+                        <p className="text-xs text-stone-500 mt-1">
+                          Awarded to <strong className="text-stone-800">{student.name}</strong> ({sim.badgeEarned || "Verified Simulation Completion"}) with {sim.resiliencePoints} Resilience XP.
+                        </p>
+                      </div>
+                      <div className="p-3 rounded-xl bg-white border border-stone-200/80 flex items-center justify-between text-xs">
+                        <div>
+                          <div className="text-[10px] text-stone-400">Accredited Body</div>
+                          <div className="font-bold text-stone-800">PTIROS Experiential Registry</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-[10px] text-stone-400">Completed</div>
+                          <div className="font-bold text-stone-800">{sim.completedAt.slice(0, 10)}</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-dashed border-stone-300 bg-stone-50/70 p-8 sm:p-10 text-center space-y-3">
+                  <Award className="size-9 text-stone-300 mx-auto" />
+                  <h3 className="font-display font-bold text-base text-stone-900">
+                    No Credentials Unlocked Yet
+                  </h3>
+                  <p className="text-xs text-stone-500 max-w-md mx-auto">
+                    Complete any interactive Career Simulation Lab to earn verified experiential vocational records tied to your student account.
+                  </p>
+                  <div className="pt-1">
+                    <Link
+                      href="/simulator"
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-orange-600 text-white text-xs font-bold hover:bg-orange-700 transition"
+                    >
+                      <span>Explore Career Simulator Labs →</span>
+                    </Link>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -1654,7 +1801,7 @@ export default function DashboardPage() {
                   className="px-4 py-2.5 rounded-xl border border-stone-300 bg-white text-stone-700 font-bold text-xs hover:bg-stone-50 transition shadow-2xs active:scale-95 inline-flex items-center gap-1.5"
                 >
                   <Clock className="size-3.5 text-stone-500" />
-                  <span>Public Tracker</span>
+                  <span>My Meetings View</span>
                   <ExternalLink className="size-3 text-stone-400" />
                 </Link>
                 <button
@@ -1665,64 +1812,6 @@ export default function DashboardPage() {
                   <span>Book 1:1 Session</span>
                 </button>
               </div>
-            </div>
-
-            {/* Quick Session Linker & Verification Bar */}
-            <div className="bg-stone-50/80 rounded-2xl p-4 sm:p-5 border border-stone-200/80">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
-                <div>
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-stone-800 flex items-center gap-1.5">
-                    <Search className="size-3.5 text-stone-500" />
-                    <span>Track / Link Another Session</span>
-                  </h3>
-                  <p className="text-[11px] text-stone-500">
-                    Booked a session earlier as guest or on another device? Enter your Booking Reference ID (e.g. bk_...) or 10-digit WhatsApp phone.
-                  </p>
-                </div>
-              </div>
-
-              <form onSubmit={handleLinkBooking} className="flex flex-col sm:flex-row gap-2 max-w-2xl">
-                <div className="relative flex-1">
-                  <input
-                    type="text"
-                    value={trackQuery}
-                    onChange={(e) => setTrackQuery(e.target.value)}
-                    placeholder="Enter Reference ID (bk_...) or 10-digit WhatsApp number"
-                    className="w-full rounded-xl border border-stone-300 bg-white px-3.5 py-2 text-xs text-stone-800 placeholder-stone-400 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  disabled={isTracking || !trackQuery.trim()}
-                  className="px-4 py-2 rounded-xl bg-stone-900 text-white text-xs font-bold hover:bg-black transition disabled:opacity-50 inline-flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
-                >
-                  {isTracking ? (
-                    <>
-                      <Loader2 className="size-3.5 animate-spin" />
-                      <span>Checking...</span>
-                    </>
-                  ) : (
-                    <span>Track & Link</span>
-                  )}
-                </button>
-              </form>
-
-              {trackMsg && (
-                <div
-                  className={`mt-2.5 inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-lg border ${
-                    trackMsg.error
-                      ? "bg-red-50 text-red-700 border-red-200"
-                      : "bg-emerald-50 text-emerald-800 border-emerald-200"
-                  }`}
-                >
-                  {trackMsg.error ? (
-                    <AlertCircle className="size-3.5 shrink-0" />
-                  ) : (
-                    <CheckCircle2 className="size-3.5 shrink-0" />
-                  )}
-                  <span>{trackMsg.text}</span>
-                </div>
-              )}
             </div>
 
             {/* SECTION 1: ACTIVE & UPCOMING SESSIONS */}
@@ -1790,20 +1879,6 @@ export default function DashboardPage() {
                                       : b.status}
                                   </span>
                                 </span>
-
-                                <button
-                                  type="button"
-                                  onClick={() => handleCopyId(b.id)}
-                                  className="inline-flex items-center gap-1 font-mono text-[11px] text-stone-500 hover:text-stone-800 bg-stone-100 px-2 py-0.5 rounded-md border border-stone-200"
-                                  title="Click to copy Reference ID"
-                                >
-                                  <span>Ref: {b.id}</span>
-                                  {copiedBookingId === b.id ? (
-                                    <CheckCheck className="size-3 text-emerald-600" />
-                                  ) : (
-                                    <Copy className="size-3 text-stone-400" />
-                                  )}
-                                </button>
                               </div>
 
                               <h4 className="mt-1 text-base font-bold text-stone-900">
@@ -1932,11 +2007,11 @@ export default function DashboardPage() {
                               </a>
                             )}
                             <Link
-                              href={`/track-booking?id=${b.id}`}
+                              href="/track-booking"
                               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-stone-900 text-white text-xs font-bold hover:bg-black transition active:scale-95"
                             >
                               <Clock className="size-3.5 text-orange-400" />
-                              <span>Live Tracker Page</span>
+                              <span>Meeting Status View</span>
                             </Link>
                           </div>
 
@@ -1945,7 +2020,7 @@ export default function DashboardPage() {
                               href={`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
                                 `1-on-1 PTIROS Gurukul Session: ${b.mentorName}`
                               )}&details=${encodeURIComponent(
-                                `Mentor: ${b.mentorName}\nStudent: ${b.studentName}\nRef: ${b.id}\nPlatform: https://ptiros.in`
+                                `Mentor: ${b.mentorName}\nStudent: ${b.studentName}\nPlatform: https://ptiros.in`
                               )}&location=Google+Meet`}
                               target="_blank"
                               rel="noreferrer"
@@ -1966,7 +2041,7 @@ export default function DashboardPage() {
                             <button
                               type="button"
                               onClick={() => {
-                                const text = `*PTIROS Mentorship Session Query*\nRef ID: ${b.id}\nStudent: ${b.studentName}\nMentor: ${b.mentorName}\nDate: ${b.date} at ${b.timeSlot}`;
+                                const text = `*PTIROS Mentorship Session Query*\nStudent: ${b.studentName}\nMentor: ${b.mentorName}\nDate: ${b.date} at ${b.timeSlot}`;
                                 window.open(
                                   `https://api.whatsapp.com/send?phone=919876543210&text=${encodeURIComponent(text)}`,
                                   "_blank"
@@ -2051,8 +2126,7 @@ export default function DashboardPage() {
                         <p className="text-stone-600">&quot;{b.primaryQuestion}&quot;</p>
                       </div>
 
-                      <div className="pt-1 flex items-center justify-between text-xs">
-                        <span className="text-stone-500 font-mono text-[11px]">Ref: {b.id}</span>
+                      <div className="pt-1 flex items-center justify-end text-xs">
                         <button
                           onClick={() => openBookingModal(b.mentorId)}
                           className="text-orange-600 font-bold hover:underline cursor-pointer"

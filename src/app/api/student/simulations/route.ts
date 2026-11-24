@@ -9,6 +9,12 @@ export async function POST(req: NextRequest) {
   try {
     const token = req.cookies.get(STUDENT_COOKIE_NAME)?.value;
     const userId = verifyStudentSessionToken(token);
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, authenticated: false, error: "Sign in to save simulation results to your account" },
+        { status: 401 }
+      );
+    }
 
     const body = await req.json();
     const { trackId, trackTitle, fitScore, resiliencePoints, badgeEarned } = body;
@@ -20,7 +26,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const simRecord = await addStudentSimResult(userId || "guest_student", {
+    const simRecord = await addStudentSimResult(userId, {
       trackId: String(trackId),
       trackTitle: String(trackTitle),
       fitScore: Math.round(fitScore),
@@ -31,7 +37,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       simulation: simRecord,
-      authenticated: Boolean(userId),
+      authenticated: true,
     });
   } catch (error: any) {
     console.error("Simulation save error:", error);

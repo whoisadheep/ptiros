@@ -41,7 +41,7 @@ const faqs = [
   {
     question: "Already reserved a mentorship call? How can I check its status?",
     answer:
-      "You can enter your Booking Reference ID (e.g. bk_...) or your 10-digit registered mobile number directly on our live meeting tracker page.",
+      "Sign in to your PTIROS Student Account and open your Student Dashboard or My Meetings page to check live council review status and Google Meet links.",
     hasTrackerLink: true,
   },
   {
@@ -129,7 +129,7 @@ export default function ContactPage() {
                   className="inline-flex items-center justify-center gap-2 px-4 py-3 sm:py-2.5 rounded-xl border border-stone-300 bg-white text-stone-800 font-bold text-xs hover:bg-stone-50 transition shadow-2xs active:scale-95"
                 >
                   <Clock className="size-4 text-orange-600 shrink-0" />
-                  <span>Track Existing Meeting</span>
+                  <span>My Scheduled Meetings</span>
                 </Link>
 
                 <button

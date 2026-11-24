@@ -12,7 +12,7 @@ const quickLinks = [
   { label: "Academic Roadmaps", href: "/roadmaps" },
   { label: "Career Match Quest", href: "/career-test" },
   { label: "Virtual Simulator", href: "/simulator" },
-  { label: "Track Meeting Progress", href: "/track-booking" },
+  { label: "My Mentorship Meetings", href: "/track-booking" },
 ];
 
 const resources = [

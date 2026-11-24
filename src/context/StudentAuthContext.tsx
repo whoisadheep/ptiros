@@ -50,7 +50,6 @@ interface StudentAuthContextType {
     resiliencePoints: number;
     badgeEarned?: string;
   }) => Promise<boolean>;
-  trackAndLinkBooking: (query: string) => Promise<{ success: boolean; found: number; error?: string }>;
   refresh: () => Promise<void>;
 }
 
@@ -77,74 +76,35 @@ export function StudentAuthProvider({ children }: { children: React.ReactNode })
           setUser(data.user);
           setDiary(data.diary || []);
           setGoals(data.goals || []);
-          setSimulations(data.simulations || []);
-          
-          // Merge server bookings with any local guest bookings
-          const serverBookings = data.bookings || [];
-          let localBookings: MentorshipSessionRecord[] = [];
-          
-          try {
-            const raw = localStorage.getItem("ptiros_my_bookings");
-            if (raw) {
-              const ids: string[] = JSON.parse(raw);
-              if (ids.length > 0) {
-                const trackRes = await fetch(`/api/bookings/track?query=${encodeURIComponent(ids.join(","))}`);
-                if (trackRes.ok) {
-                  const trackJson = await trackRes.json();
-                  if (trackJson.success && Array.isArray(trackJson.data)) {
-                    localBookings = trackJson.data;
-                  }
-                }
-              }
-            }
-          } catch {}
+          setBookings(data.bookings || []);
 
-          const map = new Map<string, MentorshipSessionRecord>();
-          serverBookings.forEach((b) => map.set(b.id, b));
-          localBookings.forEach((b) => map.set(b.id, b));
-          setBookings(Array.from(map.values()));
-
-          // Merge local simulations if any
+          // Scope any cached offline simulation completions strictly to this student ID
           try {
-            const rawSim = localStorage.getItem("ptiros_my_simulations");
+            const rawSim = localStorage.getItem(`ptiros_sims_${data.user.id}`);
             if (rawSim) {
               const localSims: StudentSimResult[] = JSON.parse(rawSim);
               const simMap = new Map<string, StudentSimResult>();
               (data.simulations || []).forEach((s) => simMap.set(s.trackId, s));
               localSims.forEach((s) => simMap.set(s.trackId, s));
               setSimulations(Array.from(simMap.values()));
+            } else {
+              setSimulations(data.simulations || []);
             }
-          } catch {}
+          } catch {
+            setSimulations(data.simulations || []);
+          }
         } else {
           setUser(null);
           setDiary([]);
           setGoals([]);
-          setSimulations([]);
+          setBookings([]);
 
-          // Guest simulation check
           try {
-            const rawSim = localStorage.getItem("ptiros_my_simulations");
-            if (rawSim) {
-              setSimulations(JSON.parse(rawSim));
-            }
-          } catch {}
-          
-          // Guest bookings check
-          try {
-            const raw = localStorage.getItem("ptiros_my_bookings");
-            if (raw) {
-              const ids: string[] = JSON.parse(raw);
-              if (ids.length > 0) {
-                const trackRes = await fetch(`/api/bookings/track?query=${encodeURIComponent(ids[0])}`);
-                if (trackRes.ok) {
-                  const trackJson = await trackRes.json();
-                  if (trackJson.success && Array.isArray(trackJson.data)) {
-                    setBookings(trackJson.data);
-                  }
-                }
-              }
-            }
-          } catch {}
+            const rawGuest = localStorage.getItem("ptiros_guest_simulations");
+            setSimulations(rawGuest ? JSON.parse(rawGuest) : []);
+          } catch {
+            setSimulations([]);
+          }
         }
       }
     } catch (err) {
@@ -155,6 +115,11 @@ export function StudentAuthProvider({ children }: { children: React.ReactNode })
   }, []);
 
   useEffect(() => {
+    try {
+      localStorage.removeItem("ptiros_my_bookings");
+      localStorage.removeItem("ptiros_my_simulations");
+      localStorage.removeItem("ptiros_career_test_result");
+    } catch {}
     refresh();
   }, [refresh]);
 
@@ -243,6 +208,7 @@ export function StudentAuthProvider({ children }: { children: React.ReactNode })
       setDiary([]);
       setGoals([]);
       setSimulations([]);
+      setBookings([]);
       if (redirectTo) {
         router.push(redirectTo);
       }
@@ -357,12 +323,17 @@ export function StudentAuthProvider({ children }: { children: React.ReactNode })
     };
 
     try {
-      const raw = localStorage.getItem("ptiros_my_simulations");
+      const storageKey = user?.id ? `ptiros_sims_${user.id}` : "ptiros_guest_simulations";
+      const raw = localStorage.getItem(storageKey);
       const existing: StudentSimResult[] = raw ? JSON.parse(raw) : [];
       const updated = [localSim, ...existing.filter((s) => s.trackId !== simData.trackId)];
-      localStorage.setItem("ptiros_my_simulations", JSON.stringify(updated));
+      localStorage.setItem(storageKey, JSON.stringify(updated));
       setSimulations((prev) => [localSim, ...prev.filter((s) => s.trackId !== simData.trackId)]);
     } catch {}
+
+    if (!user?.id) {
+      return false;
+    }
 
     try {
       const res = await fetch("/api/student/simulations", {
@@ -375,41 +346,6 @@ export function StudentAuthProvider({ children }: { children: React.ReactNode })
       console.error("Save simulation error:", err);
       return false;
     }
-  };
-
-  const trackAndLinkBooking = async (query: string): Promise<{ success: boolean; found: number; error?: string }> => {
-    try {
-      const res = await fetch(`/api/bookings/track?query=${encodeURIComponent(query.trim())}`);
-      if (res.ok) {
-        const json = await res.json();
-        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-          const newBookings: MentorshipSessionRecord[] = json.data;
-          setBookings((prev) => {
-            const map = new Map<string, MentorshipSessionRecord>();
-            newBookings.forEach((b) => map.set(b.id, b));
-            prev.forEach((b) => {
-              if (!map.has(b.id)) map.set(b.id, b);
-            });
-            return Array.from(map.values());
-          });
-
-          // Save linked IDs to localStorage
-          try {
-            const raw = localStorage.getItem("ptiros_my_bookings");
-            const existingIds: string[] = raw ? JSON.parse(raw) : [];
-            const updated = Array.from(new Set([...existingIds, ...newBookings.map((b) => b.id)]));
-            localStorage.setItem("ptiros_my_bookings", JSON.stringify(updated));
-          } catch {}
-
-          return { success: true, found: newBookings.length };
-        } else {
-          return { success: false, found: 0, error: json.error || "No meetings found matching your search" };
-        }
-      }
-    } catch (err) {
-      console.error("Track booking error:", err);
-    }
-    return { success: false, found: 0, error: "Network error tracking meeting" };
   };
 
   return (
@@ -436,7 +372,6 @@ export function StudentAuthProvider({ children }: { children: React.ReactNode })
         addGoal,
         deleteGoal,
         saveSimulationResult,
-        trackAndLinkBooking,
         refresh,
       }}
     >

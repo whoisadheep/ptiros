@@ -36,7 +36,7 @@ const desktopNavLinks = [
   { label: "Why PTIROS", href: "/why-ptiros" },
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
-  { label: "Track Meeting", href: "/track-booking" },
+  { label: "My Meetings", href: "/track-booking" },
 ] as const;
 
 // Curated mobile drawer links
@@ -47,7 +47,7 @@ const mobileNavLinks = [
   { label: "Why PTIROS & The Science", href: "/why-ptiros", icon: Sparkles },
   { label: "About Us & Our Story", href: "/about", icon: Info },
   { label: "Contact & Consultations", href: "/contact", icon: Phone },
-  { label: "Track Meeting Progress", href: "/track-booking", icon: Clock, tag: "Live" },
+  { label: "My Mentorship Meetings", href: "/track-booking", icon: Clock, tag: "Login Req." },
 ] as const;
 
 const easeOutExpo = [0.16, 1, 0.3, 1] as const;
