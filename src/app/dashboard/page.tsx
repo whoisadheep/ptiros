@@ -18,6 +18,7 @@ import {
   Circle,
   Clock,
   ArrowUpRight,
+  ArrowRight,
   Zap,
   TrendingUp,
   Building,
@@ -246,17 +247,18 @@ export default function DashboardPage() {
           : []),
       ];
 
+      const firstName = student.name.split(" ")[0] || "Student";
       return {
         trackTitle: latestSim
           ? latestSim.trackTitle
           : careerTestResult
           ? careerTestResult.topMatch
-          : "Personalized Trajectory Pending",
+          : `Welcome to Your Portal, ${firstName}`,
         targetAspirations: student.parentDream
           ? student.parentDream
-          : latestSim
-          ? "Explored via PTIROS Interactive Career Simulator"
-          : "Take the 360° Career Match Quest or complete a Career Simulation Lab to define your pathway",
+          : latestSim || careerTestResult
+          ? "Explored via PTIROS Career Match & Simulation Labs"
+          : "Follow the 4-step guide above to discover your career fit, try a simulation, set a study goal, and talk 1-on-1 with a mentor.",
         primaryMentor: {
           name: MENTORS[0].name,
           role: MENTORS[0].domainTitle,
@@ -345,6 +347,75 @@ export default function DashboardPage() {
   const completedGoals = goals.filter((g) => g.completed).length;
   const totalGoals = goals.length;
   const completionPercent = totalGoals > 0 ? Math.round((completedGoals / totalGoals) * 100) : 0;
+
+  // Guided 4-step onboarding & next recommended step
+  const guidedSteps = useMemo(() => {
+    const step1Done = isDemoUser || Boolean(careerTestResult);
+    const step2Done = isDemoUser || simulations.length > 0;
+    const step3Done = isDemoUser || goals.length > 0 || diary.length > 0;
+    const step4Done = isDemoUser || bookings.length > 0;
+
+    return [
+      {
+        number: 1,
+        title: "Take Career Match Test",
+        subtitle: "3 min • No studying needed",
+        description:
+          "Answer 4 quick interest questions to discover which streams and real careers fit you best.",
+        done: step1Done,
+        doneSummary: careerTestResult
+          ? `Matched: ${careerTestResult.topMatch}`
+          : "Completed",
+        ctaLabel: step1Done ? "Retake Test" : "Start Step 1",
+        href: "/career-test",
+        actionType: "link" as const,
+      },
+      {
+        number: 2,
+        title: "Try 1 Career Simulation",
+        subtitle: "5 min • Real workplace lab",
+        description:
+          "Test-drive day-to-day problems in AI, Law, Medicine, Design, Finance, or Media.",
+        done: step2Done,
+        doneSummary:
+          simulations.length > 0
+            ? `${simulations.length} lab${simulations.length > 1 ? "s" : ""} finished`
+            : "Completed",
+        ctaLabel: step2Done ? "More Labs" : "Launch Simulator",
+        href: "/simulator",
+        actionType: "link" as const,
+      },
+      {
+        number: 3,
+        title: "Set Your First Study Goal",
+        subtitle: "Organize this week's focus",
+        description:
+          "Create one clear academic milestone or daily journal reflection to track progress.",
+        done: step3Done,
+        doneSummary:
+          goals.length > 0
+            ? `${goals.length} goal${goals.length > 1 ? "s" : ""} added`
+            : `${diary.length} journal entry`,
+        ctaLabel: step3Done ? "View Goals" : "Add First Goal",
+        actionType: "goal" as const,
+      },
+      {
+        number: 4,
+        title: "Book 1:1 Mentor Call",
+        subtitle: "20 min • With senior expert",
+        description:
+          "Discuss subject stream choices and your 12-month plan together with parents.",
+        done: step4Done,
+        doneSummary:
+          bookings.length > 0 ? `Scheduled (${bookings[0].date})` : "Scheduled",
+        ctaLabel: step4Done ? "My Meetings" : "Schedule 1:1 Call",
+        actionType: "booking" as const,
+      },
+    ];
+  }, [isDemoUser, careerTestResult, simulations, goals, diary, bookings]);
+
+  const completedStepsCount = guidedSteps.filter((s) => s.done).length;
+  const nextStep = guidedSteps.find((s) => !s.done) || null;
 
   const filteredGoals = goals.filter((g) => {
     if (plannerFilter !== "all" && g.timeView !== plannerFilter) return false;
@@ -688,6 +759,184 @@ export default function DashboardPage() {
               </div>
             )}
 
+            {/* Guided Portal Launchpad: Unmistakable Next Step in Front of the Student */}
+            {nextStep ? (
+              <div className="rounded-2xl sm:rounded-3xl border-2 border-orange-300 bg-white p-4 sm:p-6 shadow-sm space-y-5">
+                {/* Primary Spotlight Row */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-orange-100">
+                  <div className="space-y-1.5 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-orange-600 text-white text-[11px] font-bold">
+                        <Compass className="size-3" />
+                        <span>Your Next Step ({nextStep.number} of 4)</span>
+                      </span>
+                      <span className="text-xs font-semibold text-stone-500">
+                        {completedStepsCount}/4 steps completed
+                      </span>
+                    </div>
+                    <h2 className="text-lg sm:text-2xl font-display font-extrabold text-stone-900">
+                      {nextStep.title}
+                    </h2>
+                    <p className="text-xs sm:text-sm text-stone-600 max-w-2xl leading-relaxed">
+                      {nextStep.description}
+                    </p>
+                  </div>
+
+                  <div className="shrink-0 w-full md:w-auto">
+                    {nextStep.actionType === "link" && nextStep.href ? (
+                      <Link
+                        href={nextStep.href}
+                        className="w-full md:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-orange-600 px-5 py-3 text-xs sm:text-sm font-bold text-white shadow-md shadow-orange-600/20 hover:bg-orange-700 transition active:scale-95"
+                      >
+                        <span>{nextStep.ctaLabel}</span>
+                        <ArrowRight className="size-4 shrink-0" />
+                      </Link>
+                    ) : nextStep.actionType === "goal" ? (
+                      <button
+                        type="button"
+                        onClick={() => setShowGoalModal(true)}
+                        className="w-full md:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-orange-600 px-5 py-3 text-xs sm:text-sm font-bold text-white shadow-md shadow-orange-600/20 hover:bg-orange-700 transition active:scale-95 cursor-pointer"
+                      >
+                        <Plus className="size-4 shrink-0" />
+                        <span>{nextStep.ctaLabel}</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => openBookingModal(trajectoryMeta.primaryMentor.trackId)}
+                        className="w-full md:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-orange-600 px-5 py-3 text-xs sm:text-sm font-bold text-white shadow-md shadow-orange-600/20 hover:bg-orange-700 transition active:scale-95 cursor-pointer"
+                      >
+                        <Users className="size-4 shrink-0" />
+                        <span>{nextStep.ctaLabel}</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* 4-Step Full Roadmap Strip */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {guidedSteps.map((step) => {
+                    const isCurrent = nextStep.number === step.number;
+                    return (
+                      <div
+                        key={step.number}
+                        className={`rounded-2xl border p-3.5 flex flex-col justify-between gap-3 transition min-w-0 ${
+                          step.done
+                            ? "bg-emerald-50/50 border-emerald-200"
+                            : isCurrent
+                            ? "bg-orange-50/70 border-orange-300 ring-1 ring-orange-200"
+                            : "bg-stone-50/70 border-stone-200"
+                        }`}
+                      >
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between gap-2">
+                            <span
+                              className={`text-[11px] font-bold uppercase tracking-wider ${
+                                step.done
+                                  ? "text-emerald-700"
+                                  : isCurrent
+                                  ? "text-orange-700"
+                                  : "text-stone-500"
+                              }`}
+                            >
+                              Step {step.number}
+                            </span>
+                            {step.done ? (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
+                                <CheckCircle2 className="size-3" />
+                                Done
+                              </span>
+                            ) : isCurrent ? (
+                              <span className="rounded-full bg-orange-600 px-2 py-0.5 text-[10px] font-bold text-white">
+                                Up Next
+                              </span>
+                            ) : (
+                              <span className="text-[10px] font-semibold text-stone-400">
+                                Later
+                              </span>
+                            )}
+                          </div>
+                          <h3 className="text-xs sm:text-sm font-bold text-stone-900">
+                            {step.title}
+                          </h3>
+                          <p className="text-[11px] text-stone-500 leading-snug">
+                            {step.done ? step.doneSummary : step.subtitle}
+                          </p>
+                        </div>
+
+                        <div>
+                          {step.actionType === "link" && step.href ? (
+                            <Link
+                              href={step.href}
+                              className={`inline-flex items-center gap-1 text-xs font-bold hover:underline ${
+                                isCurrent ? "text-orange-700" : "text-stone-700"
+                              }`}
+                            >
+                              <span>{step.ctaLabel}</span>
+                              <ArrowRight className="size-3" />
+                            </Link>
+                          ) : step.actionType === "goal" ? (
+                            <button
+                              type="button"
+                              onClick={() => (step.done ? setActiveTab("planner") : setShowGoalModal(true))}
+                              className={`inline-flex items-center gap-1 text-xs font-bold hover:underline cursor-pointer ${
+                                isCurrent ? "text-orange-700" : "text-stone-700"
+                              }`}
+                            >
+                              <span>{step.ctaLabel}</span>
+                              <ArrowRight className="size-3" />
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                step.done
+                                  ? setActiveTab("mentorship")
+                                  : openBookingModal(trajectoryMeta.primaryMentor.trackId)
+                              }
+                              className={`inline-flex items-center gap-1 text-xs font-bold hover:underline cursor-pointer ${
+                                isCurrent ? "text-orange-700" : "text-stone-700"
+                              }`}
+                            >
+                              <span>{step.ctaLabel}</span>
+                              <ArrowRight className="size-3" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-stone-200/90 bg-white px-4 py-3 shadow-2xs flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 font-bold text-emerald-800">
+                    <CheckCircle2 className="size-3.5" />
+                    <span>All 4 Portal Steps Active</span>
+                  </span>
+                  <span className="text-stone-600 hidden sm:inline">
+                    Explore more simulations, track goals, or schedule a mentor follow-up anytime.
+                  </span>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 text-xs font-bold">
+                  <Link href="/career-test" className="text-stone-600 hover:text-primary px-2 py-1">
+                    Career Test
+                  </Link>
+                  <Link href="/simulator" className="text-stone-600 hover:text-primary px-2 py-1">
+                    Simulator
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => setShowGoalModal(true)}
+                    className="text-orange-600 hover:underline px-2 py-1 cursor-pointer"
+                  >
+                    + Add Goal
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* North Star Flight Card */}
             <div className="relative rounded-2xl sm:rounded-3xl bg-stone-900 text-white p-5 sm:p-8 shadow-xs overflow-hidden border border-stone-800">
               <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -889,11 +1138,19 @@ export default function DashboardPage() {
                     )}
 
                     {goals.length === 0 && (
-                      <div className="rounded-2xl border border-dashed border-stone-300 bg-stone-50/70 p-6 text-center space-y-2">
+                      <div className="rounded-2xl border border-dashed border-stone-300 bg-stone-50/70 p-6 text-center space-y-3">
                         <p className="text-sm font-semibold text-stone-700">No Weekly Goals Added Yet</p>
                         <p className="text-xs text-stone-500 max-w-md mx-auto">
-                          Create your own daily focus or monthly sprint targets using &ldquo;+ Add Milestone&rdquo; above.
+                          Add one small study milestone for today or this week so you can check it off as you make progress.
                         </p>
+                        <button
+                          type="button"
+                          onClick={() => setShowGoalModal(true)}
+                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-stone-900 text-white text-xs font-bold hover:bg-black transition cursor-pointer"
+                        >
+                          <Plus className="size-3.5" />
+                          <span>Create Your First Milestone</span>
+                        </button>
                       </div>
                     )}
 
@@ -1325,8 +1582,21 @@ export default function DashboardPage() {
                 ))}
 
                 {filteredGoals.length === 0 && (
-                  <div className="text-center py-12 text-stone-400 text-xs">
-                    No milestones found in this view. Click "+ Add Milestone" to set your targets.
+                  <div className="rounded-2xl border border-dashed border-stone-300 bg-stone-50/70 p-8 text-center space-y-3">
+                    <p className="text-sm font-semibold text-stone-700">
+                      {goals.length === 0 ? "No Study Milestones Added Yet" : "No Milestones in This Filter"}
+                    </p>
+                    <p className="text-xs text-stone-500 max-w-md mx-auto">
+                      Break down board prep or skill building into simple daily or monthly steps.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setShowGoalModal(true)}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-orange-600 text-white text-xs font-bold hover:bg-orange-700 transition cursor-pointer"
+                    >
+                      <Plus className="size-3.5" />
+                      <span>Create First Milestone</span>
+                    </button>
                   </div>
                 )}
               </div>
@@ -1696,7 +1966,7 @@ export default function DashboardPage() {
                 href="/career-test"
                 className="w-full sm:w-auto text-center justify-center px-4 py-2 rounded-xl bg-orange-600 text-white font-bold text-xs hover:bg-orange-700 transition shadow-xs active:scale-95"
               >
-                Retake Diagnostic →
+                {careerTestResult ? "Retake Career Test →" : "Take Career Test →"}
               </Link>
             </div>
 
