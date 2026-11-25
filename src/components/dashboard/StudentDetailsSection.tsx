@@ -25,6 +25,13 @@ import {
   COMPETITION_LEVELS,
   getProfileCompleteness,
 } from "@/lib/studentProfileOptions";
+import {
+  validateStudentName,
+  validateEmailField,
+  validateIndianMobileField,
+  validateAgeField,
+  validatePercentageField,
+} from "@/lib/formValidation";
 
 type DetailsFilter = "all" | "personal" | "academic" | "sports" | "apaar";
 
@@ -33,6 +40,8 @@ export default function StudentDetailsSection() {
   const [filter, setFilter] = useState<DetailsFilter>("all");
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const markTouched = (k: string) => setTouched((prev) => (prev[k] ? prev : { ...prev, [k]: true }));
 
   // Personal form state
   const [name, setName] = useState("");
@@ -173,9 +182,50 @@ export default function StudentDetailsSection() {
     setAge(String(next));
   };
 
+  const nameCheck = validateStudentName(name);
+  const ageCheck = validateAgeField(age);
+  const parentEmailCheck = validateEmailField(parentEmail, true, "Parent email");
+  const parentMobileCheck = validateIndianMobileField(parentPhone, true, "Parent mobile");
+  const personalMobileCheck = validateIndianMobileField(personalPhone, false, "Personal mobile");
+  const pctCheck = validatePercentageField(lastYearPercentage);
+
+  const immediatePhoneBad = (raw: string, chk: ReturnType<typeof validateIndianMobileField>) => {
+    if (chk.valid) return false;
+    const t = raw.trim();
+    return /[A-Za-z]/.test(t) || chk.digits.length > 10 || (chk.digits.length > 0 && !/^[6-9]/.test(chk.digits));
+  };
+
+  const showNameErr = !nameCheck.valid && (Boolean(touched.name) || (name.trim().length > 0 && !/[A-Za-z]/.test(name)));
+  const showAgeErr = !ageCheck.valid && (Boolean(touched.age) || age.trim().length > 0);
+  const showParentEmailErr = Boolean(touched.parentEmail) && !parentEmailCheck.valid;
+  const showParentMobileErr = !parentMobileCheck.valid && (Boolean(touched.parentPhone) || immediatePhoneBad(parentPhone, parentMobileCheck));
+  const showPersonalMobileErr = !personalMobileCheck.valid && (Boolean(touched.personalPhone) || immediatePhoneBad(personalPhone, personalMobileCheck));
+  const showPctErr = !pctCheck.valid && (Boolean(touched.lastYearPercentage) || lastYearPercentage.trim().length > 0);
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaveMessage(null);
+    setTouched({
+      name: true,
+      age: true,
+      parentEmail: true,
+      parentPhone: true,
+      personalPhone: true,
+      lastYearPercentage: true,
+    });
+
+    if (
+      !nameCheck.valid ||
+      !ageCheck.valid ||
+      !parentEmailCheck.valid ||
+      !parentMobileCheck.valid ||
+      !personalMobileCheck.valid ||
+      !pctCheck.valid
+    ) {
+      setSaveMessage({ type: "err", text: "Fix the highlighted fields above before saving." });
+      return;
+    }
+
     setIsSaving(true);
 
     const compCombined = [selectedCompLevels.join(", "), competitionNote.trim()]
@@ -190,9 +240,9 @@ export default function StudentDetailsSection() {
       fatherName: fatherName.trim() || undefined,
       motherName: motherName.trim() || undefined,
       address: address.trim() || undefined,
-      personalPhone: personalPhone.trim() || undefined,
-      parentPhone: parentPhone.trim() || undefined,
-      parentEmail: parentEmail.trim() || undefined,
+      personalPhone: personalMobileCheck.digits || undefined,
+      parentPhone: parentMobileCheck.digits,
+      parentEmail: parentEmail.trim(),
       grade,
       curriculum,
       state: stateVal || undefined,
@@ -304,7 +354,7 @@ export default function StudentDetailsSection() {
         </div>
       )}
 
-      <form onSubmit={handleSave} className="space-y-6">
+      <form noValidate onSubmit={handleSave} className="space-y-6">
         {/* ============================================================ */}
         {/* (a) PERSONAL & FAMILY DETAILS                                */}
         {/* ============================================================ */}
@@ -330,11 +380,21 @@ export default function StudentDetailsSection() {
                 </label>
                 <input
                   type="text"
-                  required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full h-11 px-3.5 rounded-xl border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                  onBlur={() => markTouched("name")}
+                  aria-invalid={showNameErr}
+                  className={`w-full h-11 px-3.5 rounded-xl border text-sm focus:outline-none focus:ring-2 ${
+                    showNameErr
+                      ? "border-red-500 focus:ring-red-500/20 focus:border-red-500"
+                      : "border-stone-200 focus:ring-orange-500/20 focus:border-orange-500"
+                  }`}
                 />
+                {showNameErr && (
+                  <p className="mt-1 text-[11px] text-red-600" role="alert">
+                    {nameCheck.error}
+                  </p>
+                )}
               </div>
 
               {/* Age Quick Stepper */}
@@ -342,7 +402,11 @@ export default function StudentDetailsSection() {
                 <label className="block text-xs font-bold text-stone-700 mb-1.5">
                   Age (Years)
                 </label>
-                <div className="flex items-center h-11 rounded-xl border border-stone-200 bg-white overflow-hidden">
+                <div
+                  className={`flex items-center h-11 rounded-xl border bg-white overflow-hidden ${
+                    showAgeErr ? "border-red-500" : "border-stone-200"
+                  }`}
+                >
                   <button
                     type="button"
                     onClick={() => adjustAge(-1)}
@@ -353,10 +417,10 @@ export default function StudentDetailsSection() {
                   </button>
                   <input
                     type="number"
-                    min={6}
-                    max={25}
                     value={age}
                     onChange={(e) => setAge(e.target.value)}
+                    onBlur={() => markTouched("age")}
+                    aria-invalid={showAgeErr}
                     placeholder="e.g. 15"
                     className="w-full text-center text-sm font-semibold text-stone-900 focus:outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
                   />
@@ -369,6 +433,11 @@ export default function StudentDetailsSection() {
                     <Plus className="size-4" />
                   </button>
                 </div>
+                {showAgeErr && (
+                  <p className="mt-1 text-[11px] text-red-600" role="alert">
+                    {ageCheck.error}
+                  </p>
+                )}
               </div>
 
               {/* Sex / Gender Chips */}
@@ -484,13 +553,23 @@ export default function StudentDetailsSection() {
                   <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-stone-400" />
                   <input
                     type="email"
-                    required
                     value={parentEmail}
                     onChange={(e) => setParentEmail(e.target.value)}
+                    onBlur={() => markTouched("parentEmail")}
+                    aria-invalid={showParentEmailErr}
                     placeholder="parent@example.com"
-                    className="w-full h-11 pl-10 pr-3.5 rounded-xl border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                    className={`w-full h-11 pl-10 pr-3.5 rounded-xl border text-sm focus:outline-none focus:ring-2 ${
+                      showParentEmailErr
+                        ? "border-red-500 focus:ring-red-500/20 focus:border-red-500"
+                        : "border-stone-200 focus:ring-orange-500/20 focus:border-orange-500"
+                    }`}
                   />
                 </div>
+                {showParentEmailErr && (
+                  <p className="mt-1 text-[11px] text-red-600" role="alert">
+                    {parentEmailCheck.error}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -498,21 +577,32 @@ export default function StudentDetailsSection() {
                   <label className="text-xs font-bold text-stone-700">
                     Mobile No (Parent) <span className="text-orange-600">*</span>
                   </label>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-800">
-                    Compulsory
+                  <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-800">
+                    {parentMobileCheck.valid ? "10/10 · Compulsory" : `${parentMobileCheck.digits.length}/10 · Compulsory`}
                   </span>
                 </div>
                 <div className="relative">
                   <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-stone-400" />
                   <input
                     type="tel"
-                    required
+                    inputMode="numeric"
                     value={parentPhone}
                     onChange={(e) => setParentPhone(e.target.value)}
+                    onBlur={() => markTouched("parentPhone")}
+                    aria-invalid={showParentMobileErr}
                     placeholder="10-digit parent mobile"
-                    className="w-full h-11 pl-10 pr-3.5 rounded-xl border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                    className={`w-full h-11 pl-10 pr-3.5 rounded-xl border text-sm focus:outline-none focus:ring-2 ${
+                      showParentMobileErr
+                        ? "border-red-500 focus:ring-red-500/20 focus:border-red-500"
+                        : "border-stone-200 focus:ring-orange-500/20 focus:border-orange-500"
+                    }`}
                   />
                 </div>
+                {showParentMobileErr && (
+                  <p className="mt-1 text-[11px] text-red-600" role="alert">
+                    {parentMobileCheck.error}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -521,19 +611,31 @@ export default function StudentDetailsSection() {
                     Mobile No (Personal)
                   </label>
                   <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-stone-100 text-stone-500">
-                    Optional
+                    {personalPhone.trim() ? `${personalMobileCheck.digits.length}/10 · Optional` : "Optional"}
                   </span>
                 </div>
                 <div className="relative">
                   <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-stone-400" />
                   <input
                     type="tel"
+                    inputMode="numeric"
                     value={personalPhone}
                     onChange={(e) => setPersonalPhone(e.target.value)}
+                    onBlur={() => markTouched("personalPhone")}
+                    aria-invalid={showPersonalMobileErr}
                     placeholder="10-digit student mobile (optional)"
-                    className="w-full h-11 pl-10 pr-3.5 rounded-xl border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                    className={`w-full h-11 pl-10 pr-3.5 rounded-xl border text-sm focus:outline-none focus:ring-2 ${
+                      showPersonalMobileErr
+                        ? "border-red-500 focus:ring-red-500/20 focus:border-red-500"
+                        : "border-stone-200 focus:ring-orange-500/20 focus:border-orange-500"
+                    }`}
                   />
                 </div>
+                {showPersonalMobileErr && (
+                  <p className="mt-1 text-[11px] text-red-600" role="alert">
+                    {personalMobileCheck.error}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -716,9 +818,20 @@ export default function StudentDetailsSection() {
                   type="text"
                   value={lastYearPercentage}
                   onChange={(e) => setLastYearPercentage(e.target.value)}
+                  onBlur={() => markTouched("lastYearPercentage")}
+                  aria-invalid={showPctErr}
                   placeholder="e.g. 88.4%"
-                  className="w-full h-11 px-3.5 rounded-xl border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                  className={`w-full h-11 px-3.5 rounded-xl border text-sm focus:outline-none focus:ring-2 ${
+                    showPctErr
+                      ? "border-red-500 focus:ring-red-500/20 focus:border-red-500"
+                      : "border-stone-200 focus:ring-orange-500/20 focus:border-orange-500"
+                  }`}
                 />
+                {showPctErr && (
+                  <p className="mt-1 text-[11px] text-red-600" role="alert">
+                    {pctCheck.error}
+                  </p>
+                )}
               </div>
 
               <div>

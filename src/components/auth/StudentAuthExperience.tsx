@@ -31,6 +31,15 @@ import {
   DREAM_PRESETS,
   COMPETITION_LEVELS,
 } from "@/lib/studentProfileOptions";
+import {
+  validateStudentName,
+  validateEmailField,
+  validateIndianMobileField,
+  validateAgeField,
+  validatePercentageField,
+  evaluatePassword,
+} from "@/lib/formValidation";
+import PasswordRulesChecklist from "@/components/auth/PasswordRulesChecklist";
 
 export type AuthMode = "login" | "signup";
 
@@ -63,13 +72,18 @@ const PORTAL_INDEX = [
   },
 ] as const;
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-function cleanTenDigits(val: string) {
-  let digits = val.replace(/\D/g, "");
-  if (digits.length === 12 && digits.startsWith("91")) digits = digits.slice(2);
-  if (digits.length === 11 && digits.startsWith("0")) digits = digits.slice(1);
-  return digits;
+function shouldShowMobileErrNow(
+  raw: string,
+  isTouched: boolean,
+  check: ReturnType<typeof validateIndianMobileField>
+) {
+  if (check.valid) return false;
+  const trimmed = raw.trim();
+  const immediateIssue =
+    /[A-Za-z]/.test(trimmed) ||
+    check.digits.length > 10 ||
+    (check.digits.length > 0 && !/^[6-9]/.test(check.digits));
+  return isTouched || immediateIssue;
 }
 
 export default function StudentAuthExperience({
@@ -119,8 +133,58 @@ export default function StudentAuthExperience({
   const [schoolName, setSchoolName] = useState("");
   const [schoolAddress, setSchoolAddress] = useState("");
 
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const markTouched = (field: string) => {
+    setTouched((prev) => (prev[field] ? prev : { ...prev, [field]: true }));
+  };
+
+  // Live per-field validation evaluated on every render
+  const loginEmailCheck = validateEmailField(loginEmail, true, "Student email");
+  const loginPasswordMissing = !loginPassword;
+
+  const nameCheck = validateStudentName(fullName);
+  const signupEmailCheck = validateEmailField(signupEmail, true, "Student email");
+  const parentEmailCheck = validateEmailField(parentEmail, true, "Parent email");
+  const parentMobileCheck = validateIndianMobileField(parentPhone, true, "Parent mobile");
+  const personalMobileCheck = validateIndianMobileField(personalPhone, false, "Student mobile");
+  const passwordEval = evaluatePassword(signupPassword);
+  const ageCheck = validateAgeField(age);
+  const percentageCheck = validatePercentageField(lastYearPercentage);
+
+  const showNameErr =
+    !nameCheck.valid &&
+    (Boolean(touched.signupName) || (fullName.trim().length > 0 && !/[A-Za-z]/.test(fullName)));
+  const showSignupEmailErr = Boolean(touched.signupEmail) && !signupEmailCheck.valid;
+  const showParentEmailErr = Boolean(touched.parentEmail) && !parentEmailCheck.valid;
+  const showParentMobileErr = shouldShowMobileErrNow(
+    parentPhone,
+    Boolean(touched.parentPhone),
+    parentMobileCheck
+  );
+  const showPersonalMobileErr = shouldShowMobileErrNow(
+    personalPhone,
+    Boolean(touched.personalPhone),
+    personalMobileCheck
+  );
+  const showPasswordErr =
+    !passwordEval.allRequiredMet && Boolean(touched.signupPassword);
+  const showAgeErr = !ageCheck.valid && (Boolean(touched.age) || age.trim().length > 0);
+  const showPctErr =
+    !percentageCheck.valid &&
+    (Boolean(touched.lastYearPercentage) || lastYearPercentage.trim().length > 0);
+
+  const getFieldBorder = (isValid: boolean, isErr: boolean, hasContent: boolean) => {
+    if (isErr) {
+      return "border-[#B91C1C] focus:border-[#B91C1C] focus:ring-2 focus:ring-[#B91C1C]/15";
+    }
+    if (hasContent && isValid) {
+      return "border-[#15803D]/40 focus:border-[#C2410C] focus:ring-2 focus:ring-[#C2410C]/15";
+    }
+    return "border-[#1F1B16]/[0.12] focus:border-[#C2410C] focus:ring-2 focus:ring-[#C2410C]/15";
+  };
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -140,6 +204,7 @@ export default function StudentAuthExperience({
   const switchMode = (nextMode: AuthMode) => {
     setMode(nextMode);
     setErrorMsg(null);
+    setTouched({});
     if (nextMode === "signup") {
       setSignupStep(1);
     }
@@ -167,9 +232,11 @@ export default function StudentAuthExperience({
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
+    setTouched((prev) => ({ ...prev, loginEmail: true, loginPassword: true }));
 
-    if (!loginEmail.trim() || !loginPassword) {
-      setErrorMsg("Enter both your student email and password");
+    if (!loginEmailCheck.valid || loginPasswordMissing) {
+      const firstBadId = !loginEmailCheck.valid ? "login-email" : "login-password";
+      document.getElementById(firstBadId)?.focus();
       return;
     }
 
@@ -190,29 +257,32 @@ export default function StudentAuthExperience({
   const handleNextFromStep1 = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
+    setTouched((prev) => ({
+      ...prev,
+      signupName: true,
+      signupEmail: true,
+      parentEmail: true,
+      parentPhone: true,
+      personalPhone: true,
+      signupPassword: true,
+    }));
 
-    if (fullName.trim().length < 2) {
-      setErrorMsg("Enter the student's full name to continue");
-      return;
-    }
-    if (!EMAIL_RE.test(signupEmail.trim())) {
-      setErrorMsg("Enter a valid personal email address for the student");
-      return;
-    }
-    if (!EMAIL_RE.test(parentEmail.trim())) {
-      setErrorMsg("Parent email is compulsory so session details stay synced");
-      return;
-    }
-    if (!/^[6-9]\d{9}$/.test(cleanTenDigits(parentPhone))) {
-      setErrorMsg("Enter a valid 10-digit parent mobile number");
-      return;
-    }
-    if (personalPhone.trim() && !/^[6-9]\d{9}$/.test(cleanTenDigits(personalPhone))) {
-      setErrorMsg("Student mobile must be 10 digits or left blank");
-      return;
-    }
-    if (signupPassword.length < 6) {
-      setErrorMsg("Password must be at least 6 characters long");
+    const firstInvalidId = !nameCheck.valid
+      ? "signup-name"
+      : !signupEmailCheck.valid
+      ? "signup-email"
+      : !parentEmailCheck.valid
+      ? "signup-parent-email"
+      : !parentMobileCheck.valid
+      ? "signup-parent-phone"
+      : !personalMobileCheck.valid
+      ? "signup-personal-phone"
+      : !passwordEval.allRequiredMet
+      ? "signup-password"
+      : null;
+
+    if (firstInvalidId) {
+      document.getElementById(firstInvalidId)?.focus();
       return;
     }
 
@@ -227,9 +297,31 @@ export default function StudentAuthExperience({
 
   const submitSignup = async (skipExtras: boolean) => {
     setErrorMsg(null);
-    if (fullName.trim().length < 2 || !EMAIL_RE.test(signupEmail.trim()) || signupPassword.length < 6) {
+    if (
+      !nameCheck.valid ||
+      !signupEmailCheck.valid ||
+      !parentEmailCheck.valid ||
+      !parentMobileCheck.valid ||
+      !personalMobileCheck.valid ||
+      !passwordEval.allRequiredMet
+    ) {
       setSignupStep(1);
-      setErrorMsg("Please check your details in Step 1");
+      setTouched((prev) => ({
+        ...prev,
+        signupName: true,
+        signupEmail: true,
+        parentEmail: true,
+        parentPhone: true,
+        personalPhone: true,
+        signupPassword: true,
+      }));
+      return;
+    }
+
+    if (!skipExtras && (!ageCheck.valid || !percentageCheck.valid)) {
+      setTouched((prev) => ({ ...prev, age: true, lastYearPercentage: true }));
+      const badId = !ageCheck.valid ? "signup-age" : "signup-percentage";
+      document.getElementById(badId)?.focus();
       return;
     }
 
@@ -243,8 +335,8 @@ export default function StudentAuthExperience({
       email: signupEmail.trim(),
       password: signupPassword,
       parentEmail: parentEmail.trim(),
-      parentPhone: cleanTenDigits(parentPhone),
-      personalPhone: personalPhone.trim() ? cleanTenDigits(personalPhone) : undefined,
+      parentPhone: parentMobileCheck.digits,
+      personalPhone: personalMobileCheck.digits || undefined,
       grade,
       curriculum,
       state: stateVal,
@@ -287,8 +379,6 @@ export default function StudentAuthExperience({
     const next = Math.min(24, Math.max(8, cur + delta));
     setAge(String(next));
   };
-
-  const passwordReady = signupPassword.length >= 6;
 
   return (
     <div className="min-h-[100dvh] bg-[#F7F4EE] text-[#1F1B16] font-body selection:bg-[#C2410C] selection:text-white flex flex-col lg:grid lg:grid-cols-12">
@@ -601,6 +691,7 @@ export default function StudentAuthExperience({
               {mode === "login" ? (
                 <motion.form
                   key="form-login"
+                  noValidate
                   initial={prefersReducedMotion ? false : { opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={prefersReducedMotion ? undefined : { opacity: 0, y: -6 }}
@@ -623,14 +714,27 @@ export default function StudentAuthExperience({
                       <input
                         id="login-email"
                         type="email"
-                        required
                         autoComplete="email"
                         value={loginEmail}
                         onChange={(e) => setLoginEmail(e.target.value)}
+                        onBlur={() => markTouched("loginEmail")}
+                        aria-invalid={Boolean(touched.loginEmail && !loginEmailCheck.valid)}
                         placeholder="student@example.com"
-                        className="w-full h-11 pl-10 pr-4 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-sm text-[#1F1B16] placeholder:text-[#7B7266] transition-colors focus:outline-none focus:border-[#C2410C] focus:ring-2 focus:ring-[#C2410C]/15"
+                        className={`w-full h-11 pl-10 pr-10 rounded-[10px] bg-white border text-sm text-[#1F1B16] placeholder:text-[#7B7266] transition-colors focus:outline-none ${getFieldBorder(
+                          loginEmailCheck.valid,
+                          Boolean(touched.loginEmail && !loginEmailCheck.valid),
+                          loginEmail.trim().length > 0
+                        )}`}
                       />
+                      {loginEmail.trim().length > 0 && loginEmailCheck.valid && (
+                        <Check className="absolute right-3.5 top-1/2 -translate-y-1/2 size-4 text-[#15803D]" strokeWidth={2} />
+                      )}
                     </div>
+                    {touched.loginEmail && !loginEmailCheck.valid && (
+                      <p className="mt-1 text-[11px] text-[#B91C1C]" role="alert">
+                        {loginEmailCheck.error}
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -648,12 +752,17 @@ export default function StudentAuthExperience({
                       <input
                         id="login-password"
                         type={showLoginPassword ? "text" : "password"}
-                        required
                         autoComplete="current-password"
                         value={loginPassword}
                         onChange={(e) => setLoginPassword(e.target.value)}
+                        onBlur={() => markTouched("loginPassword")}
+                        aria-invalid={Boolean(touched.loginPassword && loginPasswordMissing)}
                         placeholder="Enter your password"
-                        className="w-full h-11 pl-10 pr-11 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-sm text-[#1F1B16] placeholder:text-[#7B7266] transition-colors focus:outline-none focus:border-[#C2410C] focus:ring-2 focus:ring-[#C2410C]/15"
+                        className={`w-full h-11 pl-10 pr-11 rounded-[10px] bg-white border text-sm text-[#1F1B16] placeholder:text-[#7B7266] transition-colors focus:outline-none ${getFieldBorder(
+                          !loginPasswordMissing,
+                          Boolean(touched.loginPassword && loginPasswordMissing),
+                          loginPassword.length > 0
+                        )}`}
                       />
                       <button
                         type="button"
@@ -668,6 +777,11 @@ export default function StudentAuthExperience({
                         )}
                       </button>
                     </div>
+                    {touched.loginPassword && loginPasswordMissing && (
+                      <p className="mt-1 text-[11px] text-[#B91C1C]" role="alert">
+                        Enter your account password
+                      </p>
+                    )}
                   </div>
 
                   <button
@@ -703,6 +817,7 @@ export default function StudentAuthExperience({
                 /* ==================== SIGN UP STEP 1 ==================== */
                 <motion.form
                   key="form-signup-step1"
+                  noValidate
                   initial={prefersReducedMotion ? false : { opacity: 0, x: -8 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={prefersReducedMotion ? undefined : { opacity: 0, x: -8 }}
@@ -725,14 +840,27 @@ export default function StudentAuthExperience({
                       <input
                         id="signup-name"
                         type="text"
-                        required
                         autoComplete="name"
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
+                        onBlur={() => markTouched("signupName")}
+                        aria-invalid={showNameErr}
                         placeholder="Student full name"
-                        className="w-full h-11 pl-10 pr-4 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-sm text-[#1F1B16] placeholder:text-[#7B7266] focus:outline-none focus:border-[#C2410C] focus:ring-2 focus:ring-[#C2410C]/15"
+                        className={`w-full h-11 pl-10 pr-10 rounded-[10px] bg-white border text-sm text-[#1F1B16] placeholder:text-[#7B7266] focus:outline-none ${getFieldBorder(
+                          nameCheck.valid,
+                          showNameErr,
+                          fullName.trim().length > 0
+                        )}`}
                       />
+                      {fullName.trim().length > 0 && nameCheck.valid && (
+                        <Check className="absolute right-3.5 top-1/2 -translate-y-1/2 size-4 text-[#15803D]" strokeWidth={2} />
+                      )}
                     </div>
+                    {showNameErr && (
+                      <p className="mt-1 text-[11px] text-[#B91C1C]" role="alert">
+                        {nameCheck.error}
+                      </p>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -754,14 +882,27 @@ export default function StudentAuthExperience({
                         <input
                           id="signup-email"
                           type="email"
-                          required
                           autoComplete="email"
                           value={signupEmail}
                           onChange={(e) => setSignupEmail(e.target.value)}
+                          onBlur={() => markTouched("signupEmail")}
+                          aria-invalid={showSignupEmailErr}
                           placeholder="student@example.com"
-                          className="w-full h-11 pl-10 pr-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-sm text-[#1F1B16] placeholder:text-[#7B7266] focus:outline-none focus:border-[#C2410C] focus:ring-2 focus:ring-[#C2410C]/15"
+                          className={`w-full h-11 pl-10 pr-8 rounded-[10px] bg-white border text-sm text-[#1F1B16] placeholder:text-[#7B7266] focus:outline-none ${getFieldBorder(
+                            signupEmailCheck.valid,
+                            showSignupEmailErr,
+                            signupEmail.trim().length > 0
+                          )}`}
                         />
+                        {signupEmail.trim().length > 0 && signupEmailCheck.valid && (
+                          <Check className="absolute right-3 top-1/2 -translate-y-1/2 size-3.5 text-[#15803D]" strokeWidth={2} />
+                        )}
                       </div>
+                      {showSignupEmailErr && (
+                        <p className="mt-1 text-[11px] text-[#B91C1C]" role="alert">
+                          {signupEmailCheck.error}
+                        </p>
+                      )}
                     </div>
 
                     <div>
@@ -782,13 +923,26 @@ export default function StudentAuthExperience({
                         <input
                           id="signup-parent-email"
                           type="email"
-                          required
                           value={parentEmail}
                           onChange={(e) => setParentEmail(e.target.value)}
+                          onBlur={() => markTouched("parentEmail")}
+                          aria-invalid={showParentEmailErr}
                           placeholder="parent@example.com"
-                          className="w-full h-11 pl-10 pr-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-sm text-[#1F1B16] placeholder:text-[#7B7266] focus:outline-none focus:border-[#C2410C] focus:ring-2 focus:ring-[#C2410C]/15"
+                          className={`w-full h-11 pl-10 pr-8 rounded-[10px] bg-white border text-sm text-[#1F1B16] placeholder:text-[#7B7266] focus:outline-none ${getFieldBorder(
+                            parentEmailCheck.valid,
+                            showParentEmailErr,
+                            parentEmail.trim().length > 0
+                          )}`}
                         />
+                        {parentEmail.trim().length > 0 && parentEmailCheck.valid && (
+                          <Check className="absolute right-3 top-1/2 -translate-y-1/2 size-3.5 text-[#15803D]" strokeWidth={2} />
+                        )}
                       </div>
+                      {showParentEmailErr && (
+                        <p className="mt-1 text-[11px] text-[#B91C1C]" role="alert">
+                          {parentEmailCheck.error}
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -801,7 +955,21 @@ export default function StudentAuthExperience({
                         >
                           Parent mobile *
                         </label>
-                        <span className="text-[10px] text-[#9A3412] font-medium">Required</span>
+                        <span
+                          className={`text-[10px] font-mono tabular-nums ${
+                            parentMobileCheck.valid
+                              ? "text-[#15803D] font-semibold"
+                              : showParentMobileErr
+                              ? "text-[#B91C1C]"
+                              : "text-[#685F54]"
+                          }`}
+                        >
+                          {parentMobileCheck.valid
+                            ? "10/10 valid"
+                            : parentMobileCheck.digits.length > 0
+                            ? `${parentMobileCheck.digits.length}/10`
+                            : "Required"}
+                        </span>
                       </div>
                       <div className="relative">
                         <Phone
@@ -811,13 +979,27 @@ export default function StudentAuthExperience({
                         <input
                           id="signup-parent-phone"
                           type="tel"
-                          required
+                          inputMode="numeric"
                           value={parentPhone}
                           onChange={(e) => setParentPhone(e.target.value)}
+                          onBlur={() => markTouched("parentPhone")}
+                          aria-invalid={showParentMobileErr}
                           placeholder="10-digit mobile"
-                          className="w-full h-11 pl-10 pr-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-sm text-[#1F1B16] placeholder:text-[#7B7266] focus:outline-none focus:border-[#C2410C] focus:ring-2 focus:ring-[#C2410C]/15"
+                          className={`w-full h-11 pl-10 pr-8 rounded-[10px] bg-white border text-sm text-[#1F1B16] placeholder:text-[#7B7266] focus:outline-none ${getFieldBorder(
+                            parentMobileCheck.valid,
+                            showParentMobileErr,
+                            parentPhone.trim().length > 0
+                          )}`}
                         />
+                        {parentMobileCheck.valid && (
+                          <Check className="absolute right-3 top-1/2 -translate-y-1/2 size-3.5 text-[#15803D]" strokeWidth={2} />
+                        )}
                       </div>
+                      {showParentMobileErr && (
+                        <p className="mt-1 text-[11px] text-[#B91C1C]" role="alert">
+                          {parentMobileCheck.error}
+                        </p>
+                      )}
                     </div>
 
                     <div>
@@ -828,7 +1010,21 @@ export default function StudentAuthExperience({
                         >
                           Student mobile
                         </label>
-                        <span className="text-[10px] text-[#685F54]">Optional</span>
+                        <span
+                          className={`text-[10px] font-mono tabular-nums ${
+                            personalPhone.trim() && personalMobileCheck.valid
+                              ? "text-[#15803D] font-semibold"
+                              : showPersonalMobileErr
+                              ? "text-[#B91C1C]"
+                              : "text-[#685F54]"
+                          }`}
+                        >
+                          {personalPhone.trim() && personalMobileCheck.valid
+                            ? "10/10 valid"
+                            : personalMobileCheck.digits.length > 0
+                            ? `${personalMobileCheck.digits.length}/10`
+                            : "Optional"}
+                        </span>
                       </div>
                       <div className="relative">
                         <Phone
@@ -838,12 +1034,27 @@ export default function StudentAuthExperience({
                         <input
                           id="signup-personal-phone"
                           type="tel"
+                          inputMode="numeric"
                           value={personalPhone}
                           onChange={(e) => setPersonalPhone(e.target.value)}
+                          onBlur={() => markTouched("personalPhone")}
+                          aria-invalid={showPersonalMobileErr}
                           placeholder="Optional personal no."
-                          className="w-full h-11 pl-10 pr-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-sm text-[#1F1B16] placeholder:text-[#7B7266] focus:outline-none focus:border-[#C2410C] focus:ring-2 focus:ring-[#C2410C]/15"
+                          className={`w-full h-11 pl-10 pr-8 rounded-[10px] bg-white border text-sm text-[#1F1B16] placeholder:text-[#7B7266] focus:outline-none ${getFieldBorder(
+                            personalMobileCheck.valid,
+                            showPersonalMobileErr,
+                            personalPhone.trim().length > 0
+                          )}`}
                         />
+                        {personalPhone.trim().length > 0 && personalMobileCheck.valid && (
+                          <Check className="absolute right-3 top-1/2 -translate-y-1/2 size-3.5 text-[#15803D]" strokeWidth={2} />
+                        )}
                       </div>
+                      {showPersonalMobileErr && (
+                        <p className="mt-1 text-[11px] text-[#B91C1C]" role="alert">
+                          {personalMobileCheck.error}
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -857,10 +1068,10 @@ export default function StudentAuthExperience({
                       </label>
                       <span
                         className={`text-[11px] font-medium tabular-nums transition-colors ${
-                          passwordReady ? "text-[#15803D]" : "text-[#685F54]"
+                          passwordEval.allRequiredMet ? "text-[#15803D]" : "text-[#685F54]"
                         }`}
                       >
-                        {passwordReady ? "Ready" : "Minimum 6 characters"}
+                        {passwordEval.allRequiredMet ? "All rules met" : "Required"}
                       </span>
                     </div>
                     <div className="relative">
@@ -871,13 +1082,17 @@ export default function StudentAuthExperience({
                       <input
                         id="signup-password"
                         type={showSignupPassword ? "text" : "password"}
-                        required
-                        minLength={6}
                         autoComplete="new-password"
                         value={signupPassword}
                         onChange={(e) => setSignupPassword(e.target.value)}
-                        placeholder="At least 6 characters"
-                        className="w-full h-11 pl-10 pr-11 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-sm text-[#1F1B16] placeholder:text-[#7B7266] focus:outline-none focus:border-[#C2410C] focus:ring-2 focus:ring-[#C2410C]/15"
+                        onBlur={() => markTouched("signupPassword")}
+                        aria-invalid={showPasswordErr}
+                        placeholder="Create a strong password"
+                        className={`w-full h-11 pl-10 pr-11 rounded-[10px] bg-white border text-sm text-[#1F1B16] placeholder:text-[#7B7266] focus:outline-none ${getFieldBorder(
+                          passwordEval.allRequiredMet,
+                          showPasswordErr,
+                          signupPassword.length > 0
+                        )}`}
                       />
                       <button
                         type="button"
@@ -892,6 +1107,7 @@ export default function StudentAuthExperience({
                         )}
                       </button>
                     </div>
+                    <PasswordRulesChecklist password={signupPassword} showError={showPasswordErr} />
                   </div>
 
                   <button
@@ -1107,6 +1323,7 @@ export default function StudentAuthExperience({
                 /* ==================== SIGN UP STEP 3 ==================== */
                 <motion.form
                   key="form-signup-step3"
+                  noValidate
                   initial={prefersReducedMotion ? false : { opacity: 0, x: 8 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={prefersReducedMotion ? undefined : { opacity: 0, x: 8 }}
@@ -1123,7 +1340,13 @@ export default function StudentAuthExperience({
                       <span className="block text-xs font-medium text-[#1F1B16] mb-1.5">
                         Age
                       </span>
-                      <div className="flex items-center h-10 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] overflow-hidden">
+                      <div
+                        className={`flex items-center h-10 rounded-[10px] bg-white border overflow-hidden ${getFieldBorder(
+                          ageCheck.valid,
+                          showAgeErr,
+                          age.trim().length > 0
+                        )}`}
+                      >
                         <button
                           type="button"
                           onClick={() => adjustAge(-1)}
@@ -1133,11 +1356,12 @@ export default function StudentAuthExperience({
                           <Minus className="size-3.5" />
                         </button>
                         <input
+                          id="signup-age"
                           type="number"
-                          min={6}
-                          max={25}
                           value={age}
                           onChange={(e) => setAge(e.target.value)}
+                          onBlur={() => markTouched("age")}
+                          aria-invalid={showAgeErr}
                           className="w-full text-center text-sm font-medium text-[#1F1B16] focus:outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
                         />
                         <button
@@ -1149,6 +1373,11 @@ export default function StudentAuthExperience({
                           <Plus className="size-3.5" />
                         </button>
                       </div>
+                      {showAgeErr && (
+                        <p className="mt-1 text-[11px] text-[#B91C1C]" role="alert">
+                          {ageCheck.error}
+                        </p>
+                      )}
                     </div>
 
                     <div>
@@ -1214,9 +1443,20 @@ export default function StudentAuthExperience({
                         type="text"
                         value={lastYearPercentage}
                         onChange={(e) => setLastYearPercentage(e.target.value)}
+                        onBlur={() => markTouched("lastYearPercentage")}
+                        aria-invalid={showPctErr}
                         placeholder="e.g. 89%"
-                        className="w-full h-10 px-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C]"
+                        className={`w-full h-10 px-3 rounded-[10px] bg-white border text-xs text-[#1F1B16] focus:outline-none ${getFieldBorder(
+                          percentageCheck.valid,
+                          showPctErr,
+                          lastYearPercentage.trim().length > 0
+                        )}`}
                       />
+                      {showPctErr && (
+                        <p className="mt-1 text-[11px] text-[#B91C1C]" role="alert">
+                          {percentageCheck.error}
+                        </p>
+                      )}
                     </div>
                     <div>
                       <label

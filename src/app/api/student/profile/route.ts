@@ -3,10 +3,14 @@ import {
   STUDENT_COOKIE_NAME,
   verifyStudentSessionToken,
   updateStudentUserProfile,
-  normalizeIndianMobile,
 } from "@/lib/serverDb";
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+import {
+  validateStudentName,
+  validateEmailField,
+  validateIndianMobileField,
+  validateAgeField,
+  validatePercentageField,
+} from "@/lib/formValidation";
 
 export async function PATCH(req: NextRequest) {
   try {
@@ -23,60 +27,53 @@ export async function PATCH(req: NextRequest) {
     const updates: Record<string, any> = {};
 
     if (typeof body.name === "string") {
-      if (body.name.trim().length < 2) {
-        return NextResponse.json({ success: false, error: "Student name is too short" }, { status: 400 });
+      const nameCheck = validateStudentName(body.name);
+      if (!nameCheck.valid) {
+        return NextResponse.json({ success: false, error: nameCheck.error }, { status: 400 });
       }
       updates.name = body.name.trim();
     }
 
     if (body.age !== undefined && body.age !== null && String(body.age).trim() !== "") {
-      const nAge = Number(body.age);
-      if (!Number.isInteger(nAge) || nAge < 6 || nAge > 25) {
-        return NextResponse.json({ success: false, error: "Age must be between 6 and 25" }, { status: 400 });
+      const ageCheck = validateAgeField(String(body.age));
+      if (!ageCheck.valid) {
+        return NextResponse.json({ success: false, error: ageCheck.error }, { status: 400 });
       }
-      updates.age = nAge;
+      updates.age = Number(body.age);
     } else if (body.age === null || body.age === "") {
       updates.age = undefined;
     }
 
     if (typeof body.parentEmail === "string") {
-      const cleaned = body.parentEmail.trim().toLowerCase();
-      if (cleaned && !EMAIL_RE.test(cleaned)) {
-        return NextResponse.json({ success: false, error: "Please enter a valid parent email" }, { status: 400 });
+      const emailCheck = validateEmailField(body.parentEmail, true, "Parent email");
+      if (!emailCheck.valid) {
+        return NextResponse.json({ success: false, error: emailCheck.error }, { status: 400 });
       }
-      updates.parentEmail = cleaned || undefined;
+      updates.parentEmail = body.parentEmail.trim().toLowerCase();
     }
 
     if (typeof body.parentPhone === "string") {
-      const cleaned = body.parentPhone.trim();
-      if (cleaned) {
-        const res = normalizeIndianMobile(cleaned);
-        if (!res.isValid) {
-          return NextResponse.json(
-            { success: false, error: "Parent mobile must be a valid 10-digit Indian mobile number" },
-            { status: 400 }
-          );
-        }
-        updates.parentPhone = res.normalized;
-      } else {
-        updates.parentPhone = undefined;
+      const res = validateIndianMobileField(body.parentPhone, true, "Parent mobile");
+      if (!res.valid) {
+        return NextResponse.json({ success: false, error: res.error }, { status: 400 });
       }
+      updates.parentPhone = res.digits;
     }
 
     if (typeof body.personalPhone === "string") {
-      const cleaned = body.personalPhone.trim();
-      if (cleaned) {
-        const res = normalizeIndianMobile(cleaned);
-        if (!res.isValid) {
-          return NextResponse.json(
-            { success: false, error: "Personal mobile must be a valid 10-digit number (or leave blank)" },
-            { status: 400 }
-          );
-        }
-        updates.personalPhone = res.normalized;
-      } else {
-        updates.personalPhone = undefined;
+      const res = validateIndianMobileField(body.personalPhone, false, "Personal mobile");
+      if (!res.valid) {
+        return NextResponse.json({ success: false, error: res.error }, { status: 400 });
       }
+      updates.personalPhone = res.digits || undefined;
+    }
+
+    if (typeof body.lastYearPercentage === "string") {
+      const pctCheck = validatePercentageField(body.lastYearPercentage);
+      if (!pctCheck.valid) {
+        return NextResponse.json({ success: false, error: pctCheck.error }, { status: 400 });
+      }
+      updates.lastYearPercentage = body.lastYearPercentage.trim();
     }
 
     const stringFields = [
@@ -93,7 +90,6 @@ export async function PATCH(req: NextRequest) {
       "parentName",
       "parentDream",
       "lastYearRank",
-      "lastYearPercentage",
       "competitions",
       "aparId",
     ] as const;

@@ -3,11 +3,16 @@ import {
   getStudentUserByEmail,
   createStudentUser,
   createStudentSessionToken,
-  normalizeIndianMobile,
   STUDENT_COOKIE_NAME,
 } from "@/lib/serverDb";
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+import {
+  validateStudentName,
+  validateEmailField,
+  validateIndianMobileField,
+  validateAgeField,
+  validatePercentageField,
+  evaluatePassword,
+} from "@/lib/formValidation";
 
 export async function POST(req: NextRequest) {
   try {
@@ -40,50 +45,54 @@ export async function POST(req: NextRequest) {
       aparId,
     } = body;
 
-    if (!name || typeof name !== "string" || name.trim().length < 2) {
-      return NextResponse.json(
-        { success: false, error: "Please enter a valid student full name" },
-        { status: 400 }
-      );
+    const nameCheck = validateStudentName(typeof name === "string" ? name : "");
+    if (!nameCheck.valid) {
+      return NextResponse.json({ success: false, error: nameCheck.error }, { status: 400 });
     }
 
-    if (!email || typeof email !== "string" || !EMAIL_RE.test(email.trim())) {
-      return NextResponse.json(
-        { success: false, error: "Please provide a valid student email address" },
-        { status: 400 }
-      );
+    const emailCheck = validateEmailField(
+      typeof email === "string" ? email : "",
+      true,
+      "Student email"
+    );
+    if (!emailCheck.valid) {
+      return NextResponse.json({ success: false, error: emailCheck.error }, { status: 400 });
     }
 
-    if (!parentEmail || typeof parentEmail !== "string" || !EMAIL_RE.test(parentEmail.trim())) {
-      return NextResponse.json(
-        { success: false, error: "Please provide a valid parent email address" },
-        { status: 400 }
-      );
+    const parentEmailCheck = validateEmailField(
+      typeof parentEmail === "string" ? parentEmail : "",
+      true,
+      "Parent email"
+    );
+    if (!parentEmailCheck.valid) {
+      return NextResponse.json({ success: false, error: parentEmailCheck.error }, { status: 400 });
     }
 
-    const parentPhoneCheck = normalizeIndianMobile(typeof parentPhone === "string" ? parentPhone : "");
-    if (!parentPhoneCheck.isValid) {
-      return NextResponse.json(
-        { success: false, error: "Please provide a valid 10-digit parent mobile number" },
-        { status: 400 }
-      );
+    const parentPhoneCheck = validateIndianMobileField(
+      typeof parentPhone === "string" ? parentPhone : "",
+      true,
+      "Parent mobile"
+    );
+    if (!parentPhoneCheck.valid) {
+      return NextResponse.json({ success: false, error: parentPhoneCheck.error }, { status: 400 });
     }
 
-    let normPersonalPhone: string | undefined;
-    if (typeof personalPhone === "string" && personalPhone.trim()) {
-      const personalCheck = normalizeIndianMobile(personalPhone);
-      if (!personalCheck.isValid) {
-        return NextResponse.json(
-          { success: false, error: "Personal mobile must be a valid 10-digit number (or leave blank)" },
-          { status: 400 }
-        );
-      }
-      normPersonalPhone = personalCheck.normalized;
+    const personalPhoneCheck = validateIndianMobileField(
+      typeof personalPhone === "string" ? personalPhone : "",
+      false,
+      "Student personal mobile"
+    );
+    if (!personalPhoneCheck.valid) {
+      return NextResponse.json({ success: false, error: personalPhoneCheck.error }, { status: 400 });
     }
 
-    if (!password || typeof password !== "string" || password.length < 6) {
+    const pwdEval = evaluatePassword(typeof password === "string" ? password : "");
+    if (!pwdEval.allRequiredMet) {
       return NextResponse.json(
-        { success: false, error: "Password must be at least 6 characters long" },
+        {
+          success: false,
+          error: pwdEval.error || "Password must be at least 8 characters with uppercase, lowercase, and a number",
+        },
         { status: 400 }
       );
     }
@@ -103,14 +112,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (age !== undefined && age !== null && String(age).trim() !== "") {
+      const ageCheck = validateAgeField(String(age));
+      if (!ageCheck.valid) {
+        return NextResponse.json({ success: false, error: ageCheck.error }, { status: 400 });
+      }
+    }
+
+    if (typeof lastYearPercentage === "string" && lastYearPercentage.trim()) {
+      const pctCheck = validatePercentageField(lastYearPercentage);
+      if (!pctCheck.valid) {
+        return NextResponse.json({ success: false, error: pctCheck.error }, { status: 400 });
+      }
+    }
+
     const parsedAge =
       age !== undefined && age !== null && String(age).trim() !== "" ? Number(age) : undefined;
-    if (parsedAge !== undefined && (!Number.isInteger(parsedAge) || parsedAge < 6 || parsedAge > 25)) {
-      return NextResponse.json(
-        { success: false, error: "Age must be a whole number between 6 and 25" },
-        { status: 400 }
-      );
-    }
 
     const newUser = await createStudentUser({
       name: name.trim(),
@@ -122,7 +139,7 @@ export async function POST(req: NextRequest) {
       singleChild: typeof singleChild === "boolean" ? singleChild : undefined,
       fatherName: typeof fatherName === "string" ? fatherName.trim() : undefined,
       motherName: typeof motherName === "string" ? motherName.trim() : undefined,
-      personalPhone: normPersonalPhone,
+      personalPhone: personalPhoneCheck.digits || undefined,
       parentEmail: parentEmail.trim().toLowerCase(),
       grade,
       schoolName: typeof schoolName === "string" ? schoolName.trim() : undefined,
@@ -131,7 +148,7 @@ export async function POST(req: NextRequest) {
       state: typeof state === "string" ? state.trim() : undefined,
       curriculum: typeof curriculum === "string" && curriculum.trim() ? curriculum.trim() : "CBSE",
       parentName: typeof parentName === "string" ? parentName.trim() : undefined,
-      parentPhone: parentPhoneCheck.normalized,
+      parentPhone: parentPhoneCheck.digits,
       parentDream: typeof parentDream === "string" ? parentDream.trim() : undefined,
       lastYearRank: typeof lastYearRank === "string" ? lastYearRank.trim() : undefined,
       lastYearPercentage: typeof lastYearPercentage === "string" ? lastYearPercentage.trim() : undefined,

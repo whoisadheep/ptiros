@@ -27,8 +27,13 @@ export default function FloatingCopilot() {
   const { openBookingModal, openDossierModal } = useUserProfile();
   const { user } = useStudentAuth();
 
-  // Hide on admin page to keep admin command center completely clean
-  if (pathname?.startsWith("/admin") || isDismissed) {
+  // Hide on admin and dedicated auth pages so form controls are never obscured on mobile
+  if (
+    pathname?.startsWith("/admin") ||
+    pathname === "/login" ||
+    pathname === "/signup" ||
+    isDismissed
+  ) {
     return null;
   }
 

@@ -19,8 +19,16 @@ import {
   EyeOff,
   Loader2,
   ExternalLink,
+  Check,
 } from "lucide-react";
 import { STUDENT_GRADES, SCHOOL_BOARDS, INDIAN_STATES } from "@/lib/studentProfileOptions";
+import {
+  validateStudentName,
+  validateEmailField,
+  validateIndianMobileField,
+  evaluatePassword,
+} from "@/lib/formValidation";
+import PasswordRulesChecklist from "@/components/auth/PasswordRulesChecklist";
 
 const EASE_OUT = [0.22, 1, 0.36, 1] as const;
 
@@ -39,7 +47,7 @@ export default function StudentAuthModal() {
   const [loginPassword, setLoginPassword] = useState("");
   const [showLoginPassword, setShowLoginPassword] = useState(false);
 
-  // Signup form state (aligns compulsory Parent Email & Parent Mobile with client spec)
+  // Signup form state
   const [fullName, setFullName] = useState("");
   const [signupEmail, setSignupEmail] = useState("");
   const [parentEmail, setParentEmail] = useState("");
@@ -54,19 +62,53 @@ export default function StudentAuthModal() {
   const [parentPhone, setParentPhone] = useState("");
   const [personalPhone, setPersonalPhone] = useState("");
 
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const markTouched = (k: string) => setTouched((prev) => (prev[k] ? prev : { ...prev, [k]: true }));
 
   useScrollLock(isAuthModalOpen);
 
   if (!isAuthModalOpen) return null;
 
+  const loginEmailCheck = validateEmailField(loginEmail, true, "Student email");
+  const nameCheck = validateStudentName(fullName);
+  const signupEmailCheck = validateEmailField(signupEmail, true, "Student email");
+  const parentEmailCheck = validateEmailField(parentEmail, true, "Parent email");
+  const parentMobileCheck = validateIndianMobileField(parentPhone, true, "Parent mobile");
+  const personalMobileCheck = validateIndianMobileField(personalPhone, false, "Student mobile");
+  const passwordEval = evaluatePassword(signupPassword);
+
+  const immediatePhoneBad = (raw: string, chk: ReturnType<typeof validateIndianMobileField>) => {
+    if (chk.valid) return false;
+    const t = raw.trim();
+    return /[A-Za-z]/.test(t) || chk.digits.length > 10 || (chk.digits.length > 0 && !/^[6-9]/.test(chk.digits));
+  };
+
+  const showNameErr =
+    !nameCheck.valid && (Boolean(touched.name) || (fullName.trim().length > 0 && !/[A-Za-z]/.test(fullName)));
+  const showSignupEmailErr = Boolean(touched.signupEmail) && !signupEmailCheck.valid;
+  const showParentEmailErr = Boolean(touched.parentEmail) && !parentEmailCheck.valid;
+  const showParentMobileErr =
+    !parentMobileCheck.valid && (Boolean(touched.parentPhone) || immediatePhoneBad(parentPhone, parentMobileCheck));
+  const showPersonalMobileErr =
+    !personalMobileCheck.valid &&
+    (Boolean(touched.personalPhone) || immediatePhoneBad(personalPhone, personalMobileCheck));
+  const showPasswordErr = !passwordEval.allRequiredMet && Boolean(touched.signupPassword);
+
+  const borderTone = (valid: boolean, err: boolean, hasContent: boolean) =>
+    err
+      ? "border-[#B91C1C] focus:border-[#B91C1C] focus:ring-2 focus:ring-[#B91C1C]/15"
+      : hasContent && valid
+      ? "border-[#15803D]/40 focus:border-[#C2410C]"
+      : "border-[#1F1B16]/[0.12] focus:border-[#C2410C]";
+
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!loginEmail || !loginPassword) {
-      setErrorMsg("Enter both your student email and password");
-      return;
-    }
+    setTouched((prev) => ({ ...prev, loginEmail: true, loginPassword: true }));
+    if (!loginEmailCheck.valid || !loginPassword) return;
+
     setIsSubmitting(true);
     setErrorMsg(null);
     const res = await login({ email: loginEmail.trim(), password: loginPassword });
@@ -78,14 +120,26 @@ export default function StudentAuthModal() {
 
   const handleSignupSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName.trim() || !signupEmail.trim() || !parentEmail.trim() || !parentPhone.trim() || !signupPassword) {
-      setErrorMsg("Fill in student name, emails, parent mobile, and password");
+    setTouched({
+      name: true,
+      signupEmail: true,
+      parentEmail: true,
+      parentPhone: true,
+      personalPhone: true,
+      signupPassword: true,
+    });
+
+    if (
+      !nameCheck.valid ||
+      !signupEmailCheck.valid ||
+      !parentEmailCheck.valid ||
+      !parentMobileCheck.valid ||
+      !personalMobileCheck.valid ||
+      !passwordEval.allRequiredMet
+    ) {
       return;
     }
-    if (signupPassword.length < 6) {
-      setErrorMsg("Password must be at least 6 characters");
-      return;
-    }
+
     setIsSubmitting(true);
     setErrorMsg(null);
     const res = await signup({
@@ -99,8 +153,8 @@ export default function StudentAuthModal() {
       schoolName: schoolName.trim() || undefined,
       city: city.trim() || stateVal || "India",
       parentName: parentName.trim() || undefined,
-      parentPhone: parentPhone.trim(),
-      personalPhone: personalPhone.trim() || undefined,
+      parentPhone: parentMobileCheck.digits,
+      personalPhone: personalMobileCheck.digits || undefined,
     });
     setIsSubmitting(false);
     if (!res.success) {
@@ -166,6 +220,7 @@ export default function StudentAuthModal() {
                 onClick={() => {
                   openAuthModal("login");
                   setErrorMsg(null);
+                  setTouched({});
                 }}
                 className={`h-9 rounded-[8px] text-xs font-medium text-center transition-colors cursor-pointer ${
                   authMode === "login"
@@ -180,6 +235,7 @@ export default function StudentAuthModal() {
                 onClick={() => {
                   openAuthModal("signup");
                   setErrorMsg(null);
+                  setTouched({});
                 }}
                 className={`h-9 rounded-[8px] text-xs font-medium text-center transition-colors cursor-pointer ${
                   authMode === "signup"
@@ -204,7 +260,7 @@ export default function StudentAuthModal() {
             )}
 
             {authMode === "login" && (
-              <form onSubmit={handleLoginSubmit} className="space-y-4">
+              <form noValidate onSubmit={handleLoginSubmit} className="space-y-4">
                 <div>
                   <label className="block text-xs font-medium text-[#1F1B16] mb-1.5">
                     Student email address
@@ -218,11 +274,23 @@ export default function StudentAuthModal() {
                       type="email"
                       value={loginEmail}
                       onChange={(e) => setLoginEmail(e.target.value)}
+                      onBlur={() => markTouched("loginEmail")}
                       placeholder="student@example.com"
-                      required
-                      className="w-full h-11 pl-10 pr-4 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-sm text-[#1F1B16] placeholder:text-[#7B7266] focus:outline-none focus:border-[#C2410C] focus:ring-2 focus:ring-[#C2410C]/15"
+                      className={`w-full h-11 pl-10 pr-10 rounded-[10px] bg-white border text-sm text-[#1F1B16] placeholder:text-[#7B7266] focus:outline-none ${borderTone(
+                        loginEmailCheck.valid,
+                        Boolean(touched.loginEmail && !loginEmailCheck.valid),
+                        loginEmail.trim().length > 0
+                      )}`}
                     />
+                    {loginEmail.trim().length > 0 && loginEmailCheck.valid && (
+                      <Check className="absolute right-3.5 top-1/2 -translate-y-1/2 size-4 text-[#15803D]" strokeWidth={2} />
+                    )}
                   </div>
+                  {touched.loginEmail && !loginEmailCheck.valid && (
+                    <p className="mt-1 text-[11px] text-[#B91C1C]" role="alert">
+                      {loginEmailCheck.error}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -238,9 +306,13 @@ export default function StudentAuthModal() {
                       type={showLoginPassword ? "text" : "password"}
                       value={loginPassword}
                       onChange={(e) => setLoginPassword(e.target.value)}
+                      onBlur={() => markTouched("loginPassword")}
                       placeholder="Enter your password"
-                      required
-                      className="w-full h-11 pl-10 pr-11 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-sm text-[#1F1B16] placeholder:text-[#7B7266] focus:outline-none focus:border-[#C2410C] focus:ring-2 focus:ring-[#C2410C]/15"
+                      className={`w-full h-11 pl-10 pr-11 rounded-[10px] bg-white border text-sm text-[#1F1B16] placeholder:text-[#7B7266] focus:outline-none ${borderTone(
+                        Boolean(loginPassword),
+                        Boolean(touched.loginPassword && !loginPassword),
+                        loginPassword.length > 0
+                      )}`}
                     />
                     <button
                       type="button"
@@ -255,6 +327,11 @@ export default function StudentAuthModal() {
                       )}
                     </button>
                   </div>
+                  {touched.loginPassword && !loginPassword && (
+                    <p className="mt-1 text-[11px] text-[#B91C1C]" role="alert">
+                      Enter your password
+                    </p>
+                  )}
                 </div>
 
                 <button
@@ -278,7 +355,7 @@ export default function StudentAuthModal() {
             )}
 
             {authMode === "signup" && (
-              <form onSubmit={handleSignupSubmit} className="space-y-3">
+              <form noValidate onSubmit={handleSignupSubmit} className="space-y-3">
                 <div>
                   <label className="block text-xs font-medium text-[#1F1B16] mb-1">
                     Student full name *
@@ -292,11 +369,23 @@ export default function StudentAuthModal() {
                       type="text"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
+                      onBlur={() => markTouched("name")}
                       placeholder="Student full name"
-                      required
-                      className="w-full h-10 pl-9 pr-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C]"
+                      className={`w-full h-10 pl-9 pr-8 rounded-[10px] bg-white border text-xs text-[#1F1B16] focus:outline-none ${borderTone(
+                        nameCheck.valid,
+                        showNameErr,
+                        fullName.trim().length > 0
+                      )}`}
                     />
+                    {fullName.trim().length > 0 && nameCheck.valid && (
+                      <Check className="absolute right-3 top-1/2 -translate-y-1/2 size-3.5 text-[#15803D]" strokeWidth={2} />
+                    )}
                   </div>
+                  {showNameErr && (
+                    <p className="mt-1 text-[11px] text-[#B91C1C]" role="alert">
+                      {nameCheck.error}
+                    </p>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -308,10 +397,19 @@ export default function StudentAuthModal() {
                       type="email"
                       value={signupEmail}
                       onChange={(e) => setSignupEmail(e.target.value)}
+                      onBlur={() => markTouched("signupEmail")}
                       placeholder="student@example.com"
-                      required
-                      className="w-full h-10 px-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C]"
+                      className={`w-full h-10 px-3 rounded-[10px] bg-white border text-xs text-[#1F1B16] focus:outline-none ${borderTone(
+                        signupEmailCheck.valid,
+                        showSignupEmailErr,
+                        signupEmail.trim().length > 0
+                      )}`}
                     />
+                    {showSignupEmailErr && (
+                      <p className="mt-1 text-[11px] text-[#B91C1C]" role="alert">
+                        {signupEmailCheck.error}
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -322,18 +420,40 @@ export default function StudentAuthModal() {
                       type="email"
                       value={parentEmail}
                       onChange={(e) => setParentEmail(e.target.value)}
+                      onBlur={() => markTouched("parentEmail")}
                       placeholder="parent@example.com"
-                      required
-                      className="w-full h-10 px-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C]"
+                      className={`w-full h-10 px-3 rounded-[10px] bg-white border text-xs text-[#1F1B16] focus:outline-none ${borderTone(
+                        parentEmailCheck.valid,
+                        showParentEmailErr,
+                        parentEmail.trim().length > 0
+                      )}`}
                     />
+                    {showParentEmailErr && (
+                      <p className="mt-1 text-[11px] text-[#B91C1C]" role="alert">
+                        {parentEmailCheck.error}
+                      </p>
+                    )}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-[#1F1B16] mb-1">
-                      Parent mobile *
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-medium text-[#1F1B16]">
+                        Parent mobile *
+                      </label>
+                      <span
+                        className={`text-[10px] font-mono tabular-nums ${
+                          parentMobileCheck.valid
+                            ? "text-[#15803D]"
+                            : showParentMobileErr
+                            ? "text-[#B91C1C]"
+                            : "text-[#685F54]"
+                        }`}
+                      >
+                        {parentMobileCheck.digits.length}/10
+                      </span>
+                    </div>
                     <div className="relative">
                       <Phone
                         className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[#685F54]"
@@ -341,66 +461,93 @@ export default function StudentAuthModal() {
                       />
                       <input
                         type="tel"
+                        inputMode="numeric"
                         value={parentPhone}
                         onChange={(e) => setParentPhone(e.target.value)}
+                        onBlur={() => markTouched("parentPhone")}
                         placeholder="10-digit parent mobile"
-                        required
-                        className="w-full h-10 pl-9 pr-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C]"
+                        className={`w-full h-10 pl-9 pr-3 rounded-[10px] bg-white border text-xs text-[#1F1B16] focus:outline-none ${borderTone(
+                          parentMobileCheck.valid,
+                          showParentMobileErr,
+                          parentPhone.trim().length > 0
+                        )}`}
                       />
                     </div>
+                    {showParentMobileErr && (
+                      <p className="mt-1 text-[11px] text-[#B91C1C]" role="alert">
+                        {parentMobileCheck.error}
+                      </p>
+                    )}
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-[#1F1B16] mb-1">
-                      Student mobile <span className="text-[#685F54]">(optional)</span>
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-medium text-[#1F1B16]">
+                        Student mobile <span className="text-[#685F54]">(optional)</span>
+                      </label>
+                    </div>
                     <input
                       type="tel"
+                      inputMode="numeric"
                       value={personalPhone}
                       onChange={(e) => setPersonalPhone(e.target.value)}
+                      onBlur={() => markTouched("personalPhone")}
                       placeholder="Optional"
-                      className="w-full h-10 px-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C]"
+                      className={`w-full h-10 px-3 rounded-[10px] bg-white border text-xs text-[#1F1B16] focus:outline-none ${borderTone(
+                        personalMobileCheck.valid,
+                        showPersonalMobileErr,
+                        personalPhone.trim().length > 0
+                      )}`}
                     />
+                    {showPersonalMobileErr && (
+                      <p className="mt-1 text-[11px] text-[#B91C1C]" role="alert">
+                        {personalMobileCheck.error}
+                      </p>
+                    )}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-medium text-[#1F1B16] mb-1">
-                      Create password *
-                    </label>
-                    <div className="relative">
-                      <Lock
-                        className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[#685F54]"
-                        strokeWidth={1.5}
-                      />
-                      <input
-                        type={showSignupPassword ? "text" : "password"}
-                        value={signupPassword}
-                        onChange={(e) => setSignupPassword(e.target.value)}
-                        placeholder="Min. 6 characters"
-                        required
-                        minLength={6}
-                        className="w-full h-10 pl-9 pr-9 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C]"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowSignupPassword((v) => !v)}
-                        aria-label={showSignupPassword ? "Hide password" : "Show password"}
-                        className="absolute right-1.5 top-1/2 -translate-y-1/2 size-7 flex items-center justify-center rounded text-[#685F54] hover:text-[#1F1B16] cursor-pointer"
-                      >
-                        {showSignupPassword ? (
-                          <EyeOff className="size-3.5" strokeWidth={1.5} />
-                        ) : (
-                          <Eye className="size-3.5" strokeWidth={1.5} />
-                        )}
-                      </button>
-                    </div>
+                <div>
+                  <label className="block text-xs font-medium text-[#1F1B16] mb-1">
+                    Create password *
+                  </label>
+                  <div className="relative">
+                    <Lock
+                      className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[#685F54]"
+                      strokeWidth={1.5}
+                    />
+                    <input
+                      type={showSignupPassword ? "text" : "password"}
+                      value={signupPassword}
+                      onChange={(e) => setSignupPassword(e.target.value)}
+                      onBlur={() => markTouched("signupPassword")}
+                      placeholder="Create strong password"
+                      className={`w-full h-10 pl-9 pr-9 rounded-[10px] bg-white border text-xs text-[#1F1B16] focus:outline-none ${borderTone(
+                        passwordEval.allRequiredMet,
+                        showPasswordErr,
+                        signupPassword.length > 0
+                      )}`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowSignupPassword((v) => !v)}
+                      aria-label={showSignupPassword ? "Hide password" : "Show password"}
+                      className="absolute right-1.5 top-1/2 -translate-y-1/2 size-7 flex items-center justify-center rounded text-[#685F54] hover:text-[#1F1B16] cursor-pointer"
+                    >
+                      {showSignupPassword ? (
+                        <EyeOff className="size-3.5" strokeWidth={1.5} />
+                      ) : (
+                        <Eye className="size-3.5" strokeWidth={1.5} />
+                      )}
+                    </button>
                   </div>
+                  <PasswordRulesChecklist password={signupPassword} showError={showPasswordErr} compact />
+                </div>
 
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
                     <label className="block text-xs font-medium text-[#1F1B16] mb-1">
-                      Current class *
+                      Class *
                     </label>
                     <div className="relative">
                       <GraduationCap
@@ -410,7 +557,7 @@ export default function StudentAuthModal() {
                       <select
                         value={grade}
                         onChange={(e) => setGrade(e.target.value)}
-                        className="w-full h-10 pl-9 pr-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C]"
+                        className="w-full h-10 pl-9 pr-2 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C]"
                       >
                         {STUDENT_GRADES.map((g) => (
                           <option key={g.value} value={g.value}>
@@ -420,9 +567,7 @@ export default function StudentAuthModal() {
                       </select>
                     </div>
                   </div>
-                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
                     <label className="block text-xs font-medium text-[#1F1B16] mb-1">
                       Board
@@ -456,22 +601,16 @@ export default function StudentAuthModal() {
                       ))}
                     </select>
                   </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-[#1F1B16] mb-1">
-                      City
-                    </label>
-                    <input
-                      type="text"
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      placeholder="City"
-                      className="w-full h-10 px-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C]"
-                    />
-                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <input
+                    type="text"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    placeholder="City"
+                    className="w-full h-10 px-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C]"
+                  />
                   <div className="relative">
                     <Building
                       className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[#685F54]"
@@ -481,7 +620,7 @@ export default function StudentAuthModal() {
                       type="text"
                       value={schoolName}
                       onChange={(e) => setSchoolName(e.target.value)}
-                      placeholder="School name (optional)"
+                      placeholder="School (optional)"
                       className="w-full h-10 pl-9 pr-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C]"
                     />
                   </div>
@@ -489,7 +628,7 @@ export default function StudentAuthModal() {
                     type="text"
                     value={parentName}
                     onChange={(e) => setParentName(e.target.value)}
-                    placeholder="Parent name (optional)"
+                    placeholder="Parent name (opt.)"
                     className="w-full h-10 px-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C]"
                   />
                 </div>
