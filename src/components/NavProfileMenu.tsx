@@ -31,7 +31,6 @@ export default function NavProfileMenu() {
     user: studentUser,
     isLoggedIn,
     logout: studentLogout,
-    openAuthModal,
   } = useStudentAuth();
 
   const [isOpen, setIsOpen] = useState(false);
@@ -118,19 +117,23 @@ export default function NavProfileMenu() {
                 </span>
               </div>
 
-              {/* Primary Sign In Button */}
-              <div className="py-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsOpen(false);
-                    openAuthModal("login");
-                  }}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary text-white font-bold text-xs shadow-md shadow-primary/20 hover:bg-primary-dark transition active:scale-95 cursor-pointer"
+              {/* Sign In / Create Account Actions */}
+              <div className="py-3 space-y-2">
+                <Link
+                  href="/login"
+                  onClick={() => setIsOpen(false)}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary text-white font-bold text-xs shadow-sm hover:bg-primary-dark transition active:scale-95"
                 >
-                  <span>Student Sign In / Register</span>
+                  <span>Sign in to portal</span>
                   <ArrowRight className="size-3.5" />
-                </button>
+                </Link>
+                <Link
+                  href="/signup"
+                  onClick={() => setIsOpen(false)}
+                  className="w-full flex items-center justify-center gap-2 py-2 rounded-xl border border-stone-200 bg-stone-50 text-stone-800 font-semibold text-xs hover:bg-stone-100 transition"
+                >
+                  <span>Create student account</span>
+                </Link>
               </div>
 
               {/* Meetings Link */}

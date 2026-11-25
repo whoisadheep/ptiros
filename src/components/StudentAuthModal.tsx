@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useStudentAuth } from "@/context/StudentAuthContext";
 import { useScrollLock } from "@/hooks/useScrollLock";
 import {
   X,
-  Sparkles,
   Lock,
   Mail,
   User,
@@ -14,10 +14,14 @@ import {
   Building,
   Phone,
   ArrowRight,
-  CheckCircle2,
   AlertCircle,
-  BookOpen,
+  Eye,
+  EyeOff,
+  Loader2,
+  ExternalLink,
 } from "lucide-react";
+
+const EASE_OUT = [0.22, 1, 0.36, 1] as const;
 
 export default function StudentAuthModal() {
   const {
@@ -32,23 +36,23 @@ export default function StudentAuthModal() {
   // Login form state
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
 
   // Signup form state
   const [fullName, setFullName] = useState("");
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [grade, setGrade] = useState("Class 10");
   const [curriculum, setCurriculum] = useState("CBSE");
   const [schoolName, setSchoolName] = useState("");
-  const [city, setCity] = useState("Delhi NCR");
+  const [city, setCity] = useState("Bengaluru");
   const [parentName, setParentName] = useState("");
   const [parentPhone, setParentPhone] = useState("");
-  const [parentDream, setParentDream] = useState("Wants stable engineering/technology career");
 
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Lock background scroll and Lenis while modal is open
   useScrollLock(isAuthModalOpen);
 
   if (!isAuthModalOpen) return null;
@@ -56,132 +60,143 @@ export default function StudentAuthModal() {
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!loginEmail || !loginPassword) {
-      setErrorMsg("Please enter both email and password.");
+      setErrorMsg("Enter both your student email and password");
       return;
     }
     setIsSubmitting(true);
     setErrorMsg(null);
-    const res = await login({ email: loginEmail, password: loginPassword });
+    const res = await login({ email: loginEmail.trim(), password: loginPassword });
     setIsSubmitting(false);
     if (!res.success) {
-      setErrorMsg(res.error || "Invalid login credentials.");
+      setErrorMsg(res.error || "Invalid login credentials");
     }
   };
 
   const handleSignupSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName.trim() || !signupEmail.trim() || !signupPassword) {
-      setErrorMsg("Please fill in all mandatory fields.");
+      setErrorMsg("Fill in all mandatory fields");
       return;
     }
     if (signupPassword.length < 6) {
-      setErrorMsg("Password must be at least 6 characters.");
+      setErrorMsg("Password must be at least 6 characters");
       return;
     }
     setIsSubmitting(true);
     setErrorMsg(null);
     const res = await signup({
-      name: fullName,
-      email: signupEmail,
+      name: fullName.trim(),
+      email: signupEmail.trim(),
       password: signupPassword,
       grade,
       curriculum,
-      schoolName: schoolName || undefined,
-      city: city || "Delhi NCR",
-      parentName: parentName || undefined,
-      parentPhone: parentPhone || undefined,
-      parentDream: parentDream || undefined,
+      schoolName: schoolName.trim() || undefined,
+      city: city.trim() || "India",
+      parentName: parentName.trim() || undefined,
+      parentPhone: parentPhone.trim() || undefined,
     });
     setIsSubmitting(false);
     if (!res.success) {
-      setErrorMsg(res.error || "Failed to create student account.");
+      setErrorMsg(res.error || "Failed to create student account");
     }
   };
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[1100] flex items-center justify-center p-3 sm:p-4">
+      <div className="fixed inset-0 z-[1100] flex items-center justify-center p-3 sm:p-4 font-body">
         {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
+          transition={{ duration: 0.18, ease: EASE_OUT }}
           onClick={closeAuthModal}
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+          className="fixed inset-0 bg-[#1F1B16]/55 backdrop-blur-xs"
         />
 
         {/* Modal Window */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 15 }}
+          initial={{ opacity: 0, scale: 0.97, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 15 }}
-          transition={{ duration: 0.2 }}
+          exit={{ opacity: 0, scale: 0.97, y: 10 }}
+          transition={{ duration: 0.24, ease: EASE_OUT }}
           role="dialog"
           aria-modal="true"
           data-lenis-prevent
-          className="relative w-full max-w-xl bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-border/80 overflow-y-auto z-10 flex flex-col max-h-[90dvh] overscroll-contain"
+          className="relative w-full max-w-lg bg-[#FDFBF7] text-[#1F1B16] rounded-[20px] shadow-[0_12px_40px_rgba(31,27,22,0.18)] border border-[#1F1B16]/[0.1] overflow-y-auto z-10 flex flex-col max-h-[90dvh] overscroll-contain"
         >
           {/* Header */}
-          <div className="relative px-4 sm:px-6 pt-5 sm:pt-6 pb-4 bg-gradient-to-r from-orange-50 via-amber-50 to-orange-100/50 border-b border-border/60">
+          <div className="relative px-5 sm:px-6 pt-5 pb-4 bg-[#F3EDE2] border-b border-[#1F1B16]/[0.08]">
             <button
+              type="button"
               onClick={closeAuthModal}
-              className="absolute top-5 right-5 size-9 rounded-full bg-white/80 hover:bg-white text-text-muted hover:text-accent flex items-center justify-center shadow-xs transition"
+              className="absolute top-4 right-4 size-9 rounded-full bg-[#FDFBF7] border border-[#1F1B16]/[0.08] text-[#5E554A] hover:text-[#1F1B16] flex items-center justify-center transition-colors cursor-pointer"
               aria-label="Close modal"
             >
-              <X className="size-4" />
+              <X className="size-4" strokeWidth={1.5} />
             </button>
 
-            <div className="flex items-center gap-2 mb-1">
-              <span className="font-display font-black text-xl text-gradient">PTIROS</span>
-              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="size-2 rounded-[2px] bg-[#C2410C]" aria-hidden="true" />
+              <span className="font-display font-semibold text-base tracking-[-0.02em] text-[#1F1B16]">
+                PTIROS
+              </span>
+              <span className="text-xs text-[#685F54] pl-2 border-l border-[#1F1B16]/[0.12]">
                 Student Portal
               </span>
             </div>
-            <h2 className="text-xl font-display font-bold text-accent">
-              {authMode === "login" ? "Sign in to Student Dashboard" : "Create Student Account"}
+            <h2 className="text-xl font-display font-medium tracking-[-0.02em] text-[#1F1B16]">
+              {authMode === "login" ? "Sign in to your portal" : "Create student account"}
             </h2>
-            <p className="text-xs text-text-muted mt-0.5">
-              Access your personalized roadmap, daily reflection journal, weekly goals, and mentor notes.
+            <p className="text-xs text-[#5E554A] mt-1">
+              {authMode === "login"
+                ? "Access your roadmap, study planner, and 1-on-1 mentor meetings"
+                : "Set up a personal student workspace for career diagnostics and goals"}
             </p>
           </div>
 
           {/* Mode Tabs */}
-          <div className="flex border-b border-border/70 bg-bg-muted/40">
-            <button
-              type="button"
-              onClick={() => {
-                openAuthModal("login");
-                setErrorMsg(null);
-              }}
-              className={`flex-1 py-3 text-xs font-bold text-center border-b-2 transition cursor-pointer ${
-                authMode === "login"
-                  ? "border-primary text-primary bg-white"
-                  : "border-transparent text-text-muted hover:text-accent"
-              }`}
-            >
-              Sign In (Email & Password)
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                openAuthModal("signup");
-                setErrorMsg(null);
-              }}
-              className={`flex-1 py-3 text-xs font-bold text-center border-b-2 transition cursor-pointer ${
-                authMode === "signup"
-                  ? "border-primary text-primary bg-white"
-                  : "border-transparent text-text-muted hover:text-accent"
-              }`}
-            >
-              New Student Registration
-            </button>
+          <div className="p-4 pb-0 sm:px-6">
+            <div className="grid grid-cols-2 p-1 rounded-[12px] bg-[#EFE9DF]">
+              <button
+                type="button"
+                onClick={() => {
+                  openAuthModal("login");
+                  setErrorMsg(null);
+                }}
+                className={`h-9 rounded-[8px] text-xs font-medium text-center transition-colors cursor-pointer ${
+                  authMode === "login"
+                    ? "bg-[#FDFBF7] text-[#1F1B16] border border-[#1F1B16]/[0.07] shadow-2xs"
+                    : "text-[#5E554A] hover:text-[#1F1B16]"
+                }`}
+              >
+                Sign in
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  openAuthModal("signup");
+                  setErrorMsg(null);
+                }}
+                className={`h-9 rounded-[8px] text-xs font-medium text-center transition-colors cursor-pointer ${
+                  authMode === "signup"
+                    ? "bg-[#FDFBF7] text-[#1F1B16] border border-[#1F1B16]/[0.07] shadow-2xs"
+                    : "text-[#5E554A] hover:text-[#1F1B16]"
+                }`}
+              >
+                Create account
+              </button>
+            </div>
           </div>
 
           {/* Content Body */}
-          <div data-lenis-prevent className="p-6 overflow-y-auto flex-1 overscroll-contain">
+          <div data-lenis-prevent className="p-5 sm:p-6 overflow-y-auto flex-1 overscroll-contain">
             {errorMsg && (
-              <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
-                <AlertCircle className="size-4 shrink-0 text-red-500" />
+              <div
+                role="alert"
+                className="mb-4 p-3 rounded-[10px] bg-[#FEF2F2] border border-[#B91C1C]/20 text-[#991B1B] text-xs flex items-start gap-2"
+              >
+                <AlertCircle className="size-4 shrink-0 mt-0.5 text-[#B91C1C]" strokeWidth={1.5} />
                 <span>{errorMsg}</span>
               </div>
             )}
@@ -190,46 +205,73 @@ export default function StudentAuthModal() {
             {authMode === "login" && (
               <form onSubmit={handleLoginSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-accent mb-1.5">
-                    Student Email Address
+                  <label className="block text-xs font-medium text-[#1F1B16] mb-1.5">
+                    Student email address
                   </label>
                   <div className="relative">
-                    <Mail className="absolute left-3.5 top-3 size-4 text-text-muted" />
+                    <Mail
+                      className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-[#685F54]"
+                      strokeWidth={1.5}
+                    />
                     <input
                       type="email"
                       value={loginEmail}
                       onChange={(e) => setLoginEmail(e.target.value)}
                       placeholder="student@example.com"
                       required
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
+                      className="w-full h-11 pl-10 pr-4 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-sm text-[#1F1B16] placeholder:text-[#7B7266] focus:outline-none focus:border-[#C2410C] focus:ring-2 focus:ring-[#C2410C]/15"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-xs font-bold text-accent">Password</label>
-                  </div>
+                  <label className="block text-xs font-medium text-[#1F1B16] mb-1.5">
+                    Password
+                  </label>
                   <div className="relative">
-                    <Lock className="absolute left-3.5 top-3 size-4 text-text-muted" />
+                    <Lock
+                      className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-[#685F54]"
+                      strokeWidth={1.5}
+                    />
                     <input
-                      type="password"
+                      type={showLoginPassword ? "text" : "password"}
                       value={loginPassword}
                       onChange={(e) => setLoginPassword(e.target.value)}
-                      placeholder="••••••••"
+                      placeholder="Enter your password"
                       required
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
+                      className="w-full h-11 pl-10 pr-11 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-sm text-[#1F1B16] placeholder:text-[#7B7266] focus:outline-none focus:border-[#C2410C] focus:ring-2 focus:ring-[#C2410C]/15"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowLoginPassword((v) => !v)}
+                      aria-label={showLoginPassword ? "Hide password" : "Show password"}
+                      className="absolute right-1.5 top-1/2 -translate-y-1/2 size-8 flex items-center justify-center rounded-md text-[#685F54] hover:text-[#1F1B16] cursor-pointer"
+                    >
+                      {showLoginPassword ? (
+                        <EyeOff className="size-4" strokeWidth={1.5} />
+                      ) : (
+                        <Eye className="size-4" strokeWidth={1.5} />
+                      )}
+                    </button>
                   </div>
                 </div>
 
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-3 rounded-xl bg-primary text-white font-bold text-sm shadow-md shadow-primary/25 hover:bg-primary-dark transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+                  className="w-full h-11 rounded-[10px] bg-[#C2410C] hover:bg-[#9A3412] text-white font-medium text-sm transition-[background-color,transform] active:scale-[0.985] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
                 >
-                  {isSubmitting ? "Signing In..." : "Sign In to Dashboard"}
-                  <ArrowRight className="size-4" />
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="size-4 animate-spin" strokeWidth={1.5} />
+                      <span>Signing in</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Sign in to portal</span>
+                      <ArrowRight className="size-4" strokeWidth={1.5} />
+                    </>
+                  )}
                 </button>
               </form>
             )}
@@ -239,35 +281,41 @@ export default function StudentAuthModal() {
               <form onSubmit={handleSignupSubmit} className="space-y-3.5">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-bold text-accent mb-1">
-                      Student Full Name *
+                    <label className="block text-xs font-medium text-[#1F1B16] mb-1">
+                      Student full name *
                     </label>
                     <div className="relative">
-                      <User className="absolute left-3 top-2.5 size-4 text-text-muted" />
+                      <User
+                        className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[#685F54]"
+                        strokeWidth={1.5}
+                      />
                       <input
                         type="text"
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
-                        placeholder="Rohan Sharma"
+                        placeholder="Student full name"
                         required
-                        className="w-full pl-9 pr-3 py-2 rounded-xl border border-border text-xs focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
+                        className="w-full h-10 pl-9 pr-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C] focus:ring-2 focus:ring-[#C2410C]/15"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-accent mb-1">
-                      Student Email Address *
+                    <label className="block text-xs font-medium text-[#1F1B16] mb-1">
+                      Student email *
                     </label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-2.5 size-4 text-text-muted" />
+                      <Mail
+                        className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[#685F54]"
+                        strokeWidth={1.5}
+                      />
                       <input
                         type="email"
                         value={signupEmail}
                         onChange={(e) => setSignupEmail(e.target.value)}
-                        placeholder="rohan@example.com"
+                        placeholder="student@example.com"
                         required
-                        className="w-full pl-9 pr-3 py-2 rounded-xl border border-border text-xs focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
+                        className="w-full h-10 pl-9 pr-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C] focus:ring-2 focus:ring-[#C2410C]/15"
                       />
                     </div>
                   </div>
@@ -275,33 +323,51 @@ export default function StudentAuthModal() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-bold text-accent mb-1">
-                      Create Password *
+                    <label className="block text-xs font-medium text-[#1F1B16] mb-1">
+                      Create password *
                     </label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-2.5 size-4 text-text-muted" />
+                      <Lock
+                        className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[#685F54]"
+                        strokeWidth={1.5}
+                      />
                       <input
-                        type="password"
+                        type={showSignupPassword ? "text" : "password"}
                         value={signupPassword}
                         onChange={(e) => setSignupPassword(e.target.value)}
-                        placeholder="At least 6 characters"
+                        placeholder="Min. 6 characters"
                         required
                         minLength={6}
-                        className="w-full pl-9 pr-3 py-2 rounded-xl border border-border text-xs focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
+                        className="w-full h-10 pl-9 pr-9 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C] focus:ring-2 focus:ring-[#C2410C]/15"
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowSignupPassword((v) => !v)}
+                        aria-label={showSignupPassword ? "Hide password" : "Show password"}
+                        className="absolute right-1.5 top-1/2 -translate-y-1/2 size-7 flex items-center justify-center rounded text-[#685F54] hover:text-[#1F1B16] cursor-pointer"
+                      >
+                        {showSignupPassword ? (
+                          <EyeOff className="size-3.5" strokeWidth={1.5} />
+                        ) : (
+                          <Eye className="size-3.5" strokeWidth={1.5} />
+                        )}
+                      </button>
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-accent mb-1">
-                      Current Grade / Class *
+                    <label className="block text-xs font-medium text-[#1F1B16] mb-1">
+                      Current class *
                     </label>
                     <div className="relative">
-                      <GraduationCap className="absolute left-3 top-2.5 size-4 text-text-muted" />
+                      <GraduationCap
+                        className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[#685F54]"
+                        strokeWidth={1.5}
+                      />
                       <select
                         value={grade}
                         onChange={(e) => setGrade(e.target.value)}
-                        className="w-full pl-9 pr-3 py-2 rounded-xl border border-border text-xs focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary bg-white"
+                        className="w-full h-10 pl-9 pr-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C] focus:ring-2 focus:ring-[#C2410C]/15"
                       >
                         <option value="Class 8">Class 8</option>
                         <option value="Class 9">Class 9</option>
@@ -316,13 +382,13 @@ export default function StudentAuthModal() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-bold text-accent mb-1">
-                      School Curriculum
+                    <label className="block text-xs font-medium text-[#1F1B16] mb-1">
+                      School board
                     </label>
                     <select
                       value={curriculum}
                       onChange={(e) => setCurriculum(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl border border-border text-xs focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary bg-white"
+                      className="w-full h-10 px-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C] focus:ring-2 focus:ring-[#C2410C]/15"
                     >
                       <option value="CBSE">CBSE</option>
                       <option value="ICSE">ICSE</option>
@@ -333,61 +399,67 @@ export default function StudentAuthModal() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-accent mb-1">
-                      City / Location
+                    <label className="block text-xs font-medium text-[#1F1B16] mb-1">
+                      City
                     </label>
                     <input
                       type="text"
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
-                      placeholder="e.g. Mumbai, Bengaluru"
-                      className="w-full px-3 py-2 rounded-xl border border-border text-xs focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
+                      placeholder="e.g. Bengaluru"
+                      className="w-full h-10 px-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C] focus:ring-2 focus:ring-[#C2410C]/15"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-accent mb-1">
-                    School Name
+                  <label className="block text-xs font-medium text-[#1F1B16] mb-1">
+                    School name (optional)
                   </label>
                   <div className="relative">
-                    <Building className="absolute left-3 top-2.5 size-4 text-text-muted" />
+                    <Building
+                      className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[#685F54]"
+                      strokeWidth={1.5}
+                    />
                     <input
                       type="text"
                       value={schoolName}
                       onChange={(e) => setSchoolName(e.target.value)}
-                      placeholder="e.g. Kendriya Vidyalaya IIT Powai"
-                      className="w-full pl-9 pr-3 py-2 rounded-xl border border-border text-xs focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
+                      placeholder="School name"
+                      className="w-full h-10 pl-9 pr-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C] focus:ring-2 focus:ring-[#C2410C]/15"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-border/50">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-[#1F1B16]/[0.07]">
                   <div>
-                    <label className="block text-xs font-bold text-accent mb-1">
-                      Parent / Guardian Name
+                    <label className="block text-xs font-medium text-[#1F1B16] mb-1">
+                      Parent name (optional)
                     </label>
                     <input
                       type="text"
                       value={parentName}
                       onChange={(e) => setParentName(e.target.value)}
-                      placeholder="e.g. Rajesh Sharma"
-                      className="w-full px-3 py-2 rounded-xl border border-border text-xs focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
+                      placeholder="Parent / guardian name"
+                      className="w-full h-10 px-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C] focus:ring-2 focus:ring-[#C2410C]/15"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-accent mb-1">
-                      Parent WhatsApp Mobile
+                    <label className="block text-xs font-medium text-[#1F1B16] mb-1">
+                      Parent WhatsApp (optional)
                     </label>
                     <div className="relative">
-                      <Phone className="absolute left-3 top-2.5 size-4 text-text-muted" />
+                      <Phone
+                        className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[#685F54]"
+                        strokeWidth={1.5}
+                      />
                       <input
                         type="tel"
                         value={parentPhone}
                         onChange={(e) => setParentPhone(e.target.value)}
                         placeholder="10-digit number"
-                        className="w-full pl-9 pr-3 py-2 rounded-xl border border-border text-xs focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
+                        className="w-full h-10 pl-9 pr-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C] focus:ring-2 focus:ring-[#C2410C]/15"
                       />
                     </div>
                   </div>
@@ -396,13 +468,35 @@ export default function StudentAuthModal() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full mt-2 py-3 rounded-xl bg-primary text-white font-bold text-sm shadow-md shadow-primary/25 hover:bg-primary-dark transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+                  className="w-full h-11 mt-1 rounded-[10px] bg-[#C2410C] hover:bg-[#9A3412] text-white font-medium text-sm transition-[background-color,transform] active:scale-[0.985] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
                 >
-                  {isSubmitting ? "Creating Account in Neon..." : "Complete Registration & Launch Portal"}
-                  <Sparkles className="size-4" />
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="size-4 animate-spin" strokeWidth={1.5} />
+                      <span>Creating account</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Create student account</span>
+                      <ArrowRight className="size-4" strokeWidth={1.5} />
+                    </>
+                  )}
                 </button>
               </form>
             )}
+
+            {/* Full-Page Link Footer */}
+            <div className="mt-5 pt-4 border-t border-[#1F1B16]/[0.08] flex items-center justify-between text-xs text-[#685F54]">
+              <span>Open full portal gateway</span>
+              <Link
+                href={authMode === "signup" ? "/signup" : "/login"}
+                onClick={closeAuthModal}
+                className="inline-flex items-center gap-1 font-medium text-[#9A3412] hover:text-[#1F1B16] transition-colors"
+              >
+                <span>{authMode === "signup" ? "Open Sign Up Page" : "Open Sign In Page"}</span>
+                <ExternalLink className="size-3" strokeWidth={1.5} />
+              </Link>
+            </div>
           </div>
         </motion.div>
       </div>

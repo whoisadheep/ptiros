@@ -73,6 +73,10 @@ export default function FloatingCopilot() {
       title: "Student Portal Access",
       hint: "Sign in with your student email or create a new account to track your roadmap and reflections.",
     },
+    "/signup": {
+      title: "New Student Account",
+      hint: "Create a free student workspace to save diagnostic matches, simulation scores, and study goals.",
+    },
   };
 
   const currentTip = tipsByRoute[pathname || "/"] || {

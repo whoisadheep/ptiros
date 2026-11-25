@@ -57,7 +57,6 @@ export default function Navbar() {
   const { openBookingModal, openDossierModal } = useUserProfile();
   const {
     user: studentUser,
-    openAuthModal: openStudentAuthModal,
     logout: studentLogout,
   } = useStudentAuth();
   const [isOpen, setIsOpen] = useState(false);
@@ -278,16 +277,22 @@ export default function Navbar() {
                       Access your personal dashboard, daily reflection journal, and career simulations.
                     </p>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsOpen(false);
-                        openStudentAuthModal("login");
-                      }}
-                      className="w-full py-2.5 rounded-xl bg-primary text-white font-bold text-xs shadow-xs hover:bg-primary-dark transition cursor-pointer"
-                    >
-                      Sign In / Student Register →
-                    </button>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Link
+                        href="/login"
+                        onClick={() => setIsOpen(false)}
+                        className="py-2.5 px-3 rounded-xl bg-primary text-white font-bold text-xs text-center shadow-xs hover:bg-primary-dark transition"
+                      >
+                        Sign in
+                      </Link>
+                      <Link
+                        href="/signup"
+                        onClick={() => setIsOpen(false)}
+                        className="py-2.5 px-3 rounded-xl border border-stone-200 bg-white text-stone-800 font-bold text-xs text-center hover:bg-stone-100 transition"
+                      >
+                        Create account
+                      </Link>
+                    </div>
                   </div>
                 )}
 
