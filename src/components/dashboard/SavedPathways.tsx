@@ -112,12 +112,6 @@ const ALL_MASTER_PATHWAYS: StudentSavedPathway[] = [
   },
 ];
 
-const DEFAULT_SAVED_BY_USER: Record<string, string[]> = {
-  usr_demo_aarav: ["ai-systems", "quant-finance", "ux-product"],
-  usr_demo_meera: ["corporate-law", "ux-product", "quant-finance"],
-  usr_demo_vihaan: ["precision-medicine", "ai-systems", "creative-media"],
-};
-
 export default function SavedPathways({ userId = "", onNavigateTab }: SavedPathwaysProps) {
   const storageKey = userId ? `ptiros_saved_pathways_${userId}` : "";
   const [savedTrackIds, setSavedTrackIds] = useState<string[]>([]);
@@ -137,8 +131,7 @@ export default function SavedPathways({ userId = "", onNavigateTab }: SavedPathw
       } catch {}
     }
 
-    const defaults = (userId && DEFAULT_SAVED_BY_USER[userId]) || [];
-    setSavedTrackIds(defaults);
+    setSavedTrackIds([]);
   }, [userId, storageKey]);
 
   const toggleSavePathway = (trackId: string) => {

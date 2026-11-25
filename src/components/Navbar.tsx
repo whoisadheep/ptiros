@@ -58,7 +58,6 @@ export default function Navbar() {
   const {
     user: studentUser,
     openAuthModal: openStudentAuthModal,
-    loginAsDemo: studentLoginAsDemo,
     logout: studentLogout,
   } = useStudentAuth();
   const [isOpen, setIsOpen] = useState(false);
@@ -262,31 +261,6 @@ export default function Navbar() {
                       <span>Open Student Dashboard</span>
                     </Link>
 
-                    {/* Quick Demo Switcher on Mobile */}
-                    <div className="pt-2 border-t border-orange-200/60">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-stone-500 block mb-1.5">
-                        Switch Demo Persona
-                      </span>
-                      <div className="grid grid-cols-3 gap-1.5">
-                        {[
-                          { key: "aarav" as const, name: "Aarav" },
-                          { key: "meera" as const, name: "Meera" },
-                          { key: "vihaan" as const, name: "Vihaan" },
-                        ].map((d) => (
-                          <button
-                            key={d.key}
-                            type="button"
-                            onClick={async () => {
-                              await studentLoginAsDemo(d.key);
-                              setIsOpen(false);
-                            }}
-                            className="py-1 px-2 rounded-lg bg-white border border-orange-200 text-stone-800 font-bold text-[11px] hover:bg-orange-100/70 transition"
-                          >
-                            {d.name}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
                   </div>
                 ) : (
                   <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4 space-y-3">
@@ -296,7 +270,7 @@ export default function Navbar() {
                         Student Portal
                       </span>
                       <span className="text-[10px] text-orange-700 font-semibold bg-orange-100 px-2 py-0.5 rounded-full">
-                        Instant Demo Ready
+                        Secure Access
                       </span>
                     </div>
 
@@ -314,32 +288,6 @@ export default function Navbar() {
                     >
                       Sign In / Student Register →
                     </button>
-
-                    <div className="pt-2 border-t border-stone-200/70">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400 block mb-1.5">
-                        Quick Demo Launch
-                      </span>
-                      <div className="grid grid-cols-3 gap-1.5">
-                        {[
-                          { key: "aarav" as const, name: "Aarav", track: "AI Tech" },
-                          { key: "meera" as const, name: "Meera", track: "Law" },
-                          { key: "vihaan" as const, name: "Vihaan", track: "Medicine" },
-                        ].map((d) => (
-                          <button
-                            key={d.key}
-                            type="button"
-                            onClick={async () => {
-                              await studentLoginAsDemo(d.key);
-                              setIsOpen(false);
-                            }}
-                            className="py-1 px-2 rounded-lg bg-white border border-stone-200 text-stone-800 font-semibold text-[10px] hover:bg-orange-50 hover:border-orange-300 transition text-center"
-                          >
-                            <span className="font-bold block">{d.name}</span>
-                            <span className="text-[9px] text-stone-400 block">{d.track}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
                   </div>
                 )}
 

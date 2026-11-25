@@ -77,7 +77,6 @@ export default function DashboardPage() {
     bookings,
     isLoading,
     isLoggedIn,
-    loginAsDemo,
     logout,
     openAuthModal,
     addDiaryEntry,
@@ -208,140 +207,50 @@ export default function DashboardPage() {
   // Universal scroll lock for milestone modal
   useScrollLock(showGoalModal);
 
-  // Active student profile fallback
-  const student = user || {
-    id: "usr_demo_aarav",
-    name: "Aarav Sharma",
-    email: "aarav@demo.ptiros.in",
-    grade: "Class 10",
-    schoolName: "Delhi Public School, R.K. Puram",
-    city: "Delhi NCR",
-    curriculum: "CBSE",
-    parentName: "Rajesh Sharma",
-    avatarInitials: "AS",
-    createdAt: new Date().toISOString(),
-  };
-
-  const isDemoUser =
-    student.id.startsWith("usr_demo_") || student.email.endsWith("@demo.ptiros.in");
-
-  // Trajectory details: demo showcase for demo accounts, clean live state for newly registered students
+  // Dynamic trajectory summary built strictly from the signed-in student's real progress
   const trajectoryMeta = useMemo(() => {
-    if (!isDemoUser) {
-      const latestSim = simulations[0];
-      const earnedCredits = Math.min(simulations.length * 4, 20);
-      const dynamicCompetencies = [
-        ...simulations.map((s) => ({
-          name: s.trackTitle,
-          score: s.fitScore,
-          status: s.fitScore >= 85 ? "Strong Fit" : s.fitScore >= 65 ? "Developing" : "Explored",
-        })),
-        ...(careerTestResult
-          ? [
-              {
-                name: careerTestResult.topMatch,
-                score: parseInt(careerTestResult.matchConfidence, 10) || 90,
-                status: "Quest Match",
-              },
-            ]
-          : []),
-      ];
+    const latestSim = simulations[0];
+    const earnedCredits = Math.min(simulations.length * 4, 20);
+    const dynamicCompetencies = [
+      ...simulations.map((s) => ({
+        name: s.trackTitle,
+        score: s.fitScore,
+        status: s.fitScore >= 85 ? "Strong Fit" : s.fitScore >= 65 ? "Developing" : "Explored",
+      })),
+      ...(careerTestResult
+        ? [
+            {
+              name: careerTestResult.topMatch,
+              score: parseInt(careerTestResult.matchConfidence, 10) || 90,
+              status: "Quest Match",
+            },
+          ]
+        : []),
+    ];
 
-      const firstName = student.name.split(" ")[0] || "Student";
-      return {
-        trackTitle: latestSim
-          ? latestSim.trackTitle
-          : careerTestResult
-          ? careerTestResult.topMatch
-          : `Welcome to Your Portal, ${firstName}`,
-        targetAspirations: student.parentDream
-          ? student.parentDream
-          : latestSim || careerTestResult
-          ? "Explored via PTIROS Career Match & Simulation Labs"
-          : "Follow the 4-step guide above to discover your career fit, try a simulation, set a study goal, and talk 1-on-1 with a mentor.",
-        primaryMentor: {
-          name: MENTORS[0].name,
-          role: MENTORS[0].domainTitle,
-          pedigree: MENTORS[0].pedigree,
-          trackId: MENTORS[0].domainId,
-        },
-        competencies: dynamicCompetencies,
-        nepCredits: earnedCredits,
-        boardReadiness: Math.min(simulations.length * 16, 100),
-      };
-    }
-
-    if (student.name.includes("Meera") || student.grade === "Class 11") {
-      return {
-        trackTitle: "Corporate Law, Tech M&A & Public Leadership",
-        targetAspirations: "NLSIU Bengaluru / Oxford BCL • Tier-1 M&A Law Practice",
-        streamRecommendation: "Humanities with Legal Studies & Economics (or Commerce w/ Math)",
-        primaryMentor: {
-          name: "Adv. Sneha Mukherjee",
-          role: "Senior Associate, Corporate M&A & Tech Policy",
-          pedigree: "NLSIU Bengaluru '17 • Former Cyril Amarchand Mangaldas",
-          initials: "SM",
-          rating: 4.95,
-          sessionsHeld: 142,
-          trackId: "corporate-law",
-        },
-        competencies: [
-          { name: "Legal Risk Analysis & Redlining", score: 88, status: "Mastery" },
-          { name: "Section 27 Contract Law Aptitude", score: 92, status: "Exceptional" },
-          { name: "Public Speaking & Cross-Examination", score: 71, status: "Sprint Target" },
-          { name: "Regulatory Dilemma Resilience", score: 85, status: "Advanced" },
-        ],
-        nepCredits: 16,
-        boardReadiness: 79,
-      };
-    } else if (student.name.includes("Vihaan") || student.grade === "Class 12") {
-      return {
-        trackTitle: "Digital Health, Clinical Robotics & BioTechnology",
-        targetAspirations: "AIIMS New Delhi / Johns Hopkins • Precision Surgery Systems",
-        streamRecommendation: "PCB with Applied Mathematics & Computer Science",
-        primaryMentor: {
-          name: "Dr. Rajesh Iyer",
-          role: "Clinical Robotics Fellow & Biotech Strategist",
-          pedigree: "AIIMS New Delhi • IIT Delhi Biomedical",
-          initials: "RI",
-          rating: 4.98,
-          sessionsHeld: 189,
-          trackId: "digital-health-medicine",
-        },
-        competencies: [
-          { name: "Diagnostic Telemetry & Bio-Sensors", score: 94, status: "Top 2%ile" },
-          { name: "Clinical Trial Protocol Design", score: 86, status: "Advanced" },
-          { name: "NEET Foundation Physical Sciences", score: 89, status: "Mastery" },
-          { name: "Medical Ethics & Triage Dilemmas", score: 91, status: "Exceptional" },
-        ],
-        nepCredits: 18,
-        boardReadiness: 86,
-      };
-    }
-    // Demo default: Aarav Sharma (AI & Robotics)
+    const firstName = user?.name?.split(" ")[0] || "Student";
     return {
-      trackTitle: "AI Systems Architecture & Autonomous Robotics",
-      targetAspirations: "IIT Bombay / IIT Delhi CSE • Carnegie Mellon Robotics Institute",
-      streamRecommendation: "PCM with Computer Science & Information Practices",
+      trackTitle: latestSim
+        ? latestSim.trackTitle
+        : careerTestResult
+        ? careerTestResult.topMatch
+        : `Welcome to Your Portal, ${firstName}`,
+      targetAspirations: user?.parentDream
+        ? user.parentDream
+        : latestSim || careerTestResult
+        ? "Explored via PTIROS Career Match & Simulation Labs"
+        : "Follow the 4-step guide above to discover your career fit, try a simulation, set a study goal, and talk 1-on-1 with a mentor.",
       primaryMentor: {
-        name: "Dr. Aryan Sharma",
-        role: "Autonomous Navigation Lead & Systems Architect",
-        pedigree: "Ex-ISRO Telemetry Fellow • IIT Delhi (B.Tech & Ph.D.)",
-        initials: "AS",
-        rating: 4.97,
-        sessionsHeld: 215,
-        trackId: "ai-robotics",
+        name: MENTORS[0].name,
+        role: MENTORS[0].domainTitle,
+        pedigree: MENTORS[0].pedigree,
+        trackId: MENTORS[0].domainId,
       },
-      competencies: [
-        { name: "Kalman Filter & Telemetry Logic", score: 92, status: "Top 3%ile" },
-        { name: "Quantitative Mathematics (Foundation JEE)", score: 88, status: "Advanced" },
-        { name: "PID Control & Sensor Fusion", score: 85, status: "Mastery" },
-        { name: "Impromptu Technical Communication", score: 68, status: "Sprint Target" },
-      ],
-      nepCredits: 14,
-      boardReadiness: 74,
+      competencies: dynamicCompetencies,
+      nepCredits: earnedCredits,
+      boardReadiness: Math.min(simulations.length * 16, 100),
     };
-  }, [student, isDemoUser, simulations, careerTestResult]);
+  }, [user, simulations, careerTestResult]);
 
   // Goal stats
   const completedGoals = goals.filter((g) => g.completed).length;
@@ -350,10 +259,10 @@ export default function DashboardPage() {
 
   // Guided 4-step onboarding & next recommended step
   const guidedSteps = useMemo(() => {
-    const step1Done = isDemoUser || Boolean(careerTestResult);
-    const step2Done = isDemoUser || simulations.length > 0;
-    const step3Done = isDemoUser || goals.length > 0 || diary.length > 0;
-    const step4Done = isDemoUser || bookings.length > 0;
+    const step1Done = Boolean(careerTestResult);
+    const step2Done = simulations.length > 0;
+    const step3Done = goals.length > 0 || diary.length > 0;
+    const step4Done = bookings.length > 0;
 
     return [
       {
@@ -412,7 +321,7 @@ export default function DashboardPage() {
         actionType: "booking" as const,
       },
     ];
-  }, [isDemoUser, careerTestResult, simulations, goals, diary, bookings]);
+  }, [careerTestResult, simulations, goals, diary, bookings]);
 
   const completedStepsCount = guidedSteps.filter((s) => s.done).length;
   const nextStep = guidedSteps.find((s) => !s.done) || null;
@@ -492,7 +401,7 @@ export default function DashboardPage() {
     );
   }
 
-  if (!isLoggedIn) {
+  if (!isLoggedIn || !user) {
     return (
       <div className="min-h-screen bg-stone-100/70 flex items-center justify-center p-4">
         <div className="flex flex-col items-center gap-3">
@@ -502,6 +411,8 @@ export default function DashboardPage() {
       </div>
     );
   }
+
+  const student = user;
 
   return (
     <div className="min-h-screen bg-stone-100/70 text-stone-900 font-body flex flex-col selection:bg-orange-500 selection:text-white">
@@ -538,45 +449,6 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Desktop Demo Switcher Segment (Demo Accounts Only) */}
-          {isDemoUser && (
-            <div className="hidden md:flex items-center bg-stone-100 p-1 rounded-xl border border-stone-200/80">
-              <span className="hidden lg:inline-block text-[11px] font-bold text-stone-400 px-2 uppercase tracking-wider">
-                Demo:
-              </span>
-              <button
-                onClick={() => loginAsDemo("aarav")}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  student.email === "aarav@demo.ptiros.in"
-                    ? "bg-white text-orange-600 shadow-xs border border-stone-200/60"
-                    : "text-stone-600 hover:text-stone-900"
-                }`}
-              >
-                Aarav <span className="text-[10px] opacity-75 font-normal hidden sm:inline">(AI)</span>
-              </button>
-              <button
-                onClick={() => loginAsDemo("meera")}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  student.email === "meera@demo.ptiros.in"
-                    ? "bg-white text-orange-600 shadow-xs border border-stone-200/60"
-                    : "text-stone-600 hover:text-stone-900"
-                }`}
-              >
-                Meera <span className="text-[10px] opacity-75 font-normal hidden sm:inline">(Law)</span>
-              </button>
-              <button
-                onClick={() => loginAsDemo("vihaan")}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  student.email === "vihaan@demo.ptiros.in"
-                    ? "bg-white text-orange-600 shadow-xs border border-stone-200/60"
-                    : "text-stone-600 hover:text-stone-900"
-                }`}
-              >
-                Vihaan <span className="text-[10px] opacity-75 font-normal hidden sm:inline">(Med)</span>
-              </button>
-            </div>
-          )}
-
           {/* Right Action Stack */}
           <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             <button
@@ -611,47 +483,6 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
-
-        {/* Mobile Profile Switcher Bar (Demo Accounts Only) */}
-        {isDemoUser && (
-          <div className="flex md:hidden items-center justify-between px-3 py-1.5 bg-stone-50/90 border-t border-stone-200/70 text-xs overflow-x-auto scrollbar-none">
-            <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider shrink-0 mr-1.5">
-              Demo:
-            </span>
-            <div className="flex items-center gap-1.5 min-w-0 flex-1 justify-end">
-              <button
-                onClick={() => loginAsDemo("aarav")}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer whitespace-nowrap ${
-                  student.email === "aarav@demo.ptiros.in"
-                    ? "bg-white text-orange-600 shadow-2xs border border-stone-200"
-                    : "text-stone-500 hover:text-stone-800"
-                }`}
-              >
-                Aarav (AI)
-              </button>
-              <button
-                onClick={() => loginAsDemo("meera")}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer whitespace-nowrap ${
-                  student.email === "meera@demo.ptiros.in"
-                    ? "bg-white text-orange-600 shadow-2xs border border-stone-200"
-                    : "text-stone-500 hover:text-stone-800"
-                }`}
-              >
-                Meera (Law)
-              </button>
-              <button
-                onClick={() => loginAsDemo("vihaan")}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer whitespace-nowrap ${
-                  student.email === "vihaan@demo.ptiros.in"
-                    ? "bg-white text-orange-600 shadow-2xs border border-stone-200"
-                    : "text-stone-500 hover:text-stone-800"
-                }`}
-              >
-                Vihaan (Med)
-              </button>
-            </div>
-          </div>
-        )}
         </header>
 
         {/* ========================================================= */}
@@ -959,7 +790,7 @@ export default function DashboardPage() {
                       <Building className="size-3.5 text-orange-400" />
                       {student.schoolName || student.city}
                     </span>
-                    {(isDemoUser || simulations.length > 0) && (
+                    {simulations.length > 0 && (
                       <span className="flex items-center gap-1.5 bg-stone-800/80 px-2.5 py-1 rounded-lg border border-stone-700/60 text-[11px] sm:text-xs">
                         <ShieldCheck className="size-3.5 text-emerald-400" />
                         NEP 2020 NSQF Level 4 Certified
@@ -973,13 +804,11 @@ export default function DashboardPage() {
                   <PtiroMascot
                     variant="copilot"
                     size={75}
-                    speech={isDemoUser ? "Trajectory Optimal!" : "Welcome Aboard!"}
+                    speech="Welcome Aboard!"
                     subSpeech={
-                      isDemoUser
-                        ? `${trajectoryMeta.boardReadiness}% Board readiness on track.`
-                        : simulations.length > 0
+                      simulations.length > 0
                         ? `${simulations.length} career simulator(s) completed.`
-                        : "Start a simulator lab or add your first milestone."
+                        : "Follow the 4 steps above or start a simulator lab."
                     }
                   />
                 </div>
@@ -991,7 +820,7 @@ export default function DashboardPage() {
                       Trajectory Readiness
                     </span>
                     <span className="text-xs font-black text-emerald-400">
-                      {isDemoUser ? "ON TRACK" : goals.length > 0 || simulations.length > 0 ? "ACTIVE" : "FRESH START"}
+                      {goals.length > 0 || simulations.length > 0 ? "ACTIVE" : "FRESH START"}
                     </span>
                   </div>
 
@@ -1011,15 +840,15 @@ export default function DashboardPage() {
 
                     <div>
                       <div className="flex justify-between text-xs mb-1">
-                        <span className="text-stone-300">{isDemoUser ? "Board Exam Mastery" : "Simulator Progress"}</span>
+                        <span className="text-stone-300">Simulator Progress</span>
                         <span className="font-mono font-bold text-white">
-                          {isDemoUser ? `${trajectoryMeta.boardReadiness}%` : `${simulations.length} / 6`}
+                          {simulations.length} / 6
                         </span>
                       </div>
                       <div className="w-full h-2 rounded-full bg-stone-700 overflow-hidden">
                         <div
                           className="h-full bg-emerald-500 transition-all duration-700"
-                          style={{ width: `${isDemoUser ? trajectoryMeta.boardReadiness : Math.min((simulations.length / 6) * 100, 100)}%` }}
+                          style={{ width: `${Math.min((simulations.length / 6) * 100, 100)}%` }}
                         />
                       </div>
                     </div>
@@ -1345,24 +1174,6 @@ export default function DashboardPage() {
                       </div>
                       <p className="text-[11px] text-stone-500 line-clamp-2">
                         With {activeBookings[0].mentorName}: {activeBookings[0].primaryQuestion}
-                      </p>
-                    </div>
-                  ) : isDemoUser ? (
-                    <div className="p-3.5 rounded-2xl bg-white border border-orange-200/60 shadow-xs space-y-2">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="font-bold text-stone-900 flex items-center gap-1.5">
-                          <CalendarDays className="size-3.5 text-orange-600" />
-                          Sample Consultation
-                        </span>
-                        <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
-                          Demo Preview
-                        </span>
-                      </div>
-                      <div className="text-sm font-display font-bold text-stone-800">
-                        Tomorrow • 5:00 PM - 5:20 PM IST
-                      </div>
-                      <p className="text-[11px] text-stone-500">
-                        Agenda: Term 2 syllabus strategy + stream dilemma debrief with parents.
                       </p>
                     </div>
                   ) : (
@@ -1834,67 +1645,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Certificate Cards */}
-              {isDemoUser ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Certificate 1 */}
-                  <div className="rounded-2xl border-2 border-stone-200 bg-stone-50/50 p-6 space-y-4 relative overflow-hidden">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-orange-600 bg-orange-100 px-2 py-0.5 rounded">
-                        NSQF LEVEL 4
-                      </span>
-                      <span className="text-xs font-mono text-stone-400">CERT-2026-0814</span>
-                    </div>
-                    <div>
-                      <h3 className="text-base font-display font-bold text-stone-900">
-                        {trajectoryMeta.trackTitle} — Professional Simulation
-                      </h3>
-                      <p className="text-xs text-stone-500 mt-1">
-                        Awarded to <strong className="text-stone-800">{student.name}</strong> for completing 15+ hours of real-world mission telemetry and ethical dilemma resolution.
-                      </p>
-                    </div>
-                    <div className="p-3 rounded-xl bg-white border border-stone-200/80 flex items-center justify-between text-xs">
-                      <div>
-                        <div className="text-[10px] text-stone-400">Accredited Body</div>
-                        <div className="font-bold text-stone-800">PTIROS Advisory Council</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-[10px] text-stone-400">Date Issued</div>
-                        <div className="font-bold text-stone-800">Nov 12, 2026</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Certificate 2 */}
-                  <div className="rounded-2xl border-2 border-stone-200 bg-stone-50/50 p-6 space-y-4 relative overflow-hidden">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded">
-                        EXPERIENTIAL LEARNING
-                      </span>
-                      <span className="text-xs font-mono text-stone-400">BAGLESS-10D-042</span>
-                    </div>
-                    <div>
-                      <h3 className="text-base font-display font-bold text-stone-900">
-                        NEP 2020 10-Bagless Days Vocational Immersion
-                      </h3>
-                      <p className="text-xs text-stone-500 mt-1">
-                        Validates {trajectoryMeta.nepCredits} credits of hands-on vocational immersion aligned with school board annual evaluation norms.
-                      </p>
-                    </div>
-                    <div className="p-3 rounded-xl bg-white border border-stone-200/80 flex items-center justify-between text-xs">
-                      <div>
-                        <div className="text-[10px] text-stone-400">Verification Status</div>
-                        <div className="font-bold text-emerald-700 flex items-center gap-1">
-                          <Check className="size-3.5" /> Registry Confirmed
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-[10px] text-stone-400">Credits Granted</div>
-                        <div className="font-bold text-stone-800">{trajectoryMeta.nepCredits} NCrF Credits</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ) : simulations.length > 0 ? (
+              {simulations.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {simulations.map((sim) => (
                     <div key={sim.id} className="rounded-2xl border-2 border-stone-200 bg-stone-50/50 p-6 space-y-4">

@@ -254,7 +254,7 @@ export default function CareerTestPage() {
                         type="text"
                         name="name"
                         required
-                        placeholder="e.g. Aarav"
+                        placeholder="Your first name or nickname"
                         value={formData.name}
                         onChange={handleInputChange}
                         className="w-full px-4 py-2.5 rounded-xl border border-border focus:ring-2 focus:ring-primary focus:outline-none text-sm"

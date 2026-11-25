@@ -16,7 +16,6 @@ import {
   ArrowRight,
   CheckCircle2,
   AlertCircle,
-  Zap,
   BookOpen,
 } from "lucide-react";
 
@@ -27,7 +26,6 @@ export default function StudentAuthModal() {
     authMode,
     openAuthModal,
     login,
-    loginAsDemo,
     signup,
   } = useStudentAuth();
 
@@ -54,16 +52,6 @@ export default function StudentAuthModal() {
   useScrollLock(isAuthModalOpen);
 
   if (!isAuthModalOpen) return null;
-
-  const handleDemoClick = async (demoKey: "aarav" | "meera" | "vihaan") => {
-    setIsSubmitting(true);
-    setErrorMsg(null);
-    const res = await loginAsDemo(demoKey);
-    setIsSubmitting(false);
-    if (!res.success) {
-      setErrorMsg(res.error || "Failed to switch demo account");
-    }
-  };
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -155,57 +143,6 @@ export default function StudentAuthModal() {
             <p className="text-xs text-text-muted mt-0.5">
               Access your personalized roadmap, daily reflection journal, weekly goals, and mentor notes.
             </p>
-
-            {/* Quick Demo Switcher Strip */}
-            <div className="mt-4 p-3 rounded-2xl bg-white/90 border border-orange-200/80 shadow-xs">
-              <div className="flex items-center justify-between text-xs font-bold text-orange-950 mb-2">
-                <span className="flex items-center gap-1.5">
-                  <Zap className="size-3.5 text-primary fill-primary" />
-                  Instant Demo Login (1-Click)
-                </span>
-                <span className="text-[10px] font-normal text-text-muted">No password needed</span>
-              </div>
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleDemoClick("aarav")}
-                  disabled={isSubmitting}
-                  className="p-2 rounded-xl bg-orange-50/90 hover:bg-orange-100 border border-orange-200/60 text-left transition text-xs group cursor-pointer disabled:opacity-50"
-                >
-                  <div className="font-bold text-accent group-hover:text-primary flex items-center justify-between">
-                    <span>Aarav</span>
-                    <span className="text-[10px] px-1 rounded bg-orange-200/60 text-orange-800">Cl. 10</span>
-                  </div>
-                  <div className="text-[10px] text-text-muted truncate">AI & Robotics</div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleDemoClick("meera")}
-                  disabled={isSubmitting}
-                  className="p-2 rounded-xl bg-blue-50/90 hover:bg-blue-100 border border-blue-200/60 text-left transition text-xs group cursor-pointer disabled:opacity-50"
-                >
-                  <div className="font-bold text-accent group-hover:text-blue-700 flex items-center justify-between">
-                    <span>Meera</span>
-                    <span className="text-[10px] px-1 rounded bg-blue-200/60 text-blue-800">Cl. 11</span>
-                  </div>
-                  <div className="text-[10px] text-text-muted truncate">Corporate Law</div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleDemoClick("vihaan")}
-                  disabled={isSubmitting}
-                  className="p-2 rounded-xl bg-emerald-50/90 hover:bg-emerald-100 border border-emerald-200/60 text-left transition text-xs group cursor-pointer disabled:opacity-50"
-                >
-                  <div className="font-bold text-accent group-hover:text-emerald-700 flex items-center justify-between">
-                    <span>Vihaan</span>
-                    <span className="text-[10px] px-1 rounded bg-emerald-200/60 text-emerald-800">Cl. 12</span>
-                  </div>
-                  <div className="text-[10px] text-text-muted truncate">Medicine & Bio</div>
-                </button>
-              </div>
-            </div>
           </div>
 
           {/* Mode Tabs */}
@@ -262,30 +199,16 @@ export default function StudentAuthModal() {
                       type="email"
                       value={loginEmail}
                       onChange={(e) => setLoginEmail(e.target.value)}
-                      placeholder="e.g. aarav@demo.ptiros.in"
+                      placeholder="student@example.com"
                       required
                       className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
                     />
-                  </div>
-                  <div className="text-[11px] text-text-muted mt-1 flex items-center gap-1">
-                    <span>Demo account:</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setLoginEmail("aarav@demo.ptiros.in");
-                        setLoginPassword("student123");
-                      }}
-                      className="text-primary hover:underline font-semibold"
-                    >
-                      Fill Aarav credentials
-                    </button>
                   </div>
                 </div>
 
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="text-xs font-bold text-accent">Password</label>
-                    <span className="text-[10px] text-text-muted">(Demo: student123)</span>
                   </div>
                   <div className="relative">
                     <Lock className="absolute left-3.5 top-3 size-4 text-text-muted" />

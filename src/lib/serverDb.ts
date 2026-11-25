@@ -792,56 +792,6 @@ export async function getStudentUserById(userId: string): Promise<StudentUser | 
     }
   }
 
-  // Fallback demo students
-  if (userId === "usr_demo_aarav") {
-    return {
-      id: "usr_demo_aarav",
-      name: "Aarav Sharma",
-      email: "aarav@demo.ptiros.in",
-      grade: "Class 10",
-      schoolName: "Delhi Public School, R.K. Puram",
-      city: "Delhi NCR",
-      curriculum: "CBSE",
-      parentName: "Rajesh Sharma",
-      parentPhone: "9876543210",
-      parentDream: "Wants stable engineering/technology career",
-      avatarInitials: "AS",
-      createdAt: new Date().toISOString(),
-    };
-  }
-  if (userId === "usr_demo_meera") {
-    return {
-      id: "usr_demo_meera",
-      name: "Meera Nair",
-      email: "meera@demo.ptiros.in",
-      grade: "Class 11",
-      schoolName: "The Mother's International School",
-      city: "Bengaluru",
-      curriculum: "ICSE",
-      parentName: "Suresh Nair",
-      parentPhone: "9812345678",
-      parentDream: "Seeking corporate law & public leadership",
-      avatarInitials: "MN",
-      createdAt: new Date().toISOString(),
-    };
-  }
-  if (userId === "usr_demo_vihaan") {
-    return {
-      id: "usr_demo_vihaan",
-      name: "Vihaan Patel",
-      email: "vihaan@demo.ptiros.in",
-      grade: "Class 12",
-      schoolName: "St. Xavier's High School",
-      city: "Ahmedabad",
-      curriculum: "CBSE",
-      parentName: "Kiran Patel",
-      parentPhone: "9899887766",
-      parentDream: "Wants stable medical/healthcare career",
-      avatarInitials: "VP",
-      createdAt: new Date().toISOString(),
-    };
-  }
-
   return null;
 }
 
@@ -880,21 +830,6 @@ export async function getStudentUserByEmail(email: string): Promise<{ user: Stud
     } catch (err) {
       console.warn("Neon getStudentUserByEmail error:", err);
     }
-  }
-
-  // Fallback demo matching
-  const defaultHash = hashStudentPassword("student123");
-  if (cleanEmail === "aarav@demo.ptiros.in") {
-    const user = (await getStudentUserById("usr_demo_aarav"))!;
-    return { user, passwordHash: defaultHash };
-  }
-  if (cleanEmail === "meera@demo.ptiros.in") {
-    const user = (await getStudentUserById("usr_demo_meera"))!;
-    return { user, passwordHash: defaultHash };
-  }
-  if (cleanEmail === "vihaan@demo.ptiros.in") {
-    const user = (await getStudentUserById("usr_demo_vihaan"))!;
-    return { user, passwordHash: defaultHash };
   }
 
   return null;
@@ -1037,53 +972,8 @@ export async function getStudentPortalData(userId: string): Promise<StudentPorta
     }
   }
 
-  const isDemoUser = userId.startsWith("usr_demo_");
-
-  // Only demo accounts fall back to showcase goals if database records are unavailable
-  if (goals.length === 0 && isDemoUser) {
-    goals = [
-      {
-        id: "g_default_1",
-        userId,
-        title: "Review Term examination blueprint & formula sheet",
-        timeView: "daily",
-        completed: true,
-        deadline: "Today 6 PM",
-        createdAt: new Date().toISOString(),
-      },
-      {
-        id: "g_default_2",
-        userId,
-        title: "Draft 3 questions for upcoming 1:1 Senior Mentor consultation",
-        timeView: "daily",
-        completed: false,
-        deadline: "Tomorrow",
-        createdAt: new Date().toISOString(),
-      },
-      {
-        id: "g_default_3",
-        userId,
-        title: "Complete National Skill Standard Module 1 Assessment",
-        timeView: "monthly",
-        completed: false,
-        deadline: "Nov 28, 2026",
-        createdAt: new Date().toISOString(),
-      },
-      {
-        id: "g_default_4",
-        userId,
-        title: "Finalize stream alignment & parent briefing report",
-        timeView: "yearly",
-        completed: false,
-        deadline: "March 2027",
-        createdAt: new Date().toISOString(),
-      },
-    ];
-  }
-
   const bookings = await getStudentBookings({
     userId: user.id,
-    phone: isDemoUser ? user.parentPhone : undefined,
   });
 
   return { user, diary, goals, simulations, bookings };

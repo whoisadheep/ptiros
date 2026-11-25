@@ -3,6 +3,12 @@ const fs = require("fs");
 const path = require("path");
 
 async function main() {
+  const email = process.env.STUDENT_EMAIL;
+  const password = process.env.STUDENT_PASSWORD;
+  if (!email || !password) {
+    throw new Error("Set STUDENT_EMAIL and STUDENT_PASSWORD env vars to capture authenticated portal screenshots.");
+  }
+
   const browser = await puppeteer.launch({
     executablePath: "/home/whoisadheep/.local/bin/google-chrome",
     headless: "new",
@@ -23,80 +29,34 @@ async function main() {
     console.log("Saved screenshot:", name);
   };
 
-  // 1. Visit /login
   console.log("Visiting /login...");
   await page.goto("http://localhost:3000/login", { waitUntil: "networkidle0" });
-  await new Promise((r) => setTimeout(r, 1000));
   await save("student_login_page.png");
 
-  // 2. Click Aarav demo button
-  console.log("Clicking Aarav demo button...");
-  const aaravBtn = await page.evaluateHandle(() => {
-    const btns = Array.from(document.querySelectorAll("button"));
-    return btns.find((b) => b.textContent && b.textContent.includes("Aarav Sharma"));
-  });
-  if (aaravBtn) {
-    await aaravBtn.click();
-    await page.waitForNavigation({ waitUntil: "networkidle0" }).catch(() => {});
-    await new Promise((r) => setTimeout(r, 2000));
-  }
-  await save("student_dashboard_aarav_cockpit.png");
+  await page.type("#login-email", email);
+  await page.type("#login-password", password);
+  await Promise.all([
+    page.click('button[type="submit"]'),
+    page.waitForNavigation({ waitUntil: "networkidle0" }).catch(() => {}),
+  ]);
+  await new Promise((r) => setTimeout(r, 1500));
+  await save("student_dashboard_cockpit.png");
 
-  // 3. Click Kaizen Roadmap tab
-  console.log("Navigating to Kaizen Roadmap...");
-  const plannerTab = await page.evaluateHandle(() => {
-    const btns = Array.from(document.querySelectorAll("nav button"));
-    return btns.find((b) => b.textContent && b.textContent.includes("Kaizen Roadmap"));
-  });
-  if (plannerTab) {
-    await plannerTab.click();
-    await new Promise((r) => setTimeout(r, 1200));
-    await save("student_dashboard_kaizen_roadmap.png");
-  }
-
-  // 4. Click Hansei Diary tab
-  console.log("Navigating to Hansei Diary...");
-  const diaryTab = await page.evaluateHandle(() => {
-    const btns = Array.from(document.querySelectorAll("nav button"));
-    return btns.find((b) => b.textContent && b.textContent.includes("Hansei Diary"));
-  });
-  if (diaryTab) {
-    await diaryTab.click();
-    await new Promise((r) => setTimeout(r, 1200));
-    await save("student_dashboard_hansei_diary.png");
-  }
-
-  // 5. Click NEP 2020 Credentials tab
-  console.log("Navigating to NEP Credentials...");
-  const credTab = await page.evaluateHandle(() => {
-    const btns = Array.from(document.querySelectorAll("nav button"));
-    return btns.find((b) => b.textContent && b.textContent.includes("NEP 2020 Credentials"));
-  });
-  if (credTab) {
-    await credTab.click();
-    await new Promise((r) => setTimeout(r, 1200));
-    await save("student_dashboard_nep_credentials.png");
-  }
-
-  // 6. Switch to Meera (Corporate Law)
-  console.log("Switching to Meera...");
-  const meeraSwitch = await page.evaluateHandle(() => {
-    const btns = Array.from(document.querySelectorAll("header button"));
-    return btns.find((b) => b.textContent && b.textContent.includes("Meera"));
-  });
-  if (meeraSwitch) {
-    await meeraSwitch.click();
-    await new Promise((r) => setTimeout(r, 2500));
-    // Click Cockpit tab for Meera
-    const cockpitTab = await page.evaluateHandle(() => {
-      const btns = Array.from(document.querySelectorAll("nav button"));
-      return btns.find((b) => b.textContent && b.textContent.includes("Trajectory Cockpit"));
-    });
-    if (cockpitTab) {
-      await cockpitTab.click();
-      await new Promise((r) => setTimeout(r, 1200));
+  for (const [label, file] of [
+    ["Study Goals", "student_dashboard_roadmap.png"],
+    ["Daily Journal", "student_dashboard_diary.png"],
+    ["Certificates", "student_dashboard_credentials.png"],
+  ]) {
+    const tabBtn = await page.evaluateHandle((text) => {
+      return Array.from(document.querySelectorAll("nav button")).find(
+        (b) => b.textContent && b.textContent.includes(text)
+      );
+    }, label);
+    if (tabBtn) {
+      await tabBtn.click();
+      await new Promise((r) => setTimeout(r, 800));
+      await save(file);
     }
-    await save("student_dashboard_meera_cockpit.png");
   }
 
   await browser.close();

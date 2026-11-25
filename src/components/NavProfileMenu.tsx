@@ -15,8 +15,6 @@ import {
   Clock,
   LogOut,
   GraduationCap,
-  Sparkles,
-  Check,
   ArrowRight,
   ExternalLink,
   Trophy,
@@ -32,13 +30,11 @@ export default function NavProfileMenu() {
   const {
     user: studentUser,
     isLoggedIn,
-    loginAsDemo,
     logout: studentLogout,
     openAuthModal,
   } = useStudentAuth();
 
   const [isOpen, setIsOpen] = useState(false);
-  const [isSwitchingDemo, setIsSwitchingDemo] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Close on outside click
@@ -65,13 +61,6 @@ export default function NavProfileMenu() {
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [isOpen]);
-
-  const handleDemoSwitch = async (demoKey: "aarav" | "meera" | "vihaan") => {
-    setIsSwitchingDemo(true);
-    await loginAsDemo(demoKey);
-    setIsSwitchingDemo(false);
-    setIsOpen(false);
-  };
 
   const handleSignOut = async () => {
     setIsOpen(false);
@@ -142,65 +131,6 @@ export default function NavProfileMenu() {
                   <span>Student Sign In / Register</span>
                   <ArrowRight className="size-3.5" />
                 </button>
-              </div>
-
-              {/* Instant Demo Profiles Switcher */}
-              <div className="pt-2 border-t border-stone-100 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400">
-                    Instant Demo Profiles (1-Click)
-                  </span>
-                  <span className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
-                    <Sparkles className="size-3" /> No Password Needed
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-3 gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => handleDemoSwitch("aarav")}
-                    disabled={isSwitchingDemo}
-                    className="p-2 rounded-xl border border-stone-200 hover:border-orange-300 hover:bg-orange-50/60 transition text-left cursor-pointer group"
-                  >
-                    <span className="text-xs font-bold text-stone-900 block group-hover:text-primary transition">
-                      Aarav
-                    </span>
-                    <span className="text-[10px] text-stone-500 block">Class 10</span>
-                    <span className="text-[9px] text-orange-600 font-semibold block truncate">
-                      AI Robotics
-                    </span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleDemoSwitch("meera")}
-                    disabled={isSwitchingDemo}
-                    className="p-2 rounded-xl border border-stone-200 hover:border-orange-300 hover:bg-orange-50/60 transition text-left cursor-pointer group"
-                  >
-                    <span className="text-xs font-bold text-stone-900 block group-hover:text-primary transition">
-                      Meera
-                    </span>
-                    <span className="text-[10px] text-stone-500 block">Class 11</span>
-                    <span className="text-[9px] text-orange-600 font-semibold block truncate">
-                      Corp Law
-                    </span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleDemoSwitch("vihaan")}
-                    disabled={isSwitchingDemo}
-                    className="p-2 rounded-xl border border-stone-200 hover:border-orange-300 hover:bg-orange-50/60 transition text-left cursor-pointer group"
-                  >
-                    <span className="text-xs font-bold text-stone-900 block group-hover:text-primary transition">
-                      Vihaan
-                    </span>
-                    <span className="text-[10px] text-stone-500 block">Class 12</span>
-                    <span className="text-[9px] text-orange-600 font-semibold block truncate">
-                      Medicine
-                    </span>
-                  </button>
-                </div>
               </div>
 
               {/* Meetings Link */}
@@ -369,45 +299,6 @@ export default function NavProfileMenu() {
                 <Users className="size-4 text-orange-600 group-hover:scale-110 transition-transform" />
                 <span>1:1 Mentor Sessions</span>
               </Link>
-            </div>
-
-            {/* Quick Demo Persona Switcher */}
-            <div className="p-3 bg-stone-50/80 border-t border-stone-100 space-y-2">
-              <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-stone-400">
-                <span>Switch Persona</span>
-                <span className="text-[10px] text-stone-500 font-semibold lowercase">
-                  preview mode
-                </span>
-              </div>
-
-              <div className="grid grid-cols-3 gap-1.5">
-                {[
-                  { key: "aarav" as const, name: "Aarav", track: "Robotics" },
-                  { key: "meera" as const, name: "Meera", track: "Law" },
-                  { key: "vihaan" as const, name: "Vihaan", track: "Medicine" },
-                ].map((demo) => {
-                  const isCurrent = studentUser.name.toLowerCase().includes(demo.name.toLowerCase());
-                  return (
-                    <button
-                      key={demo.key}
-                      type="button"
-                      onClick={() => handleDemoSwitch(demo.key)}
-                      disabled={isCurrent || isSwitchingDemo}
-                      className={`p-1.5 rounded-lg text-left transition cursor-pointer text-xs ${
-                        isCurrent
-                          ? "bg-white border border-orange-300 text-primary font-bold shadow-2xs"
-                          : "hover:bg-white text-stone-600 hover:text-stone-900 border border-transparent"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span>{demo.name}</span>
-                        {isCurrent && <Check className="size-3 text-primary" />}
-                      </div>
-                      <span className="text-[9px] text-stone-400 block">{demo.track}</span>
-                    </button>
-                  );
-                })}
-              </div>
             </div>
 
             {/* Sign Out Footer */}

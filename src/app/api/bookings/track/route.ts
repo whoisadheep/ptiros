@@ -33,10 +33,8 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const isDemo = student.id.startsWith("usr_demo_");
     const bookings = await getStudentBookings({
       userId: student.id,
-      phone: isDemo ? student.parentPhone : undefined,
     });
 
     return NextResponse.json<ApiResponse<MentorshipSessionRecord[]>>({

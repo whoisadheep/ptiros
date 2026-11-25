@@ -70,8 +70,8 @@ export default function FloatingCopilot() {
       hint: "Book a 20-minute strategy call with faculty from IIT and NLSIU, or reach out via WhatsApp.",
     },
     "/login": {
-      title: "1-Click Demo Available",
-      hint: "Select Aarav, Meera, or Vihaan for instant access without a password.",
+      title: "Student Portal Access",
+      hint: "Sign in with your student email or create a new account to track your roadmap and reflections.",
     },
   };
 

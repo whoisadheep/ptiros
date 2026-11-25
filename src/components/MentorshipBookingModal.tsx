@@ -577,7 +577,7 @@ export default function MentorshipBookingModal() {
                   id="booking-student"
                   type="text"
                   required
-                  placeholder="e.g. Aarav Sharma"
+                  placeholder="Student full name"
                   value={studentName}
                   onChange={(e) => setStudentName(e.target.value)}
                   className="w-full rounded-xl border border-stone-300 px-3.5 py-2 text-sm focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"

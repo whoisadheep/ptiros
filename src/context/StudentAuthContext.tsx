@@ -24,7 +24,6 @@ interface StudentAuthContextType {
   openAuthModal: (mode?: "login" | "signup") => void;
   closeAuthModal: () => void;
   login: (credentials: { email: string; password: string }) => Promise<{ success: boolean; error?: string }>;
-  loginAsDemo: (demoKey: "aarav" | "meera" | "vihaan") => Promise<{ success: boolean; error?: string }>;
   signup: (formData: {
     name: string;
     email: string;
@@ -148,25 +147,6 @@ export function StudentAuthProvider({ children }: { children: React.ReactNode })
       return { success: true };
     } catch {
       return { success: false, error: "Network error occurred. Please try again." };
-    }
-  };
-
-  const loginAsDemo = async (demoKey: "aarav" | "meera" | "vihaan") => {
-    try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ demoUser: demoKey }),
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        return { success: false, error: data.error || "Demo login failed" };
-      }
-      await refresh();
-      closeAuthModal();
-      return { success: true };
-    } catch {
-      return { success: false, error: "Network error during demo switch." };
     }
   };
 
@@ -363,7 +343,6 @@ export function StudentAuthProvider({ children }: { children: React.ReactNode })
         openAuthModal,
         closeAuthModal,
         login,
-        loginAsDemo,
         signup,
         logout,
         addDiaryEntry,

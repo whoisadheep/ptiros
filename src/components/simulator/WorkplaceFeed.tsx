@@ -51,7 +51,7 @@ const MANAGERS_DATA: { [trackId: string]: WorkplaceManager } = {
     channelName: "#robotics-fleet-ops",
     voiceMemoDuration: "0:14",
     voiceMemoTranscript:
-      "Aarav, emergency dispatch from warehouse aisle 4. Fleet bot 402 is triggering emergency collision brakes on empty corridors. We have 4,000 orders pending this hour. I've sent you the raw LiDAR and ultrasonic telemetry. Inspect the sensor fusion filter and flush that stale packet buffer immediately.",
+      "Urgent dispatch from warehouse aisle 4: Fleet bot 402 is triggering emergency collision brakes on empty corridors. We have 4,000 orders pending this hour. I've sent you the raw LiDAR and ultrasonic telemetry. Inspect the sensor fusion filter and flush that stale packet buffer immediately.",
     messages: [
       {
         sender: "system",
@@ -84,7 +84,7 @@ const MANAGERS_DATA: { [trackId: string]: WorkplaceManager } = {
     channelName: "#saas-acquisition-dealroom",
     voiceMemoDuration: "0:16",
     voiceMemoTranscript:
-      "Aarav, the buyer's London legal team just slipped an 8-year nationwide blanket non-compete into Schedule 14. Under Indian Contract Act Section 27, that's completely void and predatory against our founders. Redline that clause immediately and cap their indemnity liability to standard escrow limits.",
+      "Heads up — the buyer's London legal team just slipped an 8-year nationwide blanket non-compete into Schedule 14. Under Indian Contract Act Section 27, that's completely void and predatory against our founders. Redline that clause immediately and cap their indemnity liability to standard escrow limits.",
     messages: [
       {
         sender: "system",
@@ -183,7 +183,7 @@ const MANAGERS_DATA: { [trackId: string]: WorkplaceManager } = {
     channelName: "#hnw-portfolio-strategy",
     voiceMemoDuration: "0:15",
     voiceMemoTranscript:
-      "Aarav, our ₹10 Crore client wants to put 100% into fixed deposits for his granddaughter's US college fund. He thinks it's zero risk. Walk him through the math: after 30% tax, a 7% FD nets 4.9%, which loses wealth against 6% inflation, especially with rupee depreciation. Structure a 60-25-15 hedge.",
+      "Quick portfolio brief: our ₹10 Crore client wants to put 100% into fixed deposits for his granddaughter's US college fund. He thinks it's zero risk. Walk him through the math: after 30% tax, a 7% FD nets 4.9%, which loses wealth against 6% inflation, especially with rupee depreciation. Structure a 60-25-15 hedge.",
     messages: [
       {
         sender: "system",

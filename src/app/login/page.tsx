@@ -1,129 +1,122 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useStudentAuth } from "@/context/StudentAuthContext";
-import { Zap, ArrowRight, ArrowLeft, Bot, Scale, Stethoscope } from "lucide-react";
-import { Blobatar } from "@blobatar/react";
+import { ArrowRight, ArrowLeft, Lock, Mail, GraduationCap, AlertCircle } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { isLoggedIn, openAuthModal, loginAsDemo } = useStudentAuth();
+  const { isLoggedIn, login, openAuthModal } = useStudentAuth();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (isLoggedIn) {
-      router.push("/dashboard");
+      router.replace("/dashboard");
     }
   }, [isLoggedIn, router]);
 
-  const handleDemo = async (demoKey: "aarav" | "meera" | "vihaan") => {
-    const res = await loginAsDemo(demoKey);
-    if (res.success) {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg(null);
+    setIsSubmitting(true);
+    const res = await login({ email: email.trim(), password });
+    setIsSubmitting(false);
+    if (!res.success) {
+      setErrorMsg(res.error || "Invalid email or password");
+    } else {
       router.push("/dashboard");
     }
   };
 
   return (
-    <div className="min-h-screen bg-bg-muted flex flex-col justify-center items-center p-3 sm:p-4 py-8">
-      <div className="w-full max-w-md bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-border shadow-xl space-y-5 sm:space-y-6">
-        <div className="text-center">
-          <Link href="/" className="inline-block mb-3">
-            <span className="font-display font-extrabold text-3xl text-gradient">PTIROS</span>
-          </Link>
-          <h1 className="text-2xl font-display font-bold text-accent">Student Portal Login</h1>
-          <p className="text-xs text-text-muted mt-1">
-            Access your personalized roadmap, daily study journal, and mentor guidance.
+    <div className="min-h-[100dvh] bg-gradient-to-br from-orange-50/60 via-white to-stone-50 flex flex-col items-center justify-center p-4 sm:p-6">
+      <div className="max-w-md w-full bg-white rounded-3xl border border-stone-200 shadow-xl p-6 sm:p-8 space-y-6">
+        <div className="text-center space-y-2">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-100 text-orange-800 text-[11px] font-bold uppercase tracking-wider">
+            <GraduationCap className="size-3.5" /> Student Portal
+          </div>
+          <h1 className="font-display text-2xl sm:text-3xl font-bold text-stone-900">
+            Student Portal Sign In
+          </h1>
+          <p className="text-xs sm:text-sm text-stone-500">
+            Sign in with your student email to access your roadmap, career tests, simulations, and 1:1 mentor sessions.
           </p>
         </div>
 
-        {/* 1-Click Demo Accounts */}
-        <div className="p-4 rounded-2xl bg-orange-50/80 border border-orange-200 space-y-3">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-orange-950">
-            <Zap className="size-4 text-primary fill-primary" />
-            <span>Instant Demo Login (No Password Needed)</span>
+        {errorMsg && (
+          <div className="p-3 rounded-xl bg-red-50 border border-red-200 flex items-start gap-2.5 text-xs text-red-700">
+            <AlertCircle className="size-4 shrink-0 mt-0.5 text-red-600" />
+            <span>{errorMsg}</span>
           </div>
-          <div className="space-y-2">
-            <button
-              onClick={() => handleDemo("aarav")}
-              className="w-full p-3 rounded-xl bg-white hover:bg-orange-100/70 border border-orange-200 text-left transition flex items-center justify-between group cursor-pointer"
-            >
-              <div className="flex items-center gap-3">
-                <div className="size-9 rounded-xl overflow-hidden bg-stone-100 border border-stone-200/80 shrink-0 shadow-2xs flex items-center justify-center">
-                  <Blobatar name="Aarav Sharma" size={36} animate="hover" className="size-full object-cover" />
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-accent group-hover:text-primary flex items-center gap-1.5">
-                    <Bot className="size-3.5 text-primary" />
-                    <span>Aarav Sharma</span>
-                  </div>
-                  <div className="text-[11px] text-text-muted">Class 10 • AI & Autonomous Robotics</div>
-                </div>
-              </div>
-              <ArrowRight className="size-4 text-primary group-hover:translate-x-1 transition-transform" />
-            </button>
+        )}
 
-            <button
-              onClick={() => handleDemo("meera")}
-              className="w-full p-3 rounded-xl bg-white hover:bg-blue-50 border border-blue-200 text-left transition flex items-center justify-between group cursor-pointer"
-            >
-              <div className="flex items-center gap-3">
-                <div className="size-9 rounded-xl overflow-hidden bg-stone-100 border border-stone-200/80 shrink-0 shadow-2xs flex items-center justify-center">
-                  <Blobatar name="Meera Nair" size={36} animate="hover" className="size-full object-cover" />
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-accent group-hover:text-blue-700 flex items-center gap-1.5">
-                    <Scale className="size-3.5 text-blue-600" />
-                    <span>Meera Nair</span>
-                  </div>
-                  <div className="text-[11px] text-text-muted">Class 11 • Corporate Law & Policy</div>
-                </div>
-              </div>
-              <ArrowRight className="size-4 text-blue-600 group-hover:translate-x-1 transition-transform" />
-            </button>
-
-            <button
-              onClick={() => handleDemo("vihaan")}
-              className="w-full p-3 rounded-xl bg-white hover:bg-emerald-50 border border-emerald-200 text-left transition flex items-center justify-between group cursor-pointer"
-            >
-              <div className="flex items-center gap-3">
-                <div className="size-9 rounded-xl overflow-hidden bg-stone-100 border border-stone-200/80 shrink-0 shadow-2xs flex items-center justify-center">
-                  <Blobatar name="Vihaan Patel" size={36} animate="hover" className="size-full object-cover" />
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-accent group-hover:text-emerald-700 flex items-center gap-1.5">
-                    <Stethoscope className="size-3.5 text-emerald-600" />
-                    <span>Vihaan Patel</span>
-                  </div>
-                  <div className="text-[11px] text-text-muted">Class 12 • Medicine & BioTech</div>
-                </div>
-              </div>
-              <ArrowRight className="size-4 text-emerald-600 group-hover:translate-x-1 transition-transform" />
-            </button>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="login-email" className="block text-xs font-bold text-stone-700 mb-1.5">
+              Student Email
+            </label>
+            <div className="relative">
+              <Mail className="absolute left-3.5 top-3 size-4 text-stone-400" />
+              <input
+                id="login-email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="student@example.com"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-stone-200 text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
+              />
+            </div>
           </div>
-        </div>
 
-        <div className="space-y-3">
+          <div>
+            <label htmlFor="login-password" className="block text-xs font-bold text-stone-700 mb-1.5">
+              Password
+            </label>
+            <div className="relative">
+              <Lock className="absolute left-3.5 top-3 size-4 text-stone-400" />
+              <input
+                id="login-password"
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password"
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-stone-200 text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary"
+              />
+            </div>
+          </div>
+
           <button
-            onClick={() => openAuthModal("login")}
-            className="w-full py-3 rounded-xl bg-primary text-white font-bold text-xs shadow-md shadow-primary/20 hover:bg-primary-dark transition cursor-pointer"
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full py-3 rounded-xl bg-primary text-white font-bold text-sm hover:bg-primary-dark transition shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
           >
-            Enter Email & Password
+            <span>{isSubmitting ? "Signing In..." : "Sign In to My Portal"}</span>
+            <ArrowRight className="size-4" />
           </button>
+        </form>
+
+        <div className="pt-2 border-t border-stone-100 space-y-3 text-center">
+          <p className="text-xs text-stone-500">New to PTIROS?</p>
           <button
+            type="button"
             onClick={() => openAuthModal("signup")}
-            className="w-full py-3 rounded-xl bg-bg-muted hover:bg-white border border-border text-accent font-bold text-xs transition cursor-pointer"
+            className="w-full py-2.5 rounded-xl bg-stone-50 border border-stone-200 text-stone-800 font-bold text-sm hover:bg-stone-100 transition cursor-pointer"
           >
             Create New Student Account
           </button>
-        </div>
-
-        <div className="text-center pt-2">
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 text-xs text-text-muted hover:text-primary transition"
+            className="flex items-center justify-center gap-1.5 text-xs font-semibold text-stone-500 hover:text-stone-900 pt-2 transition"
           >
-            <ArrowLeft className="size-3.5" /> Back to Home
+            <ArrowLeft className="size-3.5" /> Return to Homepage
           </Link>
         </div>
       </div>
