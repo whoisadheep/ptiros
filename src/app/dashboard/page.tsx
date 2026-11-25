@@ -55,6 +55,7 @@ import {
   Trophy,
   Bookmark,
   Lock,
+  UserCheck,
 } from "lucide-react";
 import { Blobatar } from "@blobatar/react";
 import { useScrollLock } from "@/hooks/useScrollLock";
@@ -64,8 +65,10 @@ import { MentorshipSessionRecord } from "@/types/database";
 import ActivityLocker from "@/components/dashboard/ActivityLocker";
 import SavedPathways from "@/components/dashboard/SavedPathways";
 import CareerIntelligenceFeed from "@/components/dashboard/CareerIntelligenceFeed";
+import StudentDetailsSection from "@/components/dashboard/StudentDetailsSection";
+import { getProfileCompleteness } from "@/lib/studentProfileOptions";
 
-type DashboardTab = "cockpit" | "planner" | "activities" | "saved" | "diary" | "credentials" | "analysis" | "mentorship";
+type DashboardTab = "cockpit" | "details" | "planner" | "activities" | "saved" | "diary" | "credentials" | "analysis" | "mentorship";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -79,6 +82,7 @@ export default function DashboardPage() {
     isLoggedIn,
     logout,
     openAuthModal,
+    updateProfile,
     addDiaryEntry,
     deleteDiaryEntry,
     toggleGoal,
@@ -94,13 +98,14 @@ export default function DashboardPage() {
   const [goalCategoryFilter, setGoalCategoryFilter] = useState<string>("all");
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [celebrationGoal, setCelebrationGoal] = useState<string | null>(null);
+  const [savingQuickPrompt, setSavingQuickPrompt] = useState(false);
 
   // Sync tab from URL search parameters on initial load
   useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const tabParam = params.get("tab") as DashboardTab | null;
-      if (tabParam && ["cockpit", "planner", "activities", "saved", "diary", "credentials", "analysis", "mentorship"].includes(tabParam)) {
+      if (tabParam && ["cockpit", "details", "planner", "activities", "saved", "diary", "credentials", "analysis", "mentorship"].includes(tabParam)) {
         setActiveTab(tabParam);
       }
     }
@@ -493,6 +498,7 @@ export default function DashboardPage() {
           <nav className="flex space-x-1 sm:space-x-3 overflow-x-auto py-2 sm:py-2.5 scrollbar-none snap-x overscroll-contain">
             {[
               { id: "cockpit", label: "Student Overview", shortLabel: "Overview", icon: Compass },
+              { id: "details", label: "My Details", shortLabel: "Details", icon: UserCheck },
               { id: "planner", label: `Weekly Goals (${totalGoals - completedGoals} Active)`, shortLabel: `Goals (${totalGoals - completedGoals})`, icon: Calendar },
               { id: "activities", label: "Activity Locker", shortLabel: "Activities", icon: Trophy },
               { id: "saved", label: "Saved Pathways", shortLabel: "Saved", icon: Bookmark },
@@ -767,6 +773,97 @@ export default function DashboardPage() {
                 </div>
               </div>
             )}
+
+            {/* 1-Question Progressive Profile Builder (Never overwhelming) */}
+            {(() => {
+              const comp = getProfileCompleteness(student);
+              if (comp.missingFields.length === 0) return null;
+
+              const nextQuick =
+                student.singleChild === undefined
+                  ? {
+                      key: "singleChild",
+                      question: "Quick Profile Question: Are you a single child?",
+                      options: [
+                        { label: "Yes, single child", value: true },
+                        { label: "No, have siblings", value: false },
+                      ],
+                    }
+                  : student.proSports === undefined
+                  ? {
+                      key: "proSports",
+                      question: "Do you take sports education professionally?",
+                      options: [
+                        { label: "Yes — Pro / Academy", value: true },
+                        { label: "No — Casual / Fun", value: false },
+                      ],
+                    }
+                  : !student.gender
+                  ? {
+                      key: "gender",
+                      question: "Quick Profile Question: Sex / Gender",
+                      options: [
+                        { label: "Female", value: "Female" },
+                        { label: "Male", value: "Male" },
+                        { label: "Prefer not to say", value: "Prefer not to say" },
+                      ],
+                    }
+                  : !student.age
+                  ? {
+                      key: "age",
+                      question: "How old are you right now?",
+                      options: [12, 13, 14, 15, 16, 17, 18].map((n) => ({
+                        label: `${n} yrs`,
+                        value: n,
+                      })),
+                    }
+                  : null;
+
+              return (
+                <div className="rounded-2xl border border-stone-200/90 bg-white px-4 py-3.5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="space-y-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 text-xs">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2.5 py-0.5 font-bold text-orange-800">
+                        <UserCheck className="size-3" />
+                        <span>Dossier {comp.percent}% Complete</span>
+                      </span>
+                      <span className="text-stone-500">
+                        {nextQuick
+                          ? nextQuick.question
+                          : `${comp.missingFields.length} academic or family detail(s) left`}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-1.5 shrink-0">
+                    {nextQuick
+                      ? nextQuick.options.map((opt) => (
+                          <button
+                            key={String(opt.value)}
+                            type="button"
+                            disabled={savingQuickPrompt}
+                            onClick={async () => {
+                              setSavingQuickPrompt(true);
+                              await updateProfile({ [nextQuick.key]: opt.value });
+                              setSavingQuickPrompt(false);
+                            }}
+                            className="px-3 py-1.5 rounded-xl bg-stone-100 hover:bg-orange-600 hover:text-white text-stone-800 text-xs font-bold transition cursor-pointer disabled:opacity-50"
+                          >
+                            {opt.label}
+                          </button>
+                        ))
+                      : null}
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("details")}
+                      className="px-3 py-1.5 rounded-xl text-orange-700 hover:bg-orange-50 text-xs font-bold transition cursor-pointer"
+                    >
+                      All Details →
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* North Star Flight Card */}
             <div className="relative rounded-2xl sm:rounded-3xl bg-stone-900 text-white p-5 sm:p-8 shadow-xs overflow-hidden border border-stone-800">
@@ -1698,6 +1795,11 @@ export default function DashboardPage() {
             </div>
           </div>
         )}
+
+        {/* ========================================================= */}
+        {/* TAB 2: STUDENT PERSONAL & ACADEMIC DETAILS                */}
+        {/* ========================================================= */}
+        {activeTab === "details" && <StudentDetailsSection />}
 
         {/* ========================================================= */}
         {/* TAB 5: APTITUDE DIAGNOSTICS & SIMULATION SCORES */}

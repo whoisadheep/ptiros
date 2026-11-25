@@ -20,6 +20,7 @@ import {
   Loader2,
   ExternalLink,
 } from "lucide-react";
+import { STUDENT_GRADES, SCHOOL_BOARDS, INDIAN_STATES } from "@/lib/studentProfileOptions";
 
 const EASE_OUT = [0.22, 1, 0.36, 1] as const;
 
@@ -38,17 +39,20 @@ export default function StudentAuthModal() {
   const [loginPassword, setLoginPassword] = useState("");
   const [showLoginPassword, setShowLoginPassword] = useState(false);
 
-  // Signup form state
+  // Signup form state (aligns compulsory Parent Email & Parent Mobile with client spec)
   const [fullName, setFullName] = useState("");
   const [signupEmail, setSignupEmail] = useState("");
+  const [parentEmail, setParentEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [grade, setGrade] = useState("Class 10");
   const [curriculum, setCurriculum] = useState("CBSE");
+  const [stateVal, setStateVal] = useState("Karnataka");
   const [schoolName, setSchoolName] = useState("");
   const [city, setCity] = useState("Bengaluru");
   const [parentName, setParentName] = useState("");
   const [parentPhone, setParentPhone] = useState("");
+  const [personalPhone, setPersonalPhone] = useState("");
 
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -74,8 +78,8 @@ export default function StudentAuthModal() {
 
   const handleSignupSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName.trim() || !signupEmail.trim() || !signupPassword) {
-      setErrorMsg("Fill in all mandatory fields");
+    if (!fullName.trim() || !signupEmail.trim() || !parentEmail.trim() || !parentPhone.trim() || !signupPassword) {
+      setErrorMsg("Fill in student name, emails, parent mobile, and password");
       return;
     }
     if (signupPassword.length < 6) {
@@ -87,13 +91,16 @@ export default function StudentAuthModal() {
     const res = await signup({
       name: fullName.trim(),
       email: signupEmail.trim(),
+      parentEmail: parentEmail.trim(),
       password: signupPassword,
       grade,
       curriculum,
+      state: stateVal,
       schoolName: schoolName.trim() || undefined,
-      city: city.trim() || "India",
+      city: city.trim() || stateVal || "India",
       parentName: parentName.trim() || undefined,
-      parentPhone: parentPhone.trim() || undefined,
+      parentPhone: parentPhone.trim(),
+      personalPhone: personalPhone.trim() || undefined,
     });
     setIsSubmitting(false);
     if (!res.success) {
@@ -104,7 +111,6 @@ export default function StudentAuthModal() {
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-[1100] flex items-center justify-center p-3 sm:p-4 font-body">
-        {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -114,7 +120,6 @@ export default function StudentAuthModal() {
           className="fixed inset-0 bg-[#1F1B16]/55 backdrop-blur-xs"
         />
 
-        {/* Modal Window */}
         <motion.div
           initial={{ opacity: 0, scale: 0.97, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -125,8 +130,7 @@ export default function StudentAuthModal() {
           data-lenis-prevent
           className="relative w-full max-w-lg bg-[#FDFBF7] text-[#1F1B16] rounded-[20px] shadow-[0_12px_40px_rgba(31,27,22,0.18)] border border-[#1F1B16]/[0.1] overflow-y-auto z-10 flex flex-col max-h-[90dvh] overscroll-contain"
         >
-          {/* Header */}
-          <div className="relative px-5 sm:px-6 pt-5 pb-4 bg-[#F3EDE2] border-b border-[#1F1B16]/[0.08]">
+          <div className="relative px-5 sm:px-6 pt-5 pb-4 bg-[#F2EEE3] border-b border-[#1F1B16]/[0.08]">
             <button
               type="button"
               onClick={closeAuthModal}
@@ -151,11 +155,10 @@ export default function StudentAuthModal() {
             <p className="text-xs text-[#5E554A] mt-1">
               {authMode === "login"
                 ? "Access your roadmap, study planner, and 1-on-1 mentor meetings"
-                : "Set up a personal student workspace for career diagnostics and goals"}
+                : "Register your student & parent contacts, then personalize inside your dashboard"}
             </p>
           </div>
 
-          {/* Mode Tabs */}
           <div className="p-4 pb-0 sm:px-6">
             <div className="grid grid-cols-2 p-1 rounded-[12px] bg-[#EFE9DF]">
               <button
@@ -189,7 +192,6 @@ export default function StudentAuthModal() {
             </div>
           </div>
 
-          {/* Content Body */}
           <div data-lenis-prevent className="p-5 sm:p-6 overflow-y-auto flex-1 overscroll-contain">
             {errorMsg && (
               <div
@@ -201,7 +203,6 @@ export default function StudentAuthModal() {
               </div>
             )}
 
-            {/* TAB: LOGIN */}
             {authMode === "login" && (
               <form onSubmit={handleLoginSubmit} className="space-y-4">
                 <div>
@@ -276,48 +277,90 @@ export default function StudentAuthModal() {
               </form>
             )}
 
-            {/* TAB: SIGNUP */}
             {authMode === "signup" && (
-              <form onSubmit={handleSignupSubmit} className="space-y-3.5">
+              <form onSubmit={handleSignupSubmit} className="space-y-3">
+                <div>
+                  <label className="block text-xs font-medium text-[#1F1B16] mb-1">
+                    Student full name *
+                  </label>
+                  <div className="relative">
+                    <User
+                      className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[#685F54]"
+                      strokeWidth={1.5}
+                    />
+                    <input
+                      type="text"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      placeholder="Student full name"
+                      required
+                      className="w-full h-10 pl-9 pr-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C]"
+                    />
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-medium text-[#1F1B16] mb-1">
-                      Student full name *
+                      Student email *
+                    </label>
+                    <input
+                      type="email"
+                      value={signupEmail}
+                      onChange={(e) => setSignupEmail(e.target.value)}
+                      placeholder="student@example.com"
+                      required
+                      className="w-full h-10 px-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-[#1F1B16] mb-1">
+                      Parent email *
+                    </label>
+                    <input
+                      type="email"
+                      value={parentEmail}
+                      onChange={(e) => setParentEmail(e.target.value)}
+                      placeholder="parent@example.com"
+                      required
+                      className="w-full h-10 px-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C]"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-[#1F1B16] mb-1">
+                      Parent mobile *
                     </label>
                     <div className="relative">
-                      <User
+                      <Phone
                         className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[#685F54]"
                         strokeWidth={1.5}
                       />
                       <input
-                        type="text"
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                        placeholder="Student full name"
+                        type="tel"
+                        value={parentPhone}
+                        onChange={(e) => setParentPhone(e.target.value)}
+                        placeholder="10-digit parent mobile"
                         required
-                        className="w-full h-10 pl-9 pr-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C] focus:ring-2 focus:ring-[#C2410C]/15"
+                        className="w-full h-10 pl-9 pr-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C]"
                       />
                     </div>
                   </div>
 
                   <div>
                     <label className="block text-xs font-medium text-[#1F1B16] mb-1">
-                      Student email *
+                      Student mobile <span className="text-[#685F54]">(optional)</span>
                     </label>
-                    <div className="relative">
-                      <Mail
-                        className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[#685F54]"
-                        strokeWidth={1.5}
-                      />
-                      <input
-                        type="email"
-                        value={signupEmail}
-                        onChange={(e) => setSignupEmail(e.target.value)}
-                        placeholder="student@example.com"
-                        required
-                        className="w-full h-10 pl-9 pr-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C] focus:ring-2 focus:ring-[#C2410C]/15"
-                      />
-                    </div>
+                    <input
+                      type="tel"
+                      value={personalPhone}
+                      onChange={(e) => setPersonalPhone(e.target.value)}
+                      placeholder="Optional"
+                      className="w-full h-10 px-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C]"
+                    />
                   </div>
                 </div>
 
@@ -338,7 +381,7 @@ export default function StudentAuthModal() {
                         placeholder="Min. 6 characters"
                         required
                         minLength={6}
-                        className="w-full h-10 pl-9 pr-9 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C] focus:ring-2 focus:ring-[#C2410C]/15"
+                        className="w-full h-10 pl-9 pr-9 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C]"
                       />
                       <button
                         type="button"
@@ -367,34 +410,50 @@ export default function StudentAuthModal() {
                       <select
                         value={grade}
                         onChange={(e) => setGrade(e.target.value)}
-                        className="w-full h-10 pl-9 pr-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C] focus:ring-2 focus:ring-[#C2410C]/15"
+                        className="w-full h-10 pl-9 pr-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C]"
                       >
-                        <option value="Class 8">Class 8</option>
-                        <option value="Class 9">Class 9</option>
-                        <option value="Class 10">Class 10</option>
-                        <option value="Class 11">Class 11</option>
-                        <option value="Class 12">Class 12</option>
-                        <option value="Dropper / UG 1st Yr">Dropper / UG 1st Yr</option>
+                        {STUDENT_GRADES.map((g) => (
+                          <option key={g.value} value={g.value}>
+                            {g.value}
+                          </option>
+                        ))}
                       </select>
                     </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
                     <label className="block text-xs font-medium text-[#1F1B16] mb-1">
-                      School board
+                      Board
                     </label>
                     <select
                       value={curriculum}
                       onChange={(e) => setCurriculum(e.target.value)}
-                      className="w-full h-10 px-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C] focus:ring-2 focus:ring-[#C2410C]/15"
+                      className="w-full h-10 px-2.5 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C]"
                     >
-                      <option value="CBSE">CBSE</option>
-                      <option value="ICSE">ICSE</option>
-                      <option value="IB">IB</option>
-                      <option value="Cambridge">Cambridge / IGCSE</option>
-                      <option value="State Board">State Board</option>
+                      {SCHOOL_BOARDS.map((b) => (
+                        <option key={b} value={b}>
+                          {b}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-[#1F1B16] mb-1">
+                      State
+                    </label>
+                    <select
+                      value={stateVal}
+                      onChange={(e) => setStateVal(e.target.value)}
+                      className="w-full h-10 px-2.5 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C]"
+                    >
+                      {INDIAN_STATES.map((st) => (
+                        <option key={st} value={st}>
+                          {st}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
@@ -406,16 +465,13 @@ export default function StudentAuthModal() {
                       type="text"
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
-                      placeholder="e.g. Bengaluru"
-                      className="w-full h-10 px-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C] focus:ring-2 focus:ring-[#C2410C]/15"
+                      placeholder="City"
+                      className="w-full h-10 px-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C]"
                     />
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-medium text-[#1F1B16] mb-1">
-                    School name (optional)
-                  </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="relative">
                     <Building
                       className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[#685F54]"
@@ -425,44 +481,17 @@ export default function StudentAuthModal() {
                       type="text"
                       value={schoolName}
                       onChange={(e) => setSchoolName(e.target.value)}
-                      placeholder="School name"
-                      className="w-full h-10 pl-9 pr-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C] focus:ring-2 focus:ring-[#C2410C]/15"
+                      placeholder="School name (optional)"
+                      className="w-full h-10 pl-9 pr-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C]"
                     />
                   </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-[#1F1B16]/[0.07]">
-                  <div>
-                    <label className="block text-xs font-medium text-[#1F1B16] mb-1">
-                      Parent name (optional)
-                    </label>
-                    <input
-                      type="text"
-                      value={parentName}
-                      onChange={(e) => setParentName(e.target.value)}
-                      placeholder="Parent / guardian name"
-                      className="w-full h-10 px-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C] focus:ring-2 focus:ring-[#C2410C]/15"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-[#1F1B16] mb-1">
-                      Parent WhatsApp (optional)
-                    </label>
-                    <div className="relative">
-                      <Phone
-                        className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[#685F54]"
-                        strokeWidth={1.5}
-                      />
-                      <input
-                        type="tel"
-                        value={parentPhone}
-                        onChange={(e) => setParentPhone(e.target.value)}
-                        placeholder="10-digit number"
-                        className="w-full h-10 pl-9 pr-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C] focus:ring-2 focus:ring-[#C2410C]/15"
-                      />
-                    </div>
-                  </div>
+                  <input
+                    type="text"
+                    value={parentName}
+                    onChange={(e) => setParentName(e.target.value)}
+                    placeholder="Parent name (optional)"
+                    className="w-full h-10 px-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.12] text-xs text-[#1F1B16] focus:outline-none focus:border-[#C2410C]"
+                  />
                 </div>
 
                 <button
@@ -485,9 +514,8 @@ export default function StudentAuthModal() {
               </form>
             )}
 
-            {/* Full-Page Link Footer */}
             <div className="mt-5 pt-4 border-t border-[#1F1B16]/[0.08] flex items-center justify-between text-xs text-[#685F54]">
-              <span>Open full portal gateway</span>
+              <span>Prefer interactive card onboarding?</span>
               <Link
                 href={authMode === "signup" ? "/signup" : "/login"}
                 onClick={closeAuthModal}

@@ -241,6 +241,15 @@ export default function NavProfileMenu() {
             {/* Quick Portal Navigation Links */}
             <div className="p-2 space-y-0.5">
               <Link
+                href="/dashboard?tab=details"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-3 px-3 py-2 rounded-xl text-stone-700 hover:bg-stone-50 hover:text-stone-950 transition text-xs font-semibold group"
+              >
+                <GraduationCap className="size-4 text-orange-600 group-hover:scale-110 transition-transform" />
+                <span>My Student Details</span>
+              </Link>
+
+              <Link
                 href="/dashboard?tab=cockpit"
                 onClick={() => setIsOpen(false)}
                 className="flex items-center gap-3 px-3 py-2 rounded-xl text-stone-700 hover:bg-stone-50 hover:text-stone-950 transition text-xs font-semibold group"

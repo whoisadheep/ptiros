@@ -28,14 +28,32 @@ interface StudentAuthContextType {
     name: string;
     email: string;
     password: string;
+    age?: number;
+    gender?: string;
+    address?: string;
+    singleChild?: boolean;
+    fatherName?: string;
+    motherName?: string;
+    personalPhone?: string;
+    parentEmail: string;
     grade: string;
     schoolName?: string;
+    schoolAddress?: string;
     city: string;
+    state?: string;
     curriculum: string;
     parentName?: string;
-    parentPhone?: string;
+    parentPhone: string;
     parentDream?: string;
+    lastYearRank?: string;
+    lastYearPercentage?: string;
+    proSports?: boolean;
+    competitions?: string;
+    aparId?: string;
   }) => Promise<{ success: boolean; error?: string }>;
+  updateProfile: (
+    updates: Partial<Omit<StudentUser, "id" | "email" | "createdAt" | "updatedAt">>
+  ) => Promise<{ success: boolean; error?: string }>;
   logout: (redirectTo?: string) => Promise<void>;
   addDiaryEntry: (title: string, content: string, category?: string) => Promise<boolean>;
   deleteDiaryEntry: (entryId: string) => Promise<boolean>;
@@ -154,13 +172,28 @@ export function StudentAuthProvider({ children }: { children: React.ReactNode })
     name: string;
     email: string;
     password: string;
+    age?: number;
+    gender?: string;
+    address?: string;
+    singleChild?: boolean;
+    fatherName?: string;
+    motherName?: string;
+    personalPhone?: string;
+    parentEmail: string;
     grade: string;
     schoolName?: string;
+    schoolAddress?: string;
     city: string;
+    state?: string;
     curriculum: string;
     parentName?: string;
-    parentPhone?: string;
+    parentPhone: string;
     parentDream?: string;
+    lastYearRank?: string;
+    lastYearPercentage?: string;
+    proSports?: boolean;
+    competitions?: string;
+    aparId?: string;
   }) => {
     try {
       const res = await fetch("/api/auth/signup", {
@@ -177,6 +210,26 @@ export function StudentAuthProvider({ children }: { children: React.ReactNode })
       return { success: true };
     } catch {
       return { success: false, error: "Network error during account registration." };
+    }
+  };
+
+  const updateProfile = async (
+    updates: Partial<Omit<StudentUser, "id" | "email" | "createdAt" | "updatedAt">>
+  ): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const res = await fetch("/api/student/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success || !data.user) {
+        return { success: false, error: data.error || "Failed to update profile details" };
+      }
+      setUser(data.user);
+      return { success: true };
+    } catch {
+      return { success: false, error: "Network error while saving profile details." };
     }
   };
 
@@ -344,6 +397,7 @@ export function StudentAuthProvider({ children }: { children: React.ReactNode })
         closeAuthModal,
         login,
         signup,
+        updateProfile,
         logout,
         addDiaryEntry,
         deleteDiaryEntry,

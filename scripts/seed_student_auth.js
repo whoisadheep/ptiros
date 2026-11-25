@@ -11,17 +11,51 @@ async function setup() {
       name VARCHAR(120) NOT NULL,
       email VARCHAR(150) UNIQUE NOT NULL,
       password_hash TEXT NOT NULL,
+      age INTEGER,
+      gender VARCHAR(24),
+      address TEXT,
+      single_child BOOLEAN,
+      father_name VARCHAR(120),
+      mother_name VARCHAR(120),
+      personal_phone VARCHAR(20),
+      parent_email VARCHAR(150),
       grade VARCHAR(32) NOT NULL,
       school_name VARCHAR(150),
+      school_address TEXT,
       city VARCHAR(100) NOT NULL,
+      state VARCHAR(80),
       curriculum VARCHAR(32) NOT NULL,
       parent_name VARCHAR(120),
       parent_phone VARCHAR(20),
       parent_dream TEXT,
+      last_year_rank VARCHAR(80),
+      last_year_percentage VARCHAR(20),
+      pro_sports BOOLEAN,
+      competitions TEXT,
+      apar_id VARCHAR(64),
       avatar_initials VARCHAR(4) DEFAULT 'ST',
       created_at TIMESTAMPTZ DEFAULT NOW(),
       updated_at TIMESTAMPTZ DEFAULT NOW()
     );
+  `;
+
+  await sql`
+    ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS age INTEGER,
+      ADD COLUMN IF NOT EXISTS gender VARCHAR(24),
+      ADD COLUMN IF NOT EXISTS address TEXT,
+      ADD COLUMN IF NOT EXISTS single_child BOOLEAN,
+      ADD COLUMN IF NOT EXISTS father_name VARCHAR(120),
+      ADD COLUMN IF NOT EXISTS mother_name VARCHAR(120),
+      ADD COLUMN IF NOT EXISTS personal_phone VARCHAR(20),
+      ADD COLUMN IF NOT EXISTS parent_email VARCHAR(150),
+      ADD COLUMN IF NOT EXISTS school_address TEXT,
+      ADD COLUMN IF NOT EXISTS state VARCHAR(80),
+      ADD COLUMN IF NOT EXISTS last_year_rank VARCHAR(80),
+      ADD COLUMN IF NOT EXISTS last_year_percentage VARCHAR(20),
+      ADD COLUMN IF NOT EXISTS pro_sports BOOLEAN,
+      ADD COLUMN IF NOT EXISTS competitions TEXT,
+      ADD COLUMN IF NOT EXISTS apar_id VARCHAR(64);
   `;
 
   await sql`

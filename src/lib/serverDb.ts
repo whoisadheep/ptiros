@@ -757,35 +757,61 @@ function formatDateString(d: Date = new Date()): string {
   return `${month} ${day}, ${year}`;
 }
 
+function mapNeonUserRow(r: Record<string, any>): StudentUser {
+  return {
+    id: r.id,
+    name: r.name,
+    email: r.email,
+    age: r.age !== null && r.age !== undefined ? Number(r.age) : undefined,
+    gender: r.gender || undefined,
+    address: r.address || undefined,
+    singleChild:
+      r.single_child !== null && r.single_child !== undefined ? Boolean(r.single_child) : undefined,
+    fatherName: r.father_name || undefined,
+    motherName: r.mother_name || undefined,
+    personalPhone: r.personal_phone || undefined,
+    parentEmail: r.parent_email || undefined,
+    grade: r.grade,
+    schoolName: r.school_name || undefined,
+    schoolAddress: r.school_address || undefined,
+    city: r.city,
+    state: r.state || undefined,
+    curriculum: r.curriculum,
+    parentName: r.parent_name || undefined,
+    parentPhone: r.parent_phone || undefined,
+    parentDream: r.parent_dream || undefined,
+    lastYearRank: r.last_year_rank || undefined,
+    lastYearPercentage: r.last_year_percentage || undefined,
+    proSports:
+      r.pro_sports !== null && r.pro_sports !== undefined ? Boolean(r.pro_sports) : undefined,
+    competitions: r.competitions || undefined,
+    aparId: r.apar_id || undefined,
+    avatarInitials: r.avatar_initials || "ST",
+    createdAt: typeof r.created_at === "string" ? r.created_at : new Date(r.created_at).toISOString(),
+    updatedAt: r.updated_at
+      ? typeof r.updated_at === "string"
+        ? r.updated_at
+        : new Date(r.updated_at).toISOString()
+      : undefined,
+  };
+}
+
 export async function getStudentUserById(userId: string): Promise<StudentUser | null> {
   const sql = getNeonSql();
   if (sql) {
     try {
       const rows = await sql`
-        SELECT id, name, email, grade, school_name, city, curriculum,
-               parent_name, parent_phone, parent_dream, avatar_initials,
+        SELECT id, name, email, age, gender, address, single_child, father_name, mother_name,
+               personal_phone, parent_email, grade, school_name, school_address, city, state,
+               curriculum, parent_name, parent_phone, parent_dream, last_year_rank,
+               last_year_percentage, pro_sports, competitions, apar_id, avatar_initials,
                created_at, updated_at
         FROM users
         WHERE id = ${userId}
         LIMIT 1;
       `;
       if (rows.length > 0) {
-        const r = rows[0];
-        return {
-          id: r.id,
-          name: r.name,
-          email: r.email,
-          grade: r.grade,
-          schoolName: r.school_name || undefined,
-          city: r.city,
-          curriculum: r.curriculum,
-          parentName: r.parent_name || undefined,
-          parentPhone: r.parent_phone || undefined,
-          parentDream: r.parent_dream || undefined,
-          avatarInitials: r.avatar_initials || "ST",
-          createdAt: typeof r.created_at === "string" ? r.created_at : new Date(r.created_at).toISOString(),
-          updatedAt: r.updated_at ? (typeof r.updated_at === "string" ? r.updated_at : new Date(r.updated_at).toISOString()) : undefined,
-        };
+        return mapNeonUserRow(rows[0]);
       }
     } catch (err) {
       console.warn("Neon getStudentUserById error:", err);
@@ -801,31 +827,18 @@ export async function getStudentUserByEmail(email: string): Promise<{ user: Stud
   if (sql) {
     try {
       const rows = await sql`
-        SELECT id, name, email, password_hash, grade, school_name, city, curriculum,
-               parent_name, parent_phone, parent_dream, avatar_initials,
-               created_at, updated_at
+        SELECT id, name, email, password_hash, age, gender, address, single_child, father_name,
+               mother_name, personal_phone, parent_email, grade, school_name, school_address,
+               city, state, curriculum, parent_name, parent_phone, parent_dream,
+               last_year_rank, last_year_percentage, pro_sports, competitions, apar_id,
+               avatar_initials, created_at, updated_at
         FROM users
         WHERE LOWER(email) = ${cleanEmail}
         LIMIT 1;
       `;
       if (rows.length > 0) {
         const r = rows[0];
-        const user: StudentUser = {
-          id: r.id,
-          name: r.name,
-          email: r.email,
-          grade: r.grade,
-          schoolName: r.school_name || undefined,
-          city: r.city,
-          curriculum: r.curriculum,
-          parentName: r.parent_name || undefined,
-          parentPhone: r.parent_phone || undefined,
-          parentDream: r.parent_dream || undefined,
-          avatarInitials: r.avatar_initials || "ST",
-          createdAt: typeof r.created_at === "string" ? r.created_at : new Date(r.created_at).toISOString(),
-          updatedAt: r.updated_at ? (typeof r.updated_at === "string" ? r.updated_at : new Date(r.updated_at).toISOString()) : undefined,
-        };
-        return { user, passwordHash: r.password_hash };
+        return { user: mapNeonUserRow(r), passwordHash: r.password_hash };
       }
     } catch (err) {
       console.warn("Neon getStudentUserByEmail error:", err);
@@ -835,20 +848,38 @@ export async function getStudentUserByEmail(email: string): Promise<{ user: Stud
   return null;
 }
 
-export async function createStudentUser(data: {
+export interface CreateStudentInput {
   name: string;
   email: string;
   password: string;
+  age?: number;
+  gender?: string;
+  address?: string;
+  singleChild?: boolean;
+  fatherName?: string;
+  motherName?: string;
+  personalPhone?: string;
+  parentEmail?: string;
   grade: string;
   schoolName?: string;
+  schoolAddress?: string;
   city: string;
+  state?: string;
   curriculum: string;
   parentName?: string;
   parentPhone?: string;
   parentDream?: string;
-}): Promise<StudentUser> {
+  lastYearRank?: string;
+  lastYearPercentage?: string;
+  proSports?: boolean;
+  competitions?: string;
+  aparId?: string;
+}
+
+export async function createStudentUser(data: CreateStudentInput): Promise<StudentUser> {
   const userId = `usr_${crypto.randomBytes(4).toString("hex")}`;
   const cleanEmail = data.email.trim().toLowerCase();
+  const cleanParentEmail = data.parentEmail?.trim().toLowerCase() || null;
   const passwordHash = hashStudentPassword(data.password);
   const initials = data.name
     .split(/\s+/)
@@ -861,32 +892,47 @@ export async function createStudentUser(data: {
   if (sql) {
     await sql`
       INSERT INTO users (
-        id, name, email, password_hash, grade, school_name, city, curriculum,
-        parent_name, parent_phone, parent_dream, avatar_initials
+        id, name, email, password_hash, age, gender, address, single_child,
+        father_name, mother_name, personal_phone, parent_email, grade,
+        school_name, school_address, city, state, curriculum, parent_name,
+        parent_phone, parent_dream, last_year_rank, last_year_percentage,
+        pro_sports, competitions, apar_id, avatar_initials
       ) VALUES (
         ${userId}, ${data.name.trim()}, ${cleanEmail}, ${passwordHash},
-        ${data.grade}, ${data.schoolName?.trim() || null}, ${data.city.trim()},
-        ${data.curriculum}, ${data.parentName?.trim() || null},
+        ${data.age ?? null}, ${data.gender?.trim() || null}, ${data.address?.trim() || null},
+        ${typeof data.singleChild === "boolean" ? data.singleChild : null},
+        ${data.fatherName?.trim() || null}, ${data.motherName?.trim() || null},
+        ${data.personalPhone?.trim() || null}, ${cleanParentEmail}, ${data.grade},
+        ${data.schoolName?.trim() || null}, ${data.schoolAddress?.trim() || null},
+        ${data.city.trim()}, ${data.state?.trim() || null}, ${data.curriculum},
+        ${data.parentName?.trim() || data.fatherName?.trim() || data.motherName?.trim() || null},
         ${data.parentPhone?.trim() || null}, ${data.parentDream?.trim() || null},
+        ${data.lastYearRank?.trim() || null}, ${data.lastYearPercentage?.trim() || null},
+        ${typeof data.proSports === "boolean" ? data.proSports : null},
+        ${data.competitions?.trim() || null}, ${data.aparId?.trim() || null},
         ${initials}
       );
     `;
   }
 
-  // Also record lead in CRM database so admin sees them immediately
+  // Record lead in CRM database so counselors have full onboarding context
   try {
     await saveLead({
-      studentName: data.name,
+      studentName: data.name.trim(),
       grade: data.grade as any,
-      schoolName: data.schoolName,
-      city: data.city,
+      schoolName: data.schoolName?.trim(),
+      city: data.city.trim(),
       curriculum: data.curriculum as any,
-      parentName: data.parentName || "Guardian",
+      parentName:
+        data.parentName?.trim() ||
+        data.fatherName?.trim() ||
+        data.motherName?.trim() ||
+        "Guardian",
       parentPhone: data.parentPhone || "9800000000",
-      parentDream: data.parentDream || "Exploring potential",
+      parentDream: data.parentDream?.trim() || "Exploring potential",
       source: "career_test",
       parentConsent: true,
-      notes: `Registered student account (${cleanEmail})`,
+      notes: `Registered student account (${cleanEmail}${cleanParentEmail ? `, Parent: ${cleanParentEmail}` : ""})`,
     });
   } catch (err) {
     console.warn("Could not mirror student to leads table:", err);
@@ -896,16 +942,97 @@ export async function createStudentUser(data: {
     id: userId,
     name: data.name.trim(),
     email: cleanEmail,
+    age: data.age,
+    gender: data.gender?.trim(),
+    address: data.address?.trim(),
+    singleChild: data.singleChild,
+    fatherName: data.fatherName?.trim(),
+    motherName: data.motherName?.trim(),
+    personalPhone: data.personalPhone?.trim(),
+    parentEmail: cleanParentEmail || undefined,
     grade: data.grade,
     schoolName: data.schoolName?.trim(),
+    schoolAddress: data.schoolAddress?.trim(),
     city: data.city.trim(),
+    state: data.state?.trim(),
     curriculum: data.curriculum,
-    parentName: data.parentName?.trim(),
+    parentName: data.parentName?.trim() || data.fatherName?.trim() || data.motherName?.trim(),
     parentPhone: data.parentPhone?.trim(),
     parentDream: data.parentDream?.trim(),
+    lastYearRank: data.lastYearRank?.trim(),
+    lastYearPercentage: data.lastYearPercentage?.trim(),
+    proSports: data.proSports,
+    competitions: data.competitions?.trim(),
+    aparId: data.aparId?.trim(),
     avatarInitials: initials,
     createdAt: new Date().toISOString(),
   };
+}
+
+export async function updateStudentUserProfile(
+  userId: string,
+  updates: Partial<Omit<StudentUser, "id" | "email" | "createdAt" | "updatedAt">>
+): Promise<StudentUser | null> {
+  const existing = await getStudentUserById(userId);
+  if (!existing) return null;
+
+  const merged: StudentUser = {
+    ...existing,
+    ...updates,
+    id: existing.id,
+    email: existing.email,
+    name: (updates.name ?? existing.name).trim(),
+    city: (updates.city ?? existing.city).trim() || existing.city,
+    grade: (updates.grade ?? existing.grade).trim() || existing.grade,
+    curriculum: (updates.curriculum ?? existing.curriculum).trim() || existing.curriculum,
+    avatarInitials:
+      (updates.name ?? existing.name)
+        .split(/\s+/)
+        .map((w) => w[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2) || existing.avatarInitials,
+    updatedAt: new Date().toISOString(),
+  };
+
+  const sql = getNeonSql();
+  if (sql) {
+    const rows = await sql`
+      UPDATE users SET
+        name = ${merged.name},
+        age = ${merged.age ?? null},
+        gender = ${merged.gender?.trim() || null},
+        address = ${merged.address?.trim() || null},
+        single_child = ${typeof merged.singleChild === "boolean" ? merged.singleChild : null},
+        father_name = ${merged.fatherName?.trim() || null},
+        mother_name = ${merged.motherName?.trim() || null},
+        personal_phone = ${merged.personalPhone?.trim() || null},
+        parent_email = ${merged.parentEmail?.trim().toLowerCase() || null},
+        grade = ${merged.grade},
+        school_name = ${merged.schoolName?.trim() || null},
+        school_address = ${merged.schoolAddress?.trim() || null},
+        city = ${merged.city},
+        state = ${merged.state?.trim() || null},
+        curriculum = ${merged.curriculum},
+        parent_name = ${merged.parentName?.trim() || merged.fatherName?.trim() || merged.motherName?.trim() || null},
+        parent_phone = ${merged.parentPhone?.trim() || null},
+        parent_dream = ${merged.parentDream?.trim() || null},
+        last_year_rank = ${merged.lastYearRank?.trim() || null},
+        last_year_percentage = ${merged.lastYearPercentage?.trim() || null},
+        pro_sports = ${typeof merged.proSports === "boolean" ? merged.proSports : null},
+        competitions = ${merged.competitions?.trim() || null},
+        apar_id = ${merged.aparId?.trim() || null},
+        avatar_initials = ${merged.avatarInitials},
+        updated_at = NOW()
+      WHERE id = ${userId}
+      RETURNING *;
+    `;
+    if (rows.length > 0) {
+      return mapNeonUserRow(rows[0]);
+    }
+  }
+
+  return merged;
 }
 
 export async function getStudentPortalData(userId: string): Promise<StudentPortalData | null> {
