@@ -513,82 +513,155 @@ export default function DashboardPage() {
         </header>
 
         {/* ========================================================= */}
-        {/* 2. SUB-NAVIGATION TABS (Workbench Mode Switcher) */}
+        {/* 2. SUB-NAVIGATION TABS (Creative Clustered Workbench Dock) */}
         {/* ========================================================= */}
-        <div className="bg-white border-b border-stone-200/80">
-        <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 relative flex items-center">
-          {canScrollNavLeft && (
-            <button
-              type="button"
-              onClick={() => scrollNavBy(-220)}
-              aria-label="Scroll navigation left"
-              className="shrink-0 mr-1 size-7 rounded-full border border-stone-200 bg-white/95 text-stone-700 hover:bg-stone-100 shadow-xs flex items-center justify-center cursor-pointer z-10"
-            >
-              <ChevronLeft className="size-4" />
-            </button>
-          )}
-          <nav
-            ref={navRef}
-            onScroll={updateNavScrollButtons}
-            onWheel={(e) => {
-              const el = navRef.current;
-              if (!el || el.scrollWidth <= el.clientWidth) return;
-              if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-                e.preventDefault();
-                el.scrollLeft += e.deltaY;
-              }
-            }}
-            className="flex-1 flex items-center space-x-1 sm:space-x-2 overflow-x-auto py-2 sm:py-2.5 scrollbar-none scroll-smooth overscroll-x-contain"
-          >
-            {[
-              { id: "cockpit", label: "Student Overview", shortLabel: "Overview", icon: Compass },
-              { id: "details", label: "My Details", shortLabel: "Details", icon: UserCheck },
-              { id: "planner", label: `Weekly Goals (${totalGoals - completedGoals} Active)`, shortLabel: `Goals (${totalGoals - completedGoals})`, icon: Calendar },
-              { id: "activities", label: "Activity Locker", shortLabel: "Activities", icon: Trophy },
-              { id: "saved", label: "Saved Pathways", shortLabel: "Saved", icon: Bookmark },
-              { id: "diary", label: `Learning Journal (${diary.length})`, shortLabel: `Journal (${diary.length})`, icon: FileText },
-              { id: "credentials", label: "Skills & Certificates", shortLabel: "Credentials", icon: Award },
-              { id: "analysis", label: "Aptitude & Strengths", shortLabel: "Aptitude", icon: Brain },
-              {
-                id: "mentorship",
-                label: activeBookings.length > 0 ? `Mentorship (${activeBookings.length} Active)` : "Senior Mentors & 1:1",
-                shortLabel: activeBookings.length > 0 ? `Mentors (${activeBookings.length})` : "Mentors",
-                icon: Users,
-              },
-            ].map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
+        <div className="bg-white/95 backdrop-blur-sm border-b border-stone-200/80">
+          <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-2 sm:py-3">
+            {(() => {
+              const allTabs: Array<{
+                id: DashboardTab;
+                label: string;
+                shortLabel: string;
+                icon: typeof Compass;
+                group: "core" | "growth";
+              }> = [
+                { id: "cockpit", label: "Student Overview", shortLabel: "Overview", icon: Compass, group: "core" },
+                { id: "details", label: "My Details", shortLabel: "Details", icon: UserCheck, group: "core" },
+                { id: "planner", label: `Weekly Goals (${totalGoals - completedGoals} Active)`, shortLabel: `Goals (${totalGoals - completedGoals})`, icon: Calendar, group: "core" },
+                { id: "activities", label: "Activity Locker", shortLabel: "Activities", icon: Trophy, group: "core" },
+                { id: "saved", label: "Saved Pathways", shortLabel: "Saved", icon: Bookmark, group: "core" },
+                { id: "diary", label: `Learning Journal (${diary.length})`, shortLabel: `Journal (${diary.length})`, icon: FileText, group: "growth" },
+                { id: "credentials", label: "Skills & Certificates", shortLabel: "Credentials", icon: Award, group: "growth" },
+                { id: "analysis", label: "Aptitude & Strengths", shortLabel: "Aptitude", icon: Brain, group: "growth" },
+                {
+                  id: "mentorship",
+                  label: activeBookings.length > 0 ? `Mentorship (${activeBookings.length} Active)` : "Senior Mentors & 1:1",
+                  shortLabel: activeBookings.length > 0 ? `Mentors (${activeBookings.length})` : "Mentors",
+                  icon: Users,
+                  group: "growth",
+                },
+              ];
+
+              const coreTabs = allTabs.filter((t) => t.group === "core");
+              const growthTabs = allTabs.filter((t) => t.group === "growth");
+
+              const renderDesktopTab = (tab: (typeof allTabs)[number]) => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={isActive}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`relative flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-colors cursor-pointer ${
+                      isActive
+                        ? "text-white"
+                        : "text-stone-600 hover:text-stone-900 hover:bg-white/70"
+                    }`}
+                  >
+                    {isActive && (
+                      <motion.span
+                        layoutId="dashboardDesktopActivePill"
+                        transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                        className="absolute inset-0 rounded-xl bg-stone-900 shadow-xs"
+                      />
+                    )}
+                    <Icon
+                      className={`relative z-10 size-3.5 shrink-0 transition-colors ${
+                        isActive ? "text-orange-400" : "text-stone-400"
+                      }`}
+                    />
+                    <span className="relative z-10">{tab.label}</span>
+                  </button>
+                );
+              };
+
               return (
-                <button
-                  key={tab.id}
-                  onClick={(e) => {
-                    setActiveTab(tab.id as DashboardTab);
-                    e.currentTarget.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
-                  }}
-                  className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 ${
-                    isActive
-                      ? "bg-stone-900 text-white shadow-xs"
-                      : "text-stone-600 hover:text-stone-900 hover:bg-stone-100"
-                  }`}
-                >
-                  <Icon className={`size-3.5 shrink-0 ${isActive ? "text-orange-400" : "text-stone-400"}`} />
-                  <span className="hidden 2xl:inline">{tab.label}</span>
-                  <span className="inline 2xl:hidden">{tab.shortLabel}</span>
-                </button>
+                <>
+                  {/* Desktop & Laptop: Full-Label Clustered Pill Dock (Zero horizontal clipping) */}
+                  <div
+                    role="tablist"
+                    aria-label="Dashboard sections"
+                    className="hidden md:flex flex-col gap-2"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="inline-flex flex-wrap items-center gap-1 rounded-2xl bg-stone-100/80 border border-stone-200/70 p-1">
+                        <span className="px-2.5 text-[10px] font-extrabold uppercase tracking-wider text-stone-400 select-none">
+                          Daily
+                        </span>
+                        {coreTabs.map(renderDesktopTab)}
+                      </div>
+
+                      <div className="inline-flex flex-wrap items-center gap-1 rounded-2xl bg-stone-100/80 border border-stone-200/70 p-1">
+                        <span className="px-2.5 text-[10px] font-extrabold uppercase tracking-wider text-stone-400 select-none">
+                          Portfolio
+                        </span>
+                        {growthTabs.map(renderDesktopTab)}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Mobile (<768px): Swipeable Horizontal Strip with Scroll Controls */}
+                  <div className="md:hidden relative flex items-center">
+                    {canScrollNavLeft && (
+                      <button
+                        type="button"
+                        onClick={() => scrollNavBy(-180)}
+                        aria-label="Scroll navigation left"
+                        className="shrink-0 mr-1 size-7 rounded-full border border-stone-200 bg-white/95 text-stone-700 hover:bg-stone-100 shadow-xs flex items-center justify-center cursor-pointer z-10"
+                      >
+                        <ChevronLeft className="size-4" />
+                      </button>
+                    )}
+                    <nav
+                      ref={navRef}
+                      onScroll={updateNavScrollButtons}
+                      className="flex-1 flex items-center space-x-1 overflow-x-auto scrollbar-none scroll-smooth overscroll-x-contain"
+                    >
+                      {allTabs.map((tab) => {
+                        const Icon = tab.icon;
+                        const isActive = activeTab === tab.id;
+                        return (
+                          <button
+                            key={tab.id}
+                            type="button"
+                            onClick={(e) => {
+                              setActiveTab(tab.id);
+                              e.currentTarget.scrollIntoView({
+                                behavior: "smooth",
+                                inline: "center",
+                                block: "nearest",
+                              });
+                            }}
+                            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 ${
+                              isActive
+                                ? "bg-stone-900 text-white shadow-xs"
+                                : "text-stone-600 hover:text-stone-900 hover:bg-stone-100"
+                            }`}
+                          >
+                            <Icon className={`size-3.5 shrink-0 ${isActive ? "text-orange-400" : "text-stone-400"}`} />
+                            <span>{tab.shortLabel}</span>
+                          </button>
+                        );
+                      })}
+                    </nav>
+                    {canScrollNavRight && (
+                      <button
+                        type="button"
+                        onClick={() => scrollNavBy(180)}
+                        aria-label="Scroll navigation right"
+                        className="shrink-0 ml-1 size-7 rounded-full border border-stone-200 bg-white/95 text-stone-700 hover:bg-stone-100 shadow-xs flex items-center justify-center cursor-pointer z-10"
+                      >
+                        <ChevronRight className="size-4" />
+                      </button>
+                    )}
+                  </div>
+                </>
               );
-            })}
-          </nav>
-          {canScrollNavRight && (
-            <button
-              type="button"
-              onClick={() => scrollNavBy(220)}
-              aria-label="Scroll navigation right"
-              className="shrink-0 ml-1 size-7 rounded-full border border-stone-200 bg-white/95 text-stone-700 hover:bg-stone-100 shadow-xs flex items-center justify-center cursor-pointer z-10"
-            >
-              <ChevronRight className="size-4" />
-            </button>
-          )}
-        </div>
+            })()}
+          </div>
         </div>
       </div>
 
