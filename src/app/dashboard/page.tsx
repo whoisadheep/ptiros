@@ -673,238 +673,169 @@ export default function DashboardPage() {
         {/* TAB 1: TRAJECTORY COCKPIT (THE EXECUTIVE FLIGHT DECK) */}
         {/* ========================================================= */}
         {activeTab === "cockpit" && (
-          <div className="space-y-6 sm:space-y-8">
-            {/* Live Mentorship Session Alert Banner */}
+          <div className="space-y-5">
+
+            {/* ── Row 0: Live Mentorship Alert (only when booked) ── */}
             {activeBookings.length > 0 && (
-              <div className="rounded-2xl sm:rounded-3xl border border-amber-300/80 bg-gradient-to-r from-amber-50 via-orange-50/60 to-white p-4 sm:p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex items-start sm:items-center gap-3.5">
-                  <div className="size-12 rounded-2xl overflow-hidden bg-white border border-amber-200 shadow-2xs flex items-center justify-center shrink-0">
-                    <Blobatar name={activeBookings[0].mentorName} size={48} animate="hover" className="size-full object-cover" />
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35 }}
+                className="rounded-2xl border border-amber-200/80 bg-amber-50/60 backdrop-blur-sm p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="size-10 rounded-xl overflow-hidden bg-white border border-amber-200 shadow-2xs flex items-center justify-center shrink-0">
+                    <Blobatar name={activeBookings[0].mentorName} size={40} animate="hover" className="size-full object-cover" />
                   </div>
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-200/70 text-amber-900 border border-amber-300">
-                        <Clock className="size-3 animate-spin text-amber-700" />
-                        <span>Upcoming 1:1 Mentorship Session</span>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-200/70 text-amber-900">
+                        <Clock className="size-2.5" /> Upcoming Session
                       </span>
                     </div>
-                    <h3 className="mt-1 text-sm sm:text-base font-bold text-stone-900">
-                      Strategy Call with {activeBookings[0].mentorName} ({activeBookings[0].domainTitle})
-                    </h3>
-                    <div className="text-xs text-stone-600 flex flex-wrap items-center gap-x-3 gap-y-1 mt-0.5">
-                      <span className="flex items-center gap-1 font-semibold text-stone-800">
-                        <Calendar className="size-3.5 text-orange-600" />
-                        {activeBookings[0].date}
-                      </span>
-                      <span className="flex items-center gap-1 text-stone-700">
-                        <Clock className="size-3.5 text-stone-400" />
-                        {activeBookings[0].timeSlot}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2.5 shrink-0 self-end md:self-auto">
-                  {activeBookings[0].meetingLink ? (
-                    <a
-                      href={activeBookings[0].meetingLink}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 shadow-sm transition active:scale-95"
-                    >
-                      <Video className="size-3.5" />
-                      <span>Join Google Meet</span>
-                    </a>
-                  ) : null}
-                  <button
-                    onClick={() => setActiveTab("mentorship")}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-stone-900 text-white text-xs font-bold hover:bg-black shadow-xs transition active:scale-95 cursor-pointer"
-                  >
-                    <span>View Progress Stepper →</span>
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Guided Portal Launchpad: Unmistakable Next Step in Front of the Student */}
-            {nextStep ? (
-              <div className="rounded-2xl sm:rounded-3xl border-2 border-orange-300 bg-white p-4 sm:p-6 shadow-sm space-y-5">
-                {/* Primary Spotlight Row */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-orange-100">
-                  <div className="space-y-1.5 min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-orange-600 text-white text-[11px] font-bold">
-                        <Compass className="size-3" />
-                        <span>Your Next Step ({nextStep.number} of 4)</span>
-                      </span>
-                      <span className="text-xs font-semibold text-stone-500">
-                        {completedStepsCount}/4 steps completed
-                      </span>
-                    </div>
-                    <h2 className="text-lg sm:text-2xl font-display font-extrabold text-stone-900">
-                      {nextStep.title}
-                    </h2>
-                    <p className="text-xs sm:text-sm text-stone-600 max-w-2xl leading-relaxed">
-                      {nextStep.description}
+                    <p className="text-sm font-bold text-stone-900 mt-0.5 truncate">
+                      {activeBookings[0].mentorName} · {activeBookings[0].date} · {activeBookings[0].timeSlot}
                     </p>
                   </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  {activeBookings[0].meetingLink && (
+                    <a href={activeBookings[0].meetingLink} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition">
+                      <Video className="size-3.5" /> Join
+                    </a>
+                  )}
+                  <button onClick={() => setActiveTab("mentorship")} className="px-3 py-1.5 rounded-xl bg-stone-900 text-white text-xs font-bold hover:bg-black transition cursor-pointer">
+                    Details →
+                  </button>
+                </div>
+              </motion.div>
+            )}
 
-                  <div className="shrink-0 w-full md:w-auto">
+            {/* ── Row 1: Welcome Strip + Progress Ring ── */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="rounded-2xl bg-white border border-stone-200/80 shadow-2xs p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+            >
+              <div className="flex items-center gap-4 min-w-0">
+                <div className="size-12 rounded-2xl overflow-hidden bg-stone-100 border border-stone-200 shadow-2xs shrink-0">
+                  <Blobatar name={student.name} size={48} animate="hover" className="size-full object-cover" />
+                </div>
+                <div className="min-w-0">
+                  <h1 className="text-lg sm:text-xl font-display font-bold text-stone-900 truncate">
+                    Welcome back, {student.name.split(" ")[0]}
+                  </h1>
+                  <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-stone-500">
+                    <span className="flex items-center gap-1 bg-stone-100 px-2 py-0.5 rounded-lg font-semibold text-stone-700">
+                      <GraduationCap className="size-3 text-orange-500" /> {student.grade} · {student.curriculum}
+                    </span>
+                    {(student.schoolName || student.city) && (
+                      <span className="flex items-center gap-1 bg-stone-100 px-2 py-0.5 rounded-lg font-semibold text-stone-700">
+                        <MapPin className="size-3 text-orange-500" /> {student.schoolName || student.city}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Circular Progress Ring */}
+              <div className="flex items-center gap-5 shrink-0">
+                <div className="relative size-16">
+                  <svg viewBox="0 0 36 36" className="size-full -rotate-90">
+                    <circle cx="18" cy="18" r="15.5" fill="none" stroke="#E7E5E4" strokeWidth="3" />
+                    <circle cx="18" cy="18" r="15.5" fill="none" stroke="#C2410C" strokeWidth="3" strokeLinecap="round" strokeDasharray={`${(completedStepsCount / 4) * 97.4} 97.4`} className="transition-all duration-700" />
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-sm font-black text-stone-900">{completedStepsCount}/4</span>
+                    <span className="text-[8px] font-bold text-stone-400 uppercase">Steps</span>
+                  </div>
+                </div>
+                <div className="hidden sm:block text-xs space-y-1">
+                  <p className="font-bold text-stone-700">{completedStepsCount === 4 ? "All Steps Done" : `${4 - completedStepsCount} step${4 - completedStepsCount > 1 ? "s" : ""} remaining`}</p>
+                  <p className="text-stone-400">{completionPercent}% goals complete · {simulations.length} sim{simulations.length !== 1 ? "s" : ""}</p>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* ── Row 2: 4-Step Launchpad (Compact Dot Timeline) ── */}
+            {nextStep ? (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.05 }}
+                className="rounded-2xl bg-white border border-stone-200/80 shadow-2xs p-5 sm:p-6 space-y-4"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-orange-600 text-white text-[10px] font-bold">
+                        <Compass className="size-2.5" /> Step {nextStep.number}
+                      </span>
+                      <span className="text-xs text-stone-400">{nextStep.subtitle}</span>
+                    </div>
+                    <h2 className="text-base sm:text-lg font-display font-bold text-stone-900">{nextStep.title}</h2>
+                    <p className="text-xs text-stone-500 max-w-xl">{nextStep.description}</p>
+                  </div>
+                  <div className="shrink-0">
                     {nextStep.actionType === "link" && nextStep.href ? (
-                      <Link
-                        href={nextStep.href}
-                        className="w-full md:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-orange-600 px-5 py-3 text-xs sm:text-sm font-bold text-white shadow-md shadow-orange-600/20 hover:bg-orange-700 transition active:scale-95"
-                      >
-                        <span>{nextStep.ctaLabel}</span>
-                        <ArrowRight className="size-4 shrink-0" />
+                      <Link href={nextStep.href} className="inline-flex items-center gap-2 rounded-xl bg-stone-900 hover:bg-stone-800 px-5 py-2.5 text-xs font-bold text-white transition active:scale-95">
+                        <span>{nextStep.ctaLabel}</span> <ArrowRight className="size-3.5" />
                       </Link>
                     ) : nextStep.actionType === "goal" ? (
-                      <button
-                        type="button"
-                        onClick={() => setShowGoalModal(true)}
-                        className="w-full md:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-orange-600 px-5 py-3 text-xs sm:text-sm font-bold text-white shadow-md shadow-orange-600/20 hover:bg-orange-700 transition active:scale-95 cursor-pointer"
-                      >
-                        <Plus className="size-4 shrink-0" />
-                        <span>{nextStep.ctaLabel}</span>
+                      <button type="button" onClick={() => setShowGoalModal(true)} className="inline-flex items-center gap-2 rounded-xl bg-stone-900 hover:bg-stone-800 px-5 py-2.5 text-xs font-bold text-white transition active:scale-95 cursor-pointer">
+                        <Plus className="size-3.5" /> <span>{nextStep.ctaLabel}</span>
                       </button>
                     ) : (
-                      <button
-                        type="button"
-                        onClick={() => openBookingModal(trajectoryMeta.primaryMentor.trackId)}
-                        className="w-full md:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-orange-600 px-5 py-3 text-xs sm:text-sm font-bold text-white shadow-md shadow-orange-600/20 hover:bg-orange-700 transition active:scale-95 cursor-pointer"
-                      >
-                        <Users className="size-4 shrink-0" />
-                        <span>{nextStep.ctaLabel}</span>
+                      <button type="button" onClick={() => openBookingModal(trajectoryMeta.primaryMentor.trackId)} className="inline-flex items-center gap-2 rounded-xl bg-stone-900 hover:bg-stone-800 px-5 py-2.5 text-xs font-bold text-white transition active:scale-95 cursor-pointer">
+                        <Users className="size-3.5" /> <span>{nextStep.ctaLabel}</span>
                       </button>
                     )}
                   </div>
                 </div>
 
-                {/* 4-Step Full Roadmap Strip */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                  {guidedSteps.map((step) => {
+                {/* Dot Timeline */}
+                <div className="flex items-center gap-0 overflow-x-auto scrollbar-none">
+                  {guidedSteps.map((step, i) => {
                     const isCurrent = nextStep.number === step.number;
                     return (
-                      <div
-                        key={step.number}
-                        className={`rounded-2xl border p-3.5 flex flex-col justify-between gap-3 transition min-w-0 ${
-                          step.done
-                            ? "bg-emerald-50/50 border-emerald-200"
-                            : isCurrent
-                            ? "bg-orange-50/70 border-orange-300 ring-1 ring-orange-200"
-                            : "bg-stone-50/70 border-stone-200"
-                        }`}
-                      >
-                        <div className="space-y-1">
-                          <div className="flex items-center justify-between gap-2">
-                            <span
-                              className={`text-[11px] font-bold uppercase tracking-wider ${
-                                step.done
-                                  ? "text-emerald-700"
-                                  : isCurrent
-                                  ? "text-orange-700"
-                                  : "text-stone-500"
-                              }`}
-                            >
-                              Step {step.number}
-                            </span>
-                            {step.done ? (
-                              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
-                                <CheckCircle2 className="size-3" />
-                                Done
-                              </span>
-                            ) : isCurrent ? (
-                              <span className="rounded-full bg-orange-600 px-2 py-0.5 text-[10px] font-bold text-white">
-                                Up Next
-                              </span>
-                            ) : (
-                              <span className="text-[10px] font-semibold text-stone-400">
-                                Later
-                              </span>
-                            )}
+                      <div key={step.number} className="flex items-center shrink-0">
+                        <div className={`flex items-center gap-2 px-3 py-2 rounded-xl transition ${isCurrent ? "bg-orange-50 border border-orange-200" : step.done ? "opacity-70" : ""}`}>
+                          <div className={`size-7 rounded-full flex items-center justify-center text-xs font-black shrink-0 ${step.done ? "bg-emerald-100 text-emerald-700" : isCurrent ? "bg-orange-600 text-white" : "bg-stone-100 text-stone-400"}`}>
+                            {step.done ? <CheckCircle2 className="size-4" /> : step.number}
                           </div>
-                          <h3 className="text-xs sm:text-sm font-bold text-stone-900">
-                            {step.title}
-                          </h3>
-                          <p className="text-[11px] text-stone-500 leading-snug">
-                            {step.done ? step.doneSummary : step.subtitle}
-                          </p>
+                          <div className="min-w-0">
+                            <p className={`text-[11px] font-bold truncate ${isCurrent ? "text-orange-800" : step.done ? "text-emerald-700" : "text-stone-500"}`}>
+                              {step.title}
+                            </p>
+                            <p className="text-[10px] text-stone-400 truncate">
+                              {step.done ? step.doneSummary : step.subtitle}
+                            </p>
+                          </div>
                         </div>
-
-                        <div>
-                          {step.actionType === "link" && step.href ? (
-                            <Link
-                              href={step.href}
-                              className={`inline-flex items-center gap-1 text-xs font-bold hover:underline ${
-                                isCurrent ? "text-orange-700" : "text-stone-700"
-                              }`}
-                            >
-                              <span>{step.ctaLabel}</span>
-                              <ArrowRight className="size-3" />
-                            </Link>
-                          ) : step.actionType === "goal" ? (
-                            <button
-                              type="button"
-                              onClick={() => (step.done ? setActiveTab("planner") : setShowGoalModal(true))}
-                              className={`inline-flex items-center gap-1 text-xs font-bold hover:underline cursor-pointer ${
-                                isCurrent ? "text-orange-700" : "text-stone-700"
-                              }`}
-                            >
-                              <span>{step.ctaLabel}</span>
-                              <ArrowRight className="size-3" />
-                            </button>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                step.done
-                                  ? setActiveTab("mentorship")
-                                  : openBookingModal(trajectoryMeta.primaryMentor.trackId)
-                              }
-                              className={`inline-flex items-center gap-1 text-xs font-bold hover:underline cursor-pointer ${
-                                isCurrent ? "text-orange-700" : "text-stone-700"
-                              }`}
-                            >
-                              <span>{step.ctaLabel}</span>
-                              <ArrowRight className="size-3" />
-                            </button>
-                          )}
-                        </div>
+                        {i < 3 && <div className={`w-6 h-px ${step.done ? "bg-emerald-300" : "bg-stone-200"}`} />}
                       </div>
                     );
                   })}
                 </div>
-              </div>
+              </motion.div>
             ) : (
-              <div className="rounded-2xl border border-stone-200/90 bg-white px-4 py-3 shadow-2xs flex flex-wrap items-center justify-between gap-3">
+              <div className="rounded-2xl border border-emerald-200 bg-emerald-50/50 px-4 py-3 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2 text-xs">
                   <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 font-bold text-emerald-800">
-                    <CheckCircle2 className="size-3.5" />
-                    <span>All 4 Portal Steps Active</span>
+                    <CheckCircle2 className="size-3.5" /> All 4 Steps Active
                   </span>
-                  <span className="text-stone-600 hidden sm:inline">
-                    Explore more simulations, track goals, or schedule a mentor follow-up anytime.
-                  </span>
+                  <span className="text-stone-600 hidden sm:inline">Explore more simulations, track goals, or schedule a mentor follow-up.</span>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 text-xs font-bold">
-                  <Link href="/career-test" className="text-stone-600 hover:text-primary px-2 py-1">
-                    Career Test
-                  </Link>
-                  <Link href="/simulator" className="text-stone-600 hover:text-primary px-2 py-1">
-                    Simulator
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={() => setShowGoalModal(true)}
-                    className="text-orange-600 hover:underline px-2 py-1 cursor-pointer"
-                  >
-                    + Add Goal
-                  </button>
+                  <Link href="/career-test" className="text-stone-600 hover:text-orange-600 px-2 py-1">Career Test</Link>
+                  <Link href="/simulator" className="text-stone-600 hover:text-orange-600 px-2 py-1">Simulator</Link>
+                  <button type="button" onClick={() => setShowGoalModal(true)} className="text-orange-600 hover:underline px-2 py-1 cursor-pointer">+ Add Goal</button>
                 </div>
               </div>
             )}
 
-            {/* Post-Onboarding APAAR Stage (Optional, later stage) */}
+            {/* ── APAAR Stage + Profile Builder (Compact Inline) ── */}
             {!student.aparId && !aparDismissed && (
               <div className="rounded-2xl border border-stone-200/90 bg-[#FDFBF7] px-4 py-3.5 shadow-2xs flex flex-col lg:flex-row lg:items-center justify-between gap-3">
                 <div className="space-y-0.5 min-w-0">
@@ -924,7 +855,6 @@ export default function DashboardPage() {
                     <p className="text-[11px] font-medium text-red-600">{aparError}</p>
                   )}
                 </div>
-
                 <form
                   onSubmit={async (e) => {
                     e.preventDefault();
@@ -955,69 +885,30 @@ export default function DashboardPage() {
                     placeholder="12-digit APAAR ID"
                     className="h-9 w-full sm:w-44 px-3 rounded-xl border border-stone-300 bg-white text-xs font-mono focus:outline-none focus:border-orange-500"
                   />
-                  <button
-                    type="submit"
-                    disabled={aparSaving}
-                    className="h-9 px-3.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-xs font-bold transition cursor-pointer disabled:opacity-60 whitespace-nowrap"
-                  >
+                  <button type="submit" disabled={aparSaving} className="h-9 px-3.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-xs font-bold transition cursor-pointer disabled:opacity-60 whitespace-nowrap">
                     {aparSaving ? "Saving..." : "Save ID"}
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => setAparDismissed(true)}
-                    className="h-9 px-2.5 rounded-xl text-xs font-semibold text-stone-500 hover:text-stone-800 cursor-pointer"
-                  >
+                  <button type="button" onClick={() => setAparDismissed(true)} className="h-9 px-2.5 rounded-xl text-xs font-semibold text-stone-500 hover:text-stone-800 cursor-pointer">
                     Later
                   </button>
                 </form>
               </div>
             )}
 
-            {/* 1-Question Progressive Profile Builder (Never overwhelming) */}
+            {/* Profile Builder */}
             {(() => {
               const comp = getProfileCompleteness(student);
               if (comp.missingFields.length === 0) return null;
-
               const nextQuick =
                 student.singleChild === undefined
-                  ? {
-                      key: "singleChild",
-                      question: "Quick Profile Question: Are you a single child?",
-                      options: [
-                        { label: "Yes, single child", value: true },
-                        { label: "No, have siblings", value: false },
-                      ],
-                    }
+                  ? { key: "singleChild", question: "Quick Profile Question: Are you a single child?", options: [{ label: "Yes, single child", value: true }, { label: "No, have siblings", value: false }] }
                   : student.proSports === undefined
-                  ? {
-                      key: "proSports",
-                      question: "Do you take sports education professionally?",
-                      options: [
-                        { label: "Yes — Pro / Academy", value: true },
-                        { label: "No — Casual / Fun", value: false },
-                      ],
-                    }
+                  ? { key: "proSports", question: "Do you take sports education professionally?", options: [{ label: "Yes — Pro / Academy", value: true }, { label: "No — Casual / Fun", value: false }] }
                   : !student.gender
-                  ? {
-                      key: "gender",
-                      question: "Quick Profile Question: Sex / Gender",
-                      options: [
-                        { label: "Female", value: "Female" },
-                        { label: "Male", value: "Male" },
-                        { label: "Prefer not to say", value: "Prefer not to say" },
-                      ],
-                    }
+                  ? { key: "gender", question: "Quick Profile Question: Sex / Gender", options: [{ label: "Female", value: "Female" }, { label: "Male", value: "Male" }, { label: "Prefer not to say", value: "Prefer not to say" }] }
                   : !student.age
-                  ? {
-                      key: "age",
-                      question: "How old are you right now?",
-                      options: [12, 13, 14, 15, 16, 17, 18].map((n) => ({
-                        label: `${n} yrs`,
-                        value: n,
-                      })),
-                    }
+                  ? { key: "age", question: "How old are you right now?", options: [12, 13, 14, 15, 16, 17, 18].map((n) => ({ label: `${n} yrs`, value: n })) }
                   : null;
-
               return (
                 <div className="rounded-2xl border border-stone-200/90 bg-white px-4 py-3.5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="space-y-1 min-w-0">
@@ -1027,13 +918,10 @@ export default function DashboardPage() {
                         <span>Dossier {comp.percent}% Complete</span>
                       </span>
                       <span className="text-stone-500">
-                        {nextQuick
-                          ? nextQuick.question
-                          : `${comp.missingFields.length} academic or family detail(s) left`}
+                        {nextQuick ? nextQuick.question : `${comp.missingFields.length} academic or family detail(s) left`}
                       </span>
                     </div>
                   </div>
-
                   <div className="flex flex-wrap items-center gap-1.5 shrink-0">
                     {nextQuick
                       ? nextQuick.options.map((opt) => (
@@ -1052,11 +940,7 @@ export default function DashboardPage() {
                           </button>
                         ))
                       : null}
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab("details")}
-                      className="px-3 py-1.5 rounded-xl text-orange-700 hover:bg-orange-50 text-xs font-bold transition cursor-pointer"
-                    >
+                    <button type="button" onClick={() => setActiveTab("details")} className="px-3 py-1.5 rounded-xl text-orange-700 hover:bg-orange-50 text-xs font-bold transition cursor-pointer">
                       All Details →
                     </button>
                   </div>
@@ -1064,469 +948,268 @@ export default function DashboardPage() {
               );
             })()}
 
-            {/* North Star Flight Card */}
-            <div className="relative rounded-2xl sm:rounded-3xl bg-stone-900 text-white p-5 sm:p-8 shadow-xs overflow-hidden border border-stone-800">
-              <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                <div className="space-y-2.5 max-w-2xl">
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-stone-200 text-xs font-semibold">
-                    <Target className="size-3.5 text-orange-400" /> Active Career Trajectory
+            {/* ── Row 3: Bento Grid — 3-column asymmetric layout ── */}
+            <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+
+              {/* ─ Bento Cell: Career Trajectory (spans 4 cols) ─ */}
+              <motion.div
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.1 }}
+                className="md:col-span-4 rounded-2xl bg-stone-900 text-white p-5 sm:p-7 relative overflow-hidden"
+              >
+                <div className="absolute top-0 right-0 w-72 h-72 bg-gradient-to-bl from-orange-500/8 to-transparent rounded-full -translate-y-1/3 translate-x-1/4 pointer-events-none" />
+                <div className="relative z-10 space-y-3">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-stone-300 text-[11px] font-semibold">
+                    <Target className="size-3 text-orange-400" /> Active Career Trajectory
                   </div>
-                  <h1 className="text-xl sm:text-3xl lg:text-4xl font-display font-bold tracking-tight text-white leading-tight">
+                  <h2 className="text-xl sm:text-2xl font-display font-bold tracking-tight leading-tight">
                     {trajectoryMeta.trackTitle}
-                  </h1>
-                  <p className="text-stone-300 text-xs sm:text-sm font-normal leading-relaxed">
+                  </h2>
+                  <p className="text-stone-400 text-xs sm:text-sm leading-relaxed max-w-lg">
                     <strong className="text-orange-300 font-semibold">Strategic Target:</strong> {trajectoryMeta.targetAspirations}
                   </p>
-                  <div className="pt-2 flex flex-wrap items-center gap-2 text-xs text-stone-400">
-                    <span className="flex items-center gap-1.5 bg-stone-800/80 px-2.5 py-1 rounded-lg border border-stone-700/60 text-[11px] sm:text-xs">
-                      <GraduationCap className="size-3.5 text-orange-400" />
-                      {student.grade} • {student.curriculum}
-                    </span>
-                    <span className="flex items-center gap-1.5 bg-stone-800/80 px-2.5 py-1 rounded-lg border border-stone-700/60 text-[11px] sm:text-xs">
-                      <Building className="size-3.5 text-orange-400" />
-                      {student.schoolName || student.city}
-                    </span>
+                  <div className="flex flex-wrap gap-2 pt-1">
                     {simulations.length > 0 && (
-                      <span className="flex items-center gap-1.5 bg-stone-800/80 px-2.5 py-1 rounded-lg border border-stone-700/60 text-[11px] sm:text-xs">
-                        <ShieldCheck className="size-3.5 text-emerald-400" />
-                        PTIROS Simulation Badge Earned
+                      <span className="flex items-center gap-1 bg-white/8 px-2.5 py-1 rounded-lg border border-white/10 text-[11px] text-stone-300">
+                        <ShieldCheck className="size-3 text-emerald-400" /> {simulations.length} Sim{simulations.length > 1 ? "s" : ""} Done
+                      </span>
+                    )}
+                    {goals.length > 0 && (
+                      <span className="flex items-center gap-1 bg-white/8 px-2.5 py-1 rounded-lg border border-white/10 text-[11px] text-stone-300">
+                        <Flame className="size-3 text-amber-400" /> {completedGoals}/{totalGoals} Goals
                       </span>
                     )}
                   </div>
                 </div>
+              </motion.div>
 
-                {/* Ptiro Copilot Mascot */}
-                <div className="hidden xl:flex items-center justify-center p-3 rounded-2xl bg-white/5 border border-white/10 shrink-0">
-                  <PtiroMascot
-                    variant="copilot"
-                    size={75}
-                    speech="Welcome Aboard!"
-                    subSpeech={
-                      simulations.length > 0
-                        ? `${simulations.length} career simulator(s) completed.`
-                        : "Follow the 4 steps above or start a simulator lab."
-                    }
-                  />
-                </div>
-
-                {/* Readiness Telemetry Dial */}
-                <div className="bg-stone-800/60 backdrop-blur-md rounded-2xl p-5 border border-stone-700/60 lg:min-w-[280px] shrink-0 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold uppercase tracking-wider text-stone-400">
-                      Progress Summary
+              {/* ─ Bento Cell: Mentor Card (spans 2 cols) ─ */}
+              <motion.div
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.15 }}
+                className="md:col-span-2 rounded-2xl bg-gradient-to-br from-orange-50 via-white to-amber-50/50 border border-orange-200/60 p-5 flex flex-col justify-between gap-4"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-[10px] font-bold text-orange-900 uppercase tracking-wider">
+                    <span className="flex items-center gap-1">
+                      <Sparkles className="size-3 text-orange-500" /> Mentor
                     </span>
-                    <span className="text-xs font-black text-emerald-400">
-                      {goals.length > 0 || simulations.length > 0 ? "ACTIVE" : "FRESH START"}
-                    </span>
+                    <span className="px-2 py-0.5 rounded-full bg-orange-200/60 text-orange-900 font-semibold">1-on-1</span>
                   </div>
-
-                  <div className="space-y-3">
-                    <div>
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="text-stone-300">Goals Completed</span>
-                        <span className="font-mono font-bold text-white">{completionPercent}%</span>
-                      </div>
-                      <div className="w-full h-2 rounded-full bg-stone-700 overflow-hidden">
-                        <div
-                          className="h-full bg-gradient-to-r from-orange-500 to-amber-400 transition-all duration-700"
-                          style={{ width: `${completionPercent}%` }}
-                        />
-                      </div>
+                  <div className="flex items-center gap-3">
+                    <div className="size-11 rounded-xl overflow-hidden bg-stone-100 border border-stone-200 shadow-2xs shrink-0">
+                      <Blobatar name={trajectoryMeta.primaryMentor.name} size={44} animate="hover" className="size-full object-cover" />
                     </div>
+                    <div className="min-w-0">
+                      <h4 className="font-bold text-sm text-stone-900 truncate">{trajectoryMeta.primaryMentor.name}</h4>
+                      <p className="text-[11px] text-stone-500 truncate">{trajectoryMeta.primaryMentor.role}</p>
+                      <p className="text-[10px] text-stone-400 truncate">{trajectoryMeta.primaryMentor.pedigree}</p>
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => openBookingModal(trajectoryMeta.primaryMentor.trackId)}
+                  className="w-full py-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <span>{activeBookings.length > 0 ? "Book Follow-Up" : "Book 1:1 Call"}</span>
+                  <ArrowUpRight className="size-3" />
+                </button>
+              </motion.div>
 
-                    <div>
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="text-stone-300">Simulations Completed</span>
-                        <span className="font-mono font-bold text-white">
-                          {simulations.length} / 6
+              {/* ─ Bento Cell: Career Test Result (spans 3 cols) ─ */}
+              {activeCareerTest && (
+                <motion.div
+                  initial={{ opacity: 0, y: 14 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.2 }}
+                  className="md:col-span-3 rounded-2xl bg-white border border-stone-200/80 shadow-2xs p-5 flex flex-col justify-between gap-3"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="size-10 rounded-xl bg-orange-100 flex items-center justify-center text-orange-600 shrink-0">
+                      <Sparkles className="size-4.5" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                          {activeCareerTest.matchConfidence}% Match
                         </span>
+                        <span className="text-[10px] text-stone-400">{activeCareerTest.archetype}</span>
                       </div>
-                      <div className="w-full h-2 rounded-full bg-stone-700 overflow-hidden">
-                        <div
-                          className="h-full bg-emerald-500 transition-all duration-700"
-                          style={{ width: `${Math.min((simulations.length / 6) * 100, 100)}%` }}
-                        />
-                      </div>
+                      <h3 className="text-sm font-bold text-stone-900 mt-0.5 truncate">
+                        Top: {activeCareerTest.topTrackTitle}
+                      </h3>
                     </div>
                   </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Career Match Quest Result (if completed) */}
-            {activeCareerTest && (
-              <div className="rounded-2xl sm:rounded-3xl border border-orange-200 bg-white p-5 sm:p-6 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div className="flex items-center gap-3.5">
-                  <div className="size-11 rounded-2xl bg-orange-100 flex items-center justify-center text-orange-600 shrink-0">
-                    <Sparkles className="size-5" />
+                  <div className="flex items-center gap-2 mt-auto">
+                    <button type="button" onClick={() => setActiveTab("analysis")} className="flex-1 py-2 rounded-xl bg-stone-900 text-white font-bold text-xs hover:bg-stone-800 transition text-center cursor-pointer">
+                      Open Report
+                    </button>
+                    <Link href={activeCareerTest.rankedTracks?.[0]?.simulatorUrl || "/simulator"} className="py-2 px-3 rounded-xl border border-stone-200 text-stone-700 font-bold text-xs hover:bg-stone-50 transition text-center">
+                      Simulator
+                    </Link>
                   </div>
+                </motion.div>
+              )}
+
+              {/* ─ Bento Cell: Competency Radar (spans 3 cols) ─ */}
+              <motion.div
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.25 }}
+                className={`${activeCareerTest ? "md:col-span-3" : "md:col-span-6"} rounded-2xl bg-white border border-stone-200/80 shadow-2xs p-5 space-y-3`}
+              >
+                <div className="flex items-center justify-between">
                   <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
-                        Diagnostic Result • {activeCareerTest.matchConfidence}% Match
-                      </span>
-                      <span className="text-xs text-stone-400">
-                        {activeCareerTest.archetype}
-                      </span>
-                    </div>
-                    <h3 className="text-base font-bold text-stone-900 mt-0.5">
-                      Top Match: {activeCareerTest.topTrackTitle}
-                    </h3>
-                    <p className="text-xs text-stone-500 mt-0.5">
-                      Top Dimensions:{" "}
-                      {activeCareerTest.dimensionScores
-                        .slice(0, 2)
-                        .map((d) => `${d.label} (${d.score}%)`)
-                        .join(" • ") || "Analytical Logic"}
-                    </p>
+                    <h3 className="text-sm font-bold text-stone-900">Competency Radar</h3>
+                    <p className="text-[11px] text-stone-400">Psychometric aptitude scores</p>
                   </div>
-                </div>
-                <div className="flex flex-wrap items-center gap-2.5 shrink-0 self-end md:self-auto">
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab("analysis")}
-                    className="px-4 py-2 rounded-xl bg-orange-600 text-white font-bold text-xs hover:bg-orange-700 transition shadow-xs active:scale-95 inline-flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <span>Open Report &amp; PDF</span>
-                    <ArrowUpRight className="size-3.5" />
+                  <button onClick={() => setActiveTab("analysis")} className="text-[11px] font-bold text-orange-600 hover:underline cursor-pointer">
+                    Full Report →
                   </button>
-                  <Link
-                    href={activeCareerTest.rankedTracks?.[0]?.simulatorUrl || "/simulator"}
-                    className="px-3 py-2 rounded-xl border border-stone-200 text-stone-700 font-bold text-xs hover:bg-stone-50 transition"
-                  >
-                    Launch Simulator
-                  </Link>
                 </div>
-              </div>
-            )}
-
-            {/* Core Command Deck Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Left Column: Kaizen Active Milestones (2 Cols on lg) */}
-              <div className="lg:col-span-2 space-y-6">
-                <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-stone-200/80 shadow-xs space-y-4 sm:space-y-5">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-stone-100 gap-2.5">
-                    <div>
-                      <h2 className="text-base sm:text-lg font-display font-bold text-stone-900 flex flex-wrap items-center gap-2">
-                        <span>Weekly Action Goals</span>
-                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-orange-100 text-orange-800 whitespace-nowrap">
-                          {totalGoals - completedGoals} Pending
-                        </span>
-                      </h2>
-                      <p className="text-xs text-stone-500 mt-0.5">
-                        Step-by-step milestones toward your dream university and career path.
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button
-                        onClick={() => setShowGoalModal(true)}
-                        className="w-full sm:w-auto justify-center px-3.5 py-2 rounded-xl bg-stone-900 text-white text-xs font-bold hover:bg-stone-800 transition flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
-                      >
-                        <Plus className="size-3.5" /> Add Milestone
-                      </button>
+                {trajectoryMeta.competencies.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-stone-200 bg-stone-50/70 p-5 text-center space-y-2">
+                    <p className="text-xs font-semibold text-stone-700">No Diagnostic Metrics Yet</p>
+                    <p className="text-[11px] text-stone-400">Complete the Career Test or a Simulation Lab.</p>
+                    <div className="flex justify-center gap-2 pt-1">
+                      <Link href="/career-test" className="px-3 py-1.5 rounded-xl bg-stone-900 text-white text-xs font-bold hover:bg-stone-800 transition">Career Test</Link>
+                      <Link href="/simulator" className="px-3 py-1.5 rounded-xl border border-stone-200 text-stone-700 text-xs font-bold hover:bg-stone-50 transition">Simulator</Link>
                     </div>
                   </div>
-
-                  {/* Goal Cards */}
-                  <div className="space-y-3">
-                    {celebrationGoal && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.95, y: -6 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        className="p-3.5 rounded-2xl bg-gradient-to-r from-orange-50 via-amber-50 to-emerald-50 border border-orange-200 flex items-center justify-between gap-3 shadow-xs"
-                      >
-                        <PtiroMascot
-                          variant="celebrate"
-                          size={55}
-                          speech="Milestone Crushed!"
-                          subSpeech={`${celebrationGoal} marked complete.`}
-                          interactive={false}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setCelebrationGoal(null)}
-                          className="p-1 text-stone-400 hover:text-stone-700 cursor-pointer"
-                        >
-                          <X className="size-4" />
-                        </button>
-                      </motion.div>
-                    )}
-
-                    {goals.length === 0 && (
-                      <div className="rounded-2xl border border-dashed border-stone-300 bg-stone-50/70 p-6 text-center space-y-3">
-                        <p className="text-sm font-semibold text-stone-700">No Weekly Goals Added Yet</p>
-                        <p className="text-xs text-stone-500 max-w-md mx-auto">
-                          Add one small study milestone for today or this week so you can check it off as you make progress.
-                        </p>
-                        <button
-                          type="button"
-                          onClick={() => setShowGoalModal(true)}
-                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-stone-900 text-white text-xs font-bold hover:bg-black transition cursor-pointer"
-                        >
-                          <Plus className="size-3.5" />
-                          <span>Create Your First Milestone</span>
-                        </button>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {trajectoryMeta.competencies.slice(0, 6).map((comp, idx) => (
+                      <div key={idx} className="p-3 rounded-xl bg-stone-50/80 border border-stone-100 space-y-1.5">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-bold text-stone-800 truncate">{comp.name}</span>
+                          <span className="font-mono font-bold text-orange-600 shrink-0">{comp.score}%</span>
+                        </div>
+                        <div className="w-full h-1.5 rounded-full bg-stone-200 overflow-hidden">
+                          <motion.div initial={{ width: 0 }} animate={{ width: `${comp.score}%` }} transition={{ duration: 0.8, delay: 0.3 + idx * 0.08 }} className="h-full bg-gradient-to-r from-orange-500 to-amber-400 rounded-full" />
+                        </div>
                       </div>
-                    )}
+                    ))}
+                  </div>
+                )}
+              </motion.div>
 
-                    {goals.slice(0, 5).map((goal) => (
+              {/* ─ Bento Cell: Weekly Goals (spans 4 cols) ─ */}
+              <motion.div
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.3 }}
+                className="md:col-span-4 rounded-2xl bg-white border border-stone-200/80 shadow-2xs p-5 space-y-4"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-bold text-stone-900 flex items-center gap-2">
+                      Weekly Goals
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-orange-100 text-orange-800">
+                        {totalGoals - completedGoals} Pending
+                      </span>
+                    </h3>
+                    <p className="text-[11px] text-stone-400 mt-0.5">Step-by-step milestones for your targets</p>
+                  </div>
+                  <button onClick={() => setShowGoalModal(true)} className="px-3 py-1.5 rounded-xl bg-stone-900 text-white text-xs font-bold hover:bg-stone-800 transition flex items-center gap-1 cursor-pointer">
+                    <Plus className="size-3" /> Add
+                  </button>
+                </div>
+
+                {celebrationGoal && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: -6 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    className="p-3 rounded-xl bg-gradient-to-r from-orange-50 via-amber-50 to-emerald-50 border border-orange-200 flex items-center justify-between gap-3"
+                  >
+                    <PtiroMascot variant="celebrate" size={45} speech="Milestone Crushed!" subSpeech={`${celebrationGoal} marked complete.`} interactive={false} />
+                    <button type="button" onClick={() => setCelebrationGoal(null)} className="p-1 text-stone-400 hover:text-stone-700 cursor-pointer"><X className="size-4" /></button>
+                  </motion.div>
+                )}
+
+                {goals.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-stone-200 bg-stone-50/70 p-5 text-center space-y-2">
+                    <p className="text-xs font-semibold text-stone-700">No Goals Added Yet</p>
+                    <p className="text-[11px] text-stone-400 max-w-sm mx-auto">Add a small milestone for today.</p>
+                    <button type="button" onClick={() => setShowGoalModal(true)} className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-xl bg-stone-900 text-white text-xs font-bold hover:bg-black transition cursor-pointer">
+                      <Plus className="size-3" /> Create Milestone
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {goals.slice(0, 4).map((goal) => (
                       <div
                         key={goal.id}
                         onClick={() => handleGoalToggle(goal.id, goal.completed, goal.title)}
-                        className={`p-3.5 sm:p-4 rounded-2xl border transition-all flex items-start justify-between gap-2.5 sm:gap-4 cursor-pointer group ${
-                          goal.completed
-                            ? "bg-stone-50/60 border-stone-200/60 opacity-60"
-                            : "bg-white border-stone-200 hover:border-orange-400 hover:shadow-xs"
-                        }`}
+                        className={`p-3 rounded-xl border transition-all flex items-center justify-between gap-3 cursor-pointer group ${goal.completed ? "bg-stone-50/60 border-stone-200/60 opacity-60" : "bg-white border-stone-200 hover:border-orange-300"}`}
                       >
-                        <div className="flex items-start gap-3 flex-1 min-w-0">
-                          <button
-                            type="button"
-                            className="mt-0.5 text-stone-400 group-hover:text-orange-500 transition shrink-0"
-                          >
-                            {goal.completed ? (
-                              <CheckCircle2 className="size-5 text-emerald-600 fill-emerald-100" />
-                            ) : (
-                              <Circle className="size-5" />
-                            )}
+                        <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                          <button type="button" className="text-stone-400 group-hover:text-orange-500 transition shrink-0">
+                            {goal.completed ? <CheckCircle2 className="size-4.5 text-emerald-600 fill-emerald-100" /> : <Circle className="size-4.5" />}
                           </button>
-                          <div className="min-w-0 flex-1">
-                            <div
-                              className={`text-sm font-semibold text-stone-900 break-words ${
-                                goal.completed ? "line-through text-stone-400" : ""
-                              }`}
-                            >
-                              {goal.title}
-                            </div>
-                            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 mt-1 text-xs text-stone-400">
-                              <span className="uppercase text-[10px] font-bold tracking-wider px-2 py-0.5 rounded bg-stone-100 text-stone-600">
-                                {goal.timeView}
-                              </span>
-                              {goal.deadline && (
-                                <span className="flex items-center gap-1 text-stone-500">
-                                  <Clock className="size-3 shrink-0" /> {goal.deadline}
-                                </span>
-                              )}
+                          <div className="min-w-0">
+                            <div className={`text-xs font-semibold text-stone-900 truncate ${goal.completed ? "line-through text-stone-400" : ""}`}>{goal.title}</div>
+                            <div className="flex items-center gap-2 mt-0.5 text-[10px] text-stone-400">
+                              <span className="uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-stone-100 text-stone-500">{goal.timeView}</span>
+                              {goal.deadline && <span className="flex items-center gap-0.5"><Clock className="size-2.5" /> {goal.deadline}</span>}
                             </div>
                           </div>
                         </div>
-
-                        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-                          <span
-                            className={`text-[11px] font-bold px-2.5 py-1 rounded-full whitespace-nowrap ${
-                              goal.completed
-                                ? "bg-emerald-50 text-emerald-700"
-                                : "bg-amber-50 text-amber-800"
-                            }`}
-                          >
-                            {goal.completed ? "Achieved" : "Active"}
+                        <div className="flex items-center gap-1 shrink-0">
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${goal.completed ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-800"}`}>
+                            {goal.completed ? "Done" : "Active"}
                           </span>
-                          <button
-                            type="button"
-                            onClick={(e) => handleDeleteGoal(e, goal.id)}
-                            className="opacity-70 sm:opacity-0 sm:group-hover:opacity-100 p-1 rounded-md text-stone-400 hover:text-red-600 hover:bg-red-50 transition cursor-pointer shrink-0"
-                            title="Delete milestone"
-                          >
-                            <Trash2 className="size-3.5" />
+                          <button type="button" onClick={(e) => handleDeleteGoal(e, goal.id)} className="opacity-0 group-hover:opacity-100 p-1 rounded text-stone-400 hover:text-red-600 hover:bg-red-50 transition cursor-pointer shrink-0">
+                            <Trash2 className="size-3" />
                           </button>
                         </div>
                       </div>
                     ))}
                   </div>
+                )}
 
-                  <div className="pt-2 flex justify-between items-center text-xs text-stone-500">
-                    <span>Synchronized with Neon Serverless Postgres DB</span>
-                    <button
-                      onClick={() => setActiveTab("planner")}
-                      className="font-bold text-orange-600 hover:underline flex items-center gap-1"
-                    >
-                      Open Full Timeline Roadmap →
-                    </button>
-                  </div>
-                </div>
-
-                {/* Competency Mastery Matrix */}
-                <div className="bg-white rounded-3xl p-6 border border-stone-200/80 shadow-xs space-y-4">
-                  <div className="flex items-center justify-between pb-3 border-b border-stone-100">
-                    <div>
-                      <h3 className="text-base font-display font-bold text-stone-900">
-                        Diagnostic Competency Radar
-                      </h3>
-                      <p className="text-xs text-stone-500">
-                        Psychometric aptitude scores calibrated against Indian competitive entrance standards.
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => setActiveTab("analysis")}
-                      className="text-xs font-bold text-orange-600 hover:underline"
-                    >
-                      View Report →
-                    </button>
-                  </div>
-
-                  {trajectoryMeta.competencies.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-stone-300 bg-stone-50/70 p-6 text-center space-y-3">
-                      <p className="text-sm font-semibold text-stone-800">
-                        No Diagnostic Metrics Recorded Yet
-                      </p>
-                      <p className="text-xs text-stone-500 max-w-md mx-auto">
-                        Complete the 360° Career Match Test or finish an interactive Simulation Lab to generate your personal aptitude metrics.
-                      </p>
-                      <div className="flex flex-wrap justify-center gap-2 pt-1">
-                        <Link
-                          href="/career-test"
-                          className="px-4 py-2 rounded-xl bg-orange-600 text-white text-xs font-bold hover:bg-orange-700 transition"
-                        >
-                          Take Career Test
-                        </Link>
-                        <Link
-                          href="/simulator"
-                          className="px-4 py-2 rounded-xl border border-stone-300 bg-white text-stone-800 text-xs font-bold hover:bg-stone-50 transition"
-                        >
-                          Launch Simulator
-                        </Link>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                      {trajectoryMeta.competencies.map((comp, idx) => (
-                        <div key={idx} className="p-3.5 rounded-2xl bg-stone-50 border border-stone-200/70 space-y-2">
-                          <div className="flex items-center justify-between text-xs gap-2">
-                            <span className="font-bold text-stone-800 truncate">{comp.name}</span>
-                            <span className="font-mono font-bold text-orange-600 shrink-0">{comp.score}%</span>
-                          </div>
-                          <div className="w-full h-1.5 rounded-full bg-stone-200 overflow-hidden">
-                            <div
-                              className="h-full bg-gradient-to-r from-orange-500 to-amber-500"
-                              style={{ width: `${comp.score}%` }}
-                            />
-                          </div>
-                          <div className="flex items-center justify-between text-[10px] text-stone-400">
-                            <span>Status: {comp.status}</span>
-                            <span className="text-emerald-600 font-semibold">NEP Calibrated</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Right Column: Senior Mentor Flight Card & Quick Diary Snippet */}
-              <div className="space-y-6">
-                {/* Mentor Flight Card */}
-                <div className="bg-gradient-to-br from-orange-50 via-white to-amber-50/50 rounded-3xl p-6 border border-orange-200/80 shadow-xs space-y-4">
-                  <div className="flex items-center justify-between text-xs font-bold text-orange-900 uppercase tracking-wider">
-                    <span className="flex items-center gap-1.5">
-                      <Sparkles className="size-3.5 text-orange-600" />
-                      Assigned Senior Mentor
-                    </span>
-                    <span className="px-2 py-0.5 rounded-full bg-orange-200/80 text-orange-950 font-semibold text-[10px]">
-                      1-on-1 Guidance
-                    </span>
-                  </div>
-
-                  <div className="flex items-start gap-4 pt-1">
-                    <div className="size-14 rounded-2xl overflow-hidden bg-stone-100 border border-stone-200/90 shadow-xs flex items-center justify-center shrink-0">
-                      <Blobatar name={trajectoryMeta.primaryMentor.name} size={56} animate="hover" className="size-full object-cover" />
-                    </div>
-                    <div>
-                      <h4 className="font-display font-bold text-base text-stone-900">
-                        {trajectoryMeta.primaryMentor.name}
-                      </h4>
-                      <p className="text-xs text-stone-600 mt-0.5 font-medium">
-                        {trajectoryMeta.primaryMentor.role}
-                      </p>
-                      <p className="text-[11px] text-stone-400 mt-0.5">
-                        {trajectoryMeta.primaryMentor.pedigree}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Upcoming Consultation Box — Live from Real Account Bookings */}
-                  {activeBookings.length > 0 ? (
-                    <div className="p-3.5 rounded-2xl bg-white border border-orange-200/60 shadow-xs space-y-2">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="font-bold text-stone-900 flex items-center gap-1.5">
-                          <CalendarDays className="size-3.5 text-orange-600" />
-                          Next Scheduled Call
-                        </span>
-                        <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full capitalize">
-                          {activeBookings[0].status}
-                        </span>
-                      </div>
-                      <div className="text-sm font-display font-bold text-stone-800">
-                        {activeBookings[0].date} • {activeBookings[0].timeSlot}
-                      </div>
-                      <p className="text-[11px] text-stone-500 line-clamp-2">
-                        With {activeBookings[0].mentorName}: {activeBookings[0].primaryQuestion}
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="p-3.5 rounded-2xl bg-white border border-dashed border-orange-200 text-xs text-stone-600 space-y-1">
-                      <span className="font-bold text-stone-800 block">No 1:1 Session Scheduled Yet</span>
-                      <p className="text-[11px] text-stone-500">
-                        Book your first 20-minute strategy call with a senior practitioner anytime below.
-                      </p>
-                    </div>
-                  )}
-
-                  <button
-                    onClick={() => openBookingModal(trajectoryMeta.primaryMentor.trackId)}
-                    className="w-full py-2.5 rounded-xl bg-orange-600 text-white font-bold text-xs hover:bg-orange-700 transition shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
-                  >
-                    <span>{activeBookings.length > 0 ? "Schedule Additional Session" : "Book 1:1 Mentor Call"}</span>
-                    <ArrowUpRight className="size-3.5" />
+                {goals.length > 4 && (
+                  <button onClick={() => setActiveTab("planner")} className="w-full text-center text-xs font-bold text-orange-600 hover:underline cursor-pointer pt-1">
+                    View all {goals.length} goals →
                   </button>
-                </div>
+                )}
+              </motion.div>
 
-                {/* Parent Dossier Quick Sync */}
-                <div className="bg-white rounded-3xl p-6 border border-stone-200/80 shadow-xs space-y-4">
+              {/* ─ Bento Cell: Parent Briefing (spans 2 cols) ─ */}
+              <motion.div
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.35 }}
+                className="md:col-span-2 rounded-2xl bg-white border border-stone-200/80 shadow-2xs p-5 flex flex-col justify-between gap-4"
+              >
+                <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-display font-bold text-sm text-stone-900 flex items-center gap-1.5">
-                      <FileText className="size-4 text-orange-600" />
-                      Parent Career Briefing
+                    <h3 className="font-bold text-sm text-stone-900 flex items-center gap-1.5">
+                      <FileText className="size-3.5 text-orange-600" /> Parent Briefing
                     </h3>
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-stone-100 text-stone-700">
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-stone-100 text-stone-600">
                       {student.parentDream ? "Synced" : "Not Set"}
                     </span>
                   </div>
-
-                  <div className="p-3.5 rounded-2xl bg-stone-50 border border-stone-200/70 space-y-1.5">
-                    <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider">
-                      Parent Aspiration
-                    </div>
-                    <p className="text-xs font-semibold text-stone-800">
-                      {student.parentName ? `Guardian: ${student.parentName}` : "Parent Alignment"}
-                    </p>
-                    <p className="text-xs text-stone-600 leading-relaxed">
-                      {student.parentDream ? `"${student.parentDream}"` : "No parent career expectation saved yet."}
-                    </p>
+                  <div className="p-3 rounded-xl bg-stone-50 border border-stone-100 space-y-1">
+                    <p className="text-[10px] font-bold text-stone-500 uppercase tracking-wider">Parent Aspiration</p>
+                    <p className="text-xs font-semibold text-stone-800">{student.parentName ? `Guardian: ${student.parentName}` : "Parent Alignment"}</p>
+                    <p className="text-[11px] text-stone-600 leading-relaxed">{student.parentDream ? `"${student.parentDream}"` : "No parent career expectation saved yet."}</p>
                   </div>
-
-                  <button
-                    onClick={() =>
-                      openDossierModal({
-                        careerTestId: activeCareerTest?.id,
-                        topTrackTitle: activeCareerTest?.topTrackTitle,
-                      })
-                    }
-                    className="w-full py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
-                  >
-                    <span>
-                      {activeCareerTest?.dossierUnlocked
-                        ? "Download Full 9-Page Dossier"
-                        : "Preview 9-Page Parent Dossier"}
-                    </span>
-                    <ExternalLink className="size-3" />
-                  </button>
                 </div>
-              </div>
+                <button
+                  onClick={() => openDossierModal({ careerTestId: activeCareerTest?.id, topTrackTitle: activeCareerTest?.topTrackTitle })}
+                  className="w-full py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <span>{activeCareerTest?.dossierUnlocked ? "Download Dossier" : "Preview 9-Page Dossier"}</span>
+                  <ExternalLink className="size-3" />
+                </button>
+              </motion.div>
             </div>
 
-            {/* Field Intelligence & Day in the Life Feed */}
+            {/* ── Row 4: Career Intelligence Feed ── */}
             <CareerIntelligenceFeed />
           </div>
         )}
