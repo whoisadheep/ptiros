@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -35,6 +35,7 @@ import {
   MessageSquare,
   Flame,
   Target,
+  ChevronLeft,
   ChevronRight,
   AlertCircle,
   Check,
@@ -106,6 +107,32 @@ export default function DashboardPage() {
   const [aparSaving, setAparSaving] = useState(false);
   const [aparError, setAparError] = useState<string | null>(null);
   const [aparDismissed, setAparDismissed] = useState(false);
+
+  const navRef = useRef<HTMLElement | null>(null);
+  const [canScrollNavLeft, setCanScrollNavLeft] = useState(false);
+  const [canScrollNavRight, setCanScrollNavRight] = useState(false);
+
+  const updateNavScrollButtons = useCallback(() => {
+    const el = navRef.current;
+    if (!el) return;
+    setCanScrollNavLeft(el.scrollLeft > 4);
+    setCanScrollNavRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  }, []);
+
+  const scrollNavBy = useCallback((delta: number) => {
+    const el = navRef.current;
+    if (!el) return;
+    el.scrollBy({ left: delta, behavior: "smooth" });
+  }, []);
+
+  useEffect(() => {
+    updateNavScrollButtons();
+    const el = navRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(updateNavScrollButtons);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [updateNavScrollButtons]);
 
   // Sync tab from URL search parameters on initial load
   useEffect(() => {
@@ -489,8 +516,30 @@ export default function DashboardPage() {
         {/* 2. SUB-NAVIGATION TABS (Workbench Mode Switcher) */}
         {/* ========================================================= */}
         <div className="bg-white border-b border-stone-200/80">
-        <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
-          <nav className="flex space-x-1 sm:space-x-3 overflow-x-auto py-2 sm:py-2.5 scrollbar-none snap-x overscroll-contain">
+        <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 relative flex items-center">
+          {canScrollNavLeft && (
+            <button
+              type="button"
+              onClick={() => scrollNavBy(-220)}
+              aria-label="Scroll navigation left"
+              className="shrink-0 mr-1 size-7 rounded-full border border-stone-200 bg-white/95 text-stone-700 hover:bg-stone-100 shadow-xs flex items-center justify-center cursor-pointer z-10"
+            >
+              <ChevronLeft className="size-4" />
+            </button>
+          )}
+          <nav
+            ref={navRef}
+            onScroll={updateNavScrollButtons}
+            onWheel={(e) => {
+              const el = navRef.current;
+              if (!el || el.scrollWidth <= el.clientWidth) return;
+              if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+                e.preventDefault();
+                el.scrollLeft += e.deltaY;
+              }
+            }}
+            className="flex-1 flex items-center space-x-1 sm:space-x-2 overflow-x-auto py-2 sm:py-2.5 scrollbar-none scroll-smooth overscroll-x-contain"
+          >
             {[
               { id: "cockpit", label: "Student Overview", shortLabel: "Overview", icon: Compass },
               { id: "details", label: "My Details", shortLabel: "Details", icon: UserCheck },
@@ -512,20 +561,33 @@ export default function DashboardPage() {
               return (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id as DashboardTab)}
-                  className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer snap-start ${
+                  onClick={(e) => {
+                    setActiveTab(tab.id as DashboardTab);
+                    e.currentTarget.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+                  }}
+                  className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 ${
                     isActive
                       ? "bg-stone-900 text-white shadow-xs"
                       : "text-stone-600 hover:text-stone-900 hover:bg-stone-100"
                   }`}
                 >
                   <Icon className={`size-3.5 shrink-0 ${isActive ? "text-orange-400" : "text-stone-400"}`} />
-                  <span className="hidden sm:inline">{tab.label}</span>
-                  <span className="inline sm:hidden">{tab.shortLabel}</span>
+                  <span className="hidden 2xl:inline">{tab.label}</span>
+                  <span className="inline 2xl:hidden">{tab.shortLabel}</span>
                 </button>
               );
             })}
           </nav>
+          {canScrollNavRight && (
+            <button
+              type="button"
+              onClick={() => scrollNavBy(220)}
+              aria-label="Scroll navigation right"
+              className="shrink-0 ml-1 size-7 rounded-full border border-stone-200 bg-white/95 text-stone-700 hover:bg-stone-100 shadow-xs flex items-center justify-center cursor-pointer z-10"
+            >
+              <ChevronRight className="size-4" />
+            </button>
+          )}
         </div>
         </div>
       </div>
