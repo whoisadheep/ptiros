@@ -91,37 +91,37 @@ const DOSSIER_PAGES: PageTeaser[] = [
   {
     pageNumber: 5,
     tier: "paid",
-    title: "NEP 2020 Stream & Subject Safeguards",
+    title: "Stream & Subject Safeguards",
     badge: "Paid Page 5",
     icon: Compass,
     previewPoints: [
       "Mandatory core subjects vs dual-eligibility electives",
       "High-risk academic pitfalls to avoid in Class 11 selection",
-      "Coaching vs conceptual board clarity reality check",
+      "Keeping both #1 and #2 career tracks open together",
     ],
   },
   {
     pageNumber: 6,
     tier: "paid",
-    title: "Top Indian Institutions & Exam Matrix",
+    title: "Top Indian Institutions & Exam Routes",
     badge: "Paid Page 6",
     icon: GraduationCap,
     previewPoints: [
       "IITs, IIITs, NLUs, AIIMS, NID/IDC, SRCC & IIM IPM pathways",
-      "Entrance exams (JEE, NEET, CLAT, UCEED, IPMAT, CUET) matrix",
-      "Plan-B institutional admissions routes side by side",
+      "Primary & backup entrance exams (JEE, NEET, CLAT, UCEED, IPMAT, CUET)",
+      "Alternative college routes for your #2 track",
     ],
   },
   {
     pageNumber: 7,
     tier: "paid",
-    title: "10-Year Economic Outlook & Salary Ladders",
+    title: "10-Year Career Growth & Salary Outlook",
     badge: "Paid Page 7",
     icon: Briefcase,
     previewPoints: [
-      "Realistic Indian Entry (Yr 0–2), Mid-Career, and Leadership CTC bands",
+      "Starting Pay (Yr 0–2), Mid-Career, and Senior Lead ranges",
       "Long-term sector demand drivers through 2035",
-      "Why portfolio projects boost compensation beyond exam marks",
+      "Why portfolio projects boost career trajectory",
     ],
   },
   {
@@ -131,7 +131,7 @@ const DOSSIER_PAGES: PageTeaser[] = [
     badge: "Paid Page 8",
     icon: Users,
     previewPoints: [
-      "Bridges parent career dreams objectively with student aptitude",
+      "Bridges parent expectations objectively with student aptitude",
       "Calm, data-backed perspective for parents on modern tracks",
       "3 structured dinner-table conversation prompts",
     ],
@@ -139,13 +139,13 @@ const DOSSIER_PAGES: PageTeaser[] = [
   {
     pageNumber: 9,
     tier: "paid",
-    title: "12-Month Kaizen Roadmap & Senior Mentor Brief",
+    title: "12-Month Action Plan & Senior Mentor Brief",
     badge: "Paid Page 9",
     icon: Handshake,
     previewPoints: [
-      "Grade-specific Q1–Q4 execution milestones (Middle/Crossroads/Senior)",
-      "APAAR & student credential readiness checklist",
-      "Paired 1-on-1 Gurukul mentor briefing agenda",
+      "Grade-specific Q1–Q4 execution milestones",
+      "Optional APAAR Student ID guidance",
+      "Paired 1-on-1 PTIROS mentor session agenda",
     ],
   },
 ];
@@ -202,17 +202,11 @@ export default function ComprehensiveDossierModal() {
     if (createdOrderId) {
       return { id: createdOrderId, status: "payment_pending" as const };
     }
-    if (!dossiers.length) return null;
-    if (activeTest) {
-      return dossiers.find((d) => d.careerTestId === activeTest.id) || dossiers[0];
-    }
-    return dossiers[0];
+    if (!dossiers.length || !activeTest) return null;
+    return dossiers.find((d) => d.careerTestId === activeTest.id) || null;
   }, [dossiers, activeTest, createdOrderId]);
 
-  const isUnlocked = Boolean(
-    activeTest?.dossierUnlocked ||
-      dossiers.some((d) => d.status === "paid" || d.status === "pdf_dispatched")
-  );
+  const isUnlocked = Boolean(activeTest?.dossierUnlocked);
 
   if (!isDossierModalOpen) return null;
 
@@ -240,7 +234,8 @@ export default function ComprehensiveDossierModal() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `PTIROS-Complete-9Page-Dossier-${effectiveStudentName.replace(/[^a-zA-Z0-9]+/g, "-")}.pdf`;
+      const safeSlug = effectiveStudentName.replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-|-$/g, "") || "Student";
+      a.download = `PTIROS-Complete-9Page-Dossier-${safeSlug}.pdf`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -335,7 +330,7 @@ export default function ComprehensiveDossierModal() {
                   PTIROS Complete 9-Page Career Dossier
                 </h2>
                 <span className="rounded-full bg-orange-100 px-2.5 py-0.5 text-[10px] font-bold text-[#C2410C] uppercase tracking-wider shrink-0">
-                  9 Pages (&lt;10 Pages)
+                  9-Page Complete Dossier
                 </span>
               </div>
               <p className="text-xs text-stone-500 mt-0.5">
@@ -522,15 +517,15 @@ export default function ComprehensiveDossierModal() {
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <Link
-                href="/signup?next=/career-test"
-                onClick={closeDossierModal}
+                href="/signup?next=%2Fdashboard%3Ftab%3Danalysis"
+                onClick={handleClose}
                 className="px-4 py-2.5 rounded-xl bg-[#C2410C] text-white font-bold text-xs hover:bg-[#9A3412] transition whitespace-nowrap"
               >
                 Create Free Account →
               </Link>
               <Link
-                href="/login?next=/career-test"
-                onClick={closeDossierModal}
+                href="/login?next=%2Fdashboard%3Ftab%3Danalysis"
+                onClick={handleClose}
                 className="px-3.5 py-2.5 rounded-xl bg-white border border-stone-200 text-stone-800 font-semibold text-xs hover:bg-stone-50 transition whitespace-nowrap"
               >
                 Sign In
@@ -559,7 +554,7 @@ export default function ComprehensiveDossierModal() {
                   Unlock Request Recorded • Ref {matchingPendingOrder.id}
                 </span>
                 <p className="text-xs text-stone-700 mt-0.5">
-                  Send your order reference to PTIROS Concierge to confirm ₹499 payment. As soon as approved, the full 9-page PDF downloads automatically right here.
+                  Complete the ₹499 UPI payment with our counselor team on WhatsApp using your order reference, then click &quot;Refresh Unlock Status&quot; here to unlock your 9-page PDF download.
                 </p>
               </div>
               <button
@@ -568,6 +563,7 @@ export default function ComprehensiveDossierModal() {
                 onClick={async () => {
                   setCheckingUnlock(true);
                   await refresh();
+                  setCreatedOrderId(null);
                   setCheckingUnlock(false);
                 }}
                 className="px-3.5 py-2 rounded-xl bg-white border border-stone-300 text-xs font-bold text-stone-800 hover:bg-stone-50 inline-flex items-center gap-1.5 shrink-0 cursor-pointer"
@@ -624,7 +620,7 @@ export default function ComprehensiveDossierModal() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
               <div className="text-xs text-stone-500 flex items-center gap-1.5">
                 <ShieldCheck className="size-4 text-emerald-600 shrink-0" />
-                <span>Saved permanently in Dashboard + Instant 9-Page PDF once confirmed.</span>
+                <span>1. Submit request → 2. Pay ₹499 via WhatsApp → 3. Refresh here to download PDF.</span>
               </div>
               <div className="flex gap-2">
                 <button
@@ -640,7 +636,7 @@ export default function ComprehensiveDossierModal() {
                   className="rounded-xl bg-[#C2410C] hover:bg-[#9A3412] px-5 py-2.5 text-xs font-bold text-white shadow-sm transition cursor-pointer inline-flex items-center gap-1.5 disabled:opacity-60"
                 >
                   {submitting && <Loader2 className="size-3.5 animate-spin" />}
-                  <span>Request Unlock (₹499) →</span>
+                  <span>Continue to WhatsApp Unlock (₹499) →</span>
                 </button>
               </div>
             </div>

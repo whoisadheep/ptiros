@@ -118,7 +118,7 @@ export default function CareerReportViewer({
         blob = await res.blob();
       } else {
         const bytes = await generateCareerReportPdfBytes(record, effectiveContext, tier);
-        blob = new Blob([Buffer.from(bytes)], { type: "application/pdf" });
+        blob = new Blob([new Uint8Array(bytes)], { type: "application/pdf" });
       }
 
       const url = URL.createObjectURL(blob);
@@ -348,13 +348,13 @@ export default function CareerReportViewer({
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <Link
-                href="/signup?next=/dashboard?tab=analysis"
+                href="/signup?next=%2Fdashboard%3Ftab%3Danalysis"
                 className="px-4 py-2 rounded-xl bg-[#C2410C] text-white text-xs font-bold hover:bg-[#9A3412] transition whitespace-nowrap"
               >
                 Save to Portal →
               </Link>
               <Link
-                href="/login?next=/dashboard?tab=analysis"
+                href="/login?next=%2Fdashboard%3Ftab%3Danalysis"
                 className="px-3 py-2 rounded-xl bg-white border border-stone-200 text-stone-700 text-xs font-semibold hover:bg-stone-50 transition whitespace-nowrap"
               >
                 Sign In
@@ -369,10 +369,10 @@ export default function CareerReportViewer({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-100 pb-4">
           <div>
             <span className="text-[11px] font-bold uppercase tracking-wider text-[#C2410C] block">
-              Interactive Multi-Page Report Inspector
+              Your 9-Page Career Report
             </span>
             <h3 className="font-display font-bold text-lg text-stone-900 mt-0.5">
-              Read Pages 1–4 Free • {record.dossierUnlocked ? "Pages 5–9 Unlocked" : "Preview Pages 5–9 Complete Dossier"}
+              Read Pages 1–4 Free • {record.dossierUnlocked ? "Pages 5–9 Unlocked" : "What's Inside Pages 5–9"}
             </h3>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -458,7 +458,7 @@ export default function CareerReportViewer({
                   Page {activePage.pageNumber}: {activePage.title}
                 </h5>
                 <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
-                  Included in the Paid Complete 9-Page Dossier (₹499 Early Pioneer Pass). Unlocks full college entrance tables, Class 11–12 stream safeguards, 10-year salary outlook, dinner-table mediation guide, and instant 9-page PDF download.
+                  Included in the Paid Complete 9-Page Dossier (₹499 Early Pioneer Pass). Unlocks subject selection safeguards, target Indian colleges &amp; exams, 10-year salary outlook, family conversation guide, and downloadable 9-page PDF.
                 </p>
               </div>
               <div className="flex flex-wrap justify-center gap-2.5 pt-1">

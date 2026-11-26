@@ -121,7 +121,7 @@ export default function StudentAuthExperience({
   const [curriculum, setCurriculum] = useState<string>("CBSE");
   const [stateVal, setStateVal] = useState<string>("Karnataka");
   const [city, setCity] = useState<string>("Bengaluru");
-  const [parentDream, setParentDream] = useState<string>("AI & Robotics Engineer");
+  const [parentDream, setParentDream] = useState<string>("");
   const [proSports, setProSports] = useState<boolean>(false);
 
   // Step 3: Optional Fast Personal & Academic Snapshot
@@ -220,8 +220,12 @@ export default function StudentAuthExperience({
     }
     if (typeof window !== "undefined") {
       const targetPath = nextMode === "signup" ? "/signup" : "/login";
-      if (window.location.pathname !== targetPath) {
-        window.history.replaceState(null, "", targetPath);
+      const nextSuffix =
+        nextPath && nextPath !== "/dashboard"
+          ? `?next=${encodeURIComponent(nextPath)}`
+          : "";
+      if (window.location.pathname + window.location.search !== `${targetPath}${nextSuffix}`) {
+        window.history.replaceState(null, "", `${targetPath}${nextSuffix}`);
       }
     }
   };
@@ -635,29 +639,52 @@ export default function StudentAuthExperience({
                 </div>
 
                 <div className="space-y-3">
-                  <button
-                    type="button"
-                    onClick={() => router.push("/career-test")}
-                    className="w-full p-4 rounded-2xl bg-[#C2410C] hover:bg-[#9A3412] text-white text-left transition flex items-center justify-between gap-3 shadow-sm cursor-pointer active:scale-[0.99]"
-                  >
-                    <div className="flex items-start gap-3 min-w-0">
-                      <span className="size-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0 mt-0.5">
-                        <Compass className="size-4.5" strokeWidth={1.75} />
-                      </span>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-sm font-semibold">Take Career Match Test Now</span>
-                          <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/20">
-                            3–4 Min • Free Basic Report
+                  {nextPath && nextPath !== "/dashboard" ? (
+                    <button
+                      type="button"
+                      onClick={() => router.push(nextPath)}
+                      className="w-full p-4 rounded-2xl bg-[#C2410C] hover:bg-[#9A3412] text-white text-left transition flex items-center justify-between gap-3 shadow-sm cursor-pointer active:scale-[0.99]"
+                    >
+                      <div className="flex items-start gap-3 min-w-0">
+                        <span className="size-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0 mt-0.5">
+                          <Compass className="size-4.5" strokeWidth={1.75} />
+                        </span>
+                        <div className="min-w-0">
+                          <span className="text-sm font-semibold block">
+                            View Your Saved Career Report
                           </span>
+                          <p className="text-xs text-white/85 mt-0.5 leading-snug">
+                            Continue directly to your saved diagnostic analysis and PDF options.
+                          </p>
                         </div>
-                        <p className="text-xs text-white/85 mt-1 leading-snug">
-                          Answer 8 scenario questions for your instant 4-page basic analysis & downloadable PDF.
-                        </p>
                       </div>
-                    </div>
-                    <ArrowRight className="size-4 shrink-0" strokeWidth={1.75} />
-                  </button>
+                      <ArrowRight className="size-4 shrink-0" strokeWidth={1.75} />
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => router.push("/career-test")}
+                      className="w-full p-4 rounded-2xl bg-[#C2410C] hover:bg-[#9A3412] text-white text-left transition flex items-center justify-between gap-3 shadow-sm cursor-pointer active:scale-[0.99]"
+                    >
+                      <div className="flex items-start gap-3 min-w-0">
+                        <span className="size-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0 mt-0.5">
+                          <Compass className="size-4.5" strokeWidth={1.75} />
+                        </span>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-sm font-semibold">Take Career Match Test Now</span>
+                            <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/20">
+                              3–4 Min • Free Basic Report
+                            </span>
+                          </div>
+                          <p className="text-xs text-white/85 mt-1 leading-snug">
+                            Answer 8 scenario questions for your instant 4-page basic analysis &amp; downloadable PDF.
+                          </p>
+                        </div>
+                      </div>
+                      <ArrowRight className="size-4 shrink-0" strokeWidth={1.75} />
+                    </button>
+                  )}
 
                   <button
                     type="button"
@@ -1259,7 +1286,7 @@ export default function StudentAuthExperience({
                       School board
                     </span>
                     <div className="flex flex-wrap gap-1.5">
-                      {SCHOOL_BOARDS.slice(0, 5).map((board) => {
+                      {SCHOOL_BOARDS.map((board) => {
                         const active = curriculum === board;
                         return (
                           <button
@@ -1332,7 +1359,7 @@ export default function StudentAuthExperience({
                       Childhood dream or target field
                     </span>
                     <div className="flex flex-wrap gap-1.5">
-                      {DREAM_PRESETS.slice(0, 6).map((preset) => {
+                      {DREAM_PRESETS.map((preset) => {
                         const active = parentDream === preset;
                         return (
                           <button

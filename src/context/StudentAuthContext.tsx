@@ -178,6 +178,28 @@ export function StudentAuthProvider({ children }: { children: React.ReactNode })
     setIsAuthModalOpen(false);
   };
 
+  const syncPendingGuestAssessment = async () => {
+    try {
+      const guestAnswersRaw = localStorage.getItem("ptiros_career_test_guest_answers");
+      if (!guestAnswersRaw) return;
+      const parsed = JSON.parse(guestAnswersRaw);
+      if (parsed?.answers && Object.keys(parsed.answers).length > 0) {
+        const res = await fetch("/api/student/career-test", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            answers: parsed.answers,
+            childhoodDream: parsed.childhoodDream,
+          }),
+        });
+        if (res.ok) {
+          localStorage.removeItem("ptiros_career_test_guest_answers");
+          localStorage.removeItem("ptiros_career_test_guest");
+        }
+      }
+    } catch {}
+  };
+
   const login = async (credentials: { email: string; password: string }) => {
     try {
       const res = await fetch("/api/auth/login", {
@@ -189,27 +211,8 @@ export function StudentAuthProvider({ children }: { children: React.ReactNode })
       if (!res.ok || !data.success) {
         return { success: false, error: data.error || "Login failed" };
       }
+      await syncPendingGuestAssessment();
       await refresh();
-      // Sync any completed guest Career Match Test into the newly registered account
-      try {
-        const guestAnswersRaw = localStorage.getItem("ptiros_career_test_guest_answers");
-        if (guestAnswersRaw) {
-          const parsed = JSON.parse(guestAnswersRaw);
-          if (parsed?.answers && Object.keys(parsed.answers).length > 0) {
-            await fetch("/api/student/career-test", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                answers: parsed.answers,
-                childhoodDream: parsed.childhoodDream,
-              }),
-            });
-            localStorage.removeItem("ptiros_career_test_guest_answers");
-            localStorage.removeItem("ptiros_career_test_guest");
-            await refresh();
-          }
-        }
-      } catch {}
       closeAuthModal();
       return { success: true };
     } catch {
@@ -254,27 +257,8 @@ export function StudentAuthProvider({ children }: { children: React.ReactNode })
       if (!res.ok || !data.success) {
         return { success: false, error: data.error || "Signup failed" };
       }
+      await syncPendingGuestAssessment();
       await refresh();
-      // Sync any completed guest Career Match Test into the newly registered account
-      try {
-        const guestAnswersRaw = localStorage.getItem("ptiros_career_test_guest_answers");
-        if (guestAnswersRaw) {
-          const parsed = JSON.parse(guestAnswersRaw);
-          if (parsed?.answers && Object.keys(parsed.answers).length > 0) {
-            await fetch("/api/student/career-test", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                answers: parsed.answers,
-                childhoodDream: parsed.childhoodDream,
-              }),
-            });
-            localStorage.removeItem("ptiros_career_test_guest_answers");
-            localStorage.removeItem("ptiros_career_test_guest");
-            await refresh();
-          }
-        }
-      } catch {}
       closeAuthModal();
       return { success: true };
     } catch {

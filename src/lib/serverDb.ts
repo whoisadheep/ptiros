@@ -604,13 +604,13 @@ export async function saveDossierOrder(
           ${status}
         )
       `;
-      if (orderInput.careerTestId) {
+      if (orderInput.careerTestId && orderInput.userId) {
         const isPaid = status === "paid" || status === "pdf_dispatched";
         await sql`
           UPDATE student_career_tests
           SET dossier_order_id = ${newId},
               dossier_unlocked = CASE WHEN ${isPaid} THEN TRUE ELSE dossier_unlocked END
-          WHERE id = ${orderInput.careerTestId}
+          WHERE id = ${orderInput.careerTestId} AND user_id = ${orderInput.userId}
         `;
       }
       return {
@@ -650,46 +650,40 @@ export async function updateDossierOrderStatus(
 ): Promise<PaidDossierOrder | null> {
   const sql = getNeonSql();
   if (sql) {
-    try {
-      const rows = await sql`
+    const isPaid = status === "paid" || status === "pdf_dispatched";
+    const rows = await sql`
+      WITH updated_order AS (
         UPDATE paid_dossiers
         SET status = ${status}
         WHERE id = ${orderId}
-        RETURNING *;
-      `;
-      if (rows.length === 0) return null;
-      const r = rows[0];
-      if (status === "paid" || status === "pdf_dispatched") {
-        if (r.career_test_id) {
-          await sql`
-            UPDATE student_career_tests
-            SET dossier_unlocked = TRUE, dossier_order_id = ${orderId}
-            WHERE id = ${r.career_test_id};
-          `;
-        } else if (r.user_id) {
-          await sql`
-            UPDATE student_career_tests
-            SET dossier_unlocked = TRUE, dossier_order_id = ${orderId}
-            WHERE user_id = ${r.user_id};
-          `;
-        }
-      }
-      return {
-        id: r.id,
-        userId: r.user_id || undefined,
-        careerTestId: r.career_test_id || undefined,
-        topTrackTitle: r.top_track_title || undefined,
-        studentName: r.student_name,
-        parentPhone: r.parent_phone,
-        amount: Number(r.amount) || 499,
-        currency: r.currency || "INR",
-        status: r.status,
-        createdAt: new Date(r.created_at).toISOString(),
-      };
-    } catch (err) {
-      console.warn("Neon updateDossierOrderStatus failed:", err);
-      return null;
-    }
+        RETURNING *
+      ),
+      unlock_test AS (
+        UPDATE student_career_tests t
+        SET dossier_unlocked = TRUE, dossier_order_id = ${orderId}
+        FROM updated_order o
+        WHERE ${isPaid}
+          AND (
+            (o.career_test_id IS NOT NULL AND t.id = o.career_test_id)
+            OR (o.career_test_id IS NULL AND o.user_id IS NOT NULL AND t.user_id = o.user_id)
+          )
+      )
+      SELECT * FROM updated_order;
+    `;
+    if (rows.length === 0) return null;
+    const r = rows[0];
+    return {
+      id: r.id,
+      userId: r.user_id || undefined,
+      careerTestId: r.career_test_id || undefined,
+      topTrackTitle: r.top_track_title || undefined,
+      studentName: r.student_name,
+      parentPhone: r.parent_phone,
+      amount: Number(r.amount) || 499,
+      currency: r.currency || "INR",
+      status: r.status,
+      createdAt: new Date(r.created_at).toISOString(),
+    };
   }
 
   return queueDbWrite(async () => {
@@ -1406,39 +1400,35 @@ export async function saveStudentCareerTest(
 
   const sql = getNeonSql();
   if (sql) {
-    try {
-      // Check if the student already holds an active paid dossier unlock order
-      const paidRows = await sql`
-        SELECT id
-        FROM paid_dossiers
-        WHERE user_id = ${userId} AND status IN ('paid', 'pdf_dispatched')
-        ORDER BY created_at DESC
-        LIMIT 1;
-      `;
-      if (paidRows.length > 0) {
-        dossierUnlocked = true;
-        dossierOrderId = paidRows[0].id;
-      }
-
-      await sql`
-        INSERT INTO student_career_tests (
-          id, user_id, student_name, grade, top_track_id, top_track_title,
-          match_confidence, archetype, recommended_stream,
-          answers_json, dimension_scores_json, ranked_tracks_json,
-          dossier_unlocked, dossier_order_id, completed_at
-        ) VALUES (
-          ${id}, ${userId}, ${data.studentName}, ${data.grade},
-          ${data.topTrackId}, ${data.topTrackTitle},
-          ${Math.round(data.matchConfidence)}, ${data.archetype}, ${data.recommendedStream},
-          ${JSON.stringify(data.answers)}::jsonb,
-          ${JSON.stringify(data.dimensionScores)}::jsonb,
-          ${JSON.stringify(data.rankedTracks)}::jsonb,
-          ${dossierUnlocked}, ${dossierOrderId || null}, ${now}
-        );
-      `;
-    } catch (err) {
-      console.warn("Neon saveStudentCareerTest error:", err);
+    // Propagate DB errors rather than returning a synthetic success record
+    const paidRows = await sql`
+      SELECT id
+      FROM paid_dossiers
+      WHERE user_id = ${userId} AND status IN ('paid', 'pdf_dispatched')
+      ORDER BY created_at DESC
+      LIMIT 1;
+    `;
+    if (paidRows.length > 0) {
+      dossierUnlocked = true;
+      dossierOrderId = paidRows[0].id;
     }
+
+    await sql`
+      INSERT INTO student_career_tests (
+        id, user_id, student_name, grade, top_track_id, top_track_title,
+        match_confidence, archetype, recommended_stream,
+        answers_json, dimension_scores_json, ranked_tracks_json,
+        dossier_unlocked, dossier_order_id, completed_at
+      ) VALUES (
+        ${id}, ${userId}, ${data.studentName}, ${data.grade},
+        ${data.topTrackId}, ${data.topTrackTitle},
+        ${Math.round(data.matchConfidence)}, ${data.archetype}, ${data.recommendedStream},
+        ${JSON.stringify(data.answers)}::jsonb,
+        ${JSON.stringify(data.dimensionScores)}::jsonb,
+        ${JSON.stringify(data.rankedTracks)}::jsonb,
+        ${dossierUnlocked}, ${dossierOrderId || null}, ${now}
+      );
+    `;
   }
 
   return {

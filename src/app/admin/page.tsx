@@ -207,7 +207,7 @@ export default function AdminPortalPage() {
     const text =
       `Namaste ${parentGreeting}! Greetings from PTIROS Career Mentorship.\n\n` +
       `We noticed that ${lead.studentName} (${lead.grade}, ${lead.schoolName || lead.city}) explored our career simulations for ${lead.parentDream}.\n\n` +
-      `We would love to share your personalized 3-page family diagnostic and schedule your complimentary 20-minute strategy call with our academic counselors.\n\n` +
+      `We would love to share your personalized 4-page family diagnostic and schedule your complimentary 20-minute strategy call with our academic counselors.\n\n` +
       `When would be a good time to connect today?`;
 
     window.open(`https://wa.me/91${lead.parentPhone}?text=${encodeURIComponent(text)}`, "_blank");
@@ -695,7 +695,7 @@ export default function AdminPortalPage() {
           <div className="space-y-4">
             <div className="rounded-2xl border border-stone-200 bg-white p-4 shadow-xs">
               <h3 className="font-bold text-sm text-stone-900 mb-1">
-                Full 10-Page Career Dossier Orders (₹499 Early Pioneer Pass)
+                Full 9-Page Career Dossier Orders (₹499 Early Pioneer Pass)
               </h3>
               <p className="text-xs text-stone-500">
                 Track parent requests for comprehensive psychometric dossiers, verify payments, and trigger PDF dispatches.

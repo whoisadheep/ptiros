@@ -361,7 +361,7 @@ export default function Navbar() {
                   >
                     <div className="flex items-center gap-3">
                       <FileText className="size-4 text-primary" />
-                      <span className="text-xs font-semibold">Preview 10-Page Career Dossier</span>
+                      <span className="text-xs font-semibold">Preview 9-Page Career Dossier</span>
                     </div>
                     <ArrowRight className="size-3.5 text-stone-400" />
                   </button>

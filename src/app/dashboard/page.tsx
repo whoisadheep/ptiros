@@ -187,35 +187,6 @@ export default function DashboardPage() {
     return careerTests[0];
   }, [careerTests, selectedTestId]);
 
-  // If student finished career test right before creating/signing into account, attach automatically
-  useEffect(() => {
-    if (!user?.id) return;
-    try {
-      const guestAnswersRaw = localStorage.getItem("ptiros_career_test_guest_answers");
-      if (guestAnswersRaw) {
-        const parsed = JSON.parse(guestAnswersRaw);
-        if (parsed?.answers && Object.keys(parsed.answers).length > 0) {
-          fetch("/api/student/career-test", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              answers: parsed.answers,
-              childhoodDream: parsed.childhoodDream,
-            }),
-          })
-            .then((res) => {
-              if (res.ok) {
-                localStorage.removeItem("ptiros_career_test_guest_answers");
-                localStorage.removeItem("ptiros_career_test_guest");
-                refreshStudentAuth();
-              }
-            })
-            .catch(() => {});
-        }
-      }
-    } catch {}
-  }, [user?.id, refreshStudentAuth]);
-
   // Goal creation drawer / inline modal
   const [showGoalModal, setShowGoalModal] = useState(false);
   const [newGoalTitle, setNewGoalTitle] = useState("");
@@ -909,7 +880,7 @@ export default function DashboardPage() {
                     {simulations.length > 0 && (
                       <span className="flex items-center gap-1.5 bg-stone-800/80 px-2.5 py-1 rounded-lg border border-stone-700/60 text-[11px] sm:text-xs">
                         <ShieldCheck className="size-3.5 text-emerald-400" />
-                        NEP 2020 NSQF Level 4 Certified
+                        PTIROS Simulation Badge Earned
                       </span>
                     )}
                   </div>
@@ -933,7 +904,7 @@ export default function DashboardPage() {
                 <div className="bg-stone-800/60 backdrop-blur-md rounded-2xl p-5 border border-stone-700/60 lg:min-w-[280px] shrink-0 space-y-4">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold uppercase tracking-wider text-stone-400">
-                      Trajectory Readiness
+                      Progress Summary
                     </span>
                     <span className="text-xs font-black text-emerald-400">
                       {goals.length > 0 || simulations.length > 0 ? "ACTIVE" : "FRESH START"}
@@ -943,7 +914,7 @@ export default function DashboardPage() {
                   <div className="space-y-3">
                     <div>
                       <div className="flex justify-between text-xs mb-1">
-                        <span className="text-stone-300">Milestone Velocity</span>
+                        <span className="text-stone-300">Goals Completed</span>
                         <span className="font-mono font-bold text-white">{completionPercent}%</span>
                       </div>
                       <div className="w-full h-2 rounded-full bg-stone-700 overflow-hidden">
@@ -956,7 +927,7 @@ export default function DashboardPage() {
 
                     <div>
                       <div className="flex justify-between text-xs mb-1">
-                        <span className="text-stone-300">Simulator Progress</span>
+                        <span className="text-stone-300">Simulations Completed</span>
                         <span className="font-mono font-bold text-white">
                           {simulations.length} / 6
                         </span>
@@ -965,19 +936,6 @@ export default function DashboardPage() {
                         <div
                           className="h-full bg-emerald-500 transition-all duration-700"
                           style={{ width: `${Math.min((simulations.length / 6) * 100, 100)}%` }}
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="text-stone-300">NEP Bagless Credits</span>
-                        <span className="font-mono font-bold text-white">{trajectoryMeta.nepCredits} / 20</span>
-                      </div>
-                      <div className="w-full h-2 rounded-full bg-stone-700 overflow-hidden">
-                        <div
-                          className="h-full bg-blue-500 transition-all duration-700"
-                          style={{ width: `${(trajectoryMeta.nepCredits / 20) * 100}%` }}
                         />
                       </div>
                     </div>
@@ -1599,7 +1557,8 @@ export default function DashboardPage() {
                     { id: "simulator", label: "Simulation Debrief" },
                     { id: "reflection", label: "Daily Reflection" },
                     { id: "academic", label: "Academic Milestone" },
-                    { id: "mentorship", label: "Mentor Strategy" },
+                    { id: "mentor", label: "Mentor Strategy" },
+                    { id: "family", label: "Family Discussion" },
                   ].map((cat) => (
                     <button
                       key={cat.id}
@@ -1646,10 +1605,8 @@ export default function DashboardPage() {
                         {item.content}
                       </p>
                       <div className="pt-2 flex items-center justify-between text-[11px] text-stone-400 border-t border-stone-200/50">
-                        <span className="flex items-center gap-1 font-mono text-[10px]">
-                          ID: {item.id}
-                        </span>
-                        <span className="text-emerald-700 font-semibold">Verified Log</span>
+                        <span className="text-stone-500">Saved to your student journal</span>
+                        <span className="text-emerald-700 font-semibold">Saved</span>
                       </div>
                     </div>
                   ))}
@@ -1753,24 +1710,14 @@ export default function DashboardPage() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-stone-100">
                 <div>
                   <h2 className="text-lg sm:text-xl font-display font-bold text-stone-900 flex flex-wrap items-center gap-2">
-                    <span>NEP 2020 Credential Vault</span>
+                    <span>Skill Exploration Certificates</span>
                     <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 whitespace-nowrap">
-                      National Standards Aligned
+                      PTIROS Portfolio
                     </span>
                   </h2>
                   <p className="text-xs text-stone-500 mt-0.5">
-                    Recognized under National Skill Qualification Framework (NSQF) & National Credit Framework (NCrF).
+                    Completion badges earned from interactive workplace career simulations.
                   </p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => alert("Verification Hash: 0x9f4a... SHA-256 Validated on PTIROS Registry.")}
-                    className="w-full sm:w-auto justify-center px-3.5 py-2 rounded-xl border border-stone-200 text-xs font-bold hover:bg-stone-50 transition flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
-                  >
-                    <QrCode className="size-3.5 text-orange-600" />
-                    Verify Authenticity
-                  </button>
                 </div>
               </div>
 
@@ -1954,11 +1901,12 @@ export default function DashboardPage() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                     {[
-                      { id: "ai-robotics", title: "AI & Autonomous Robotics", desc: "Debugging Kalman Filter & LiDAR telemetry", color: "border-orange-200 hover:border-orange-400" },
-                      { id: "medicine", title: "Digital Health & BioTech", desc: "Dialysis alarms & clinical bio-sensors", color: "border-emerald-200 hover:border-emerald-400" },
-                      { id: "finance", title: "Quant Finance & HFT Trading", desc: "Volatility hedges & HFT execution", color: "border-amber-200 hover:border-amber-400" },
-                      { id: "ux-design", title: "Product Architecture & UX Design", desc: "Fintech onboarding & user drop-off heuristics", color: "border-purple-200 hover:border-purple-400" },
-                      { id: "media", title: "Creative Media & Interactive Tech", desc: "Virtual production & game engine pipelines", color: "border-rose-200 hover:border-rose-400" },
+                      { id: "ai-robotics", title: "AI & Autonomous Robotics", desc: "Fixing self-driving robot obstacle sensors", color: "border-orange-200 hover:border-orange-400" },
+                      { id: "corporate-law", title: "Corporate Law & Public Policy", desc: "Spotting unfair clauses in startup contracts", color: "border-indigo-200 hover:border-indigo-400" },
+                      { id: "medicine", title: "Digital Health & BioTech", desc: "Handling urgent clinical alarms & bio-sensors", color: "border-emerald-200 hover:border-emerald-400" },
+                      { id: "finance", title: "Quantitative Finance & Economics", desc: "Weighing inflation, risk & portfolio choices", color: "border-amber-200 hover:border-amber-400" },
+                      { id: "ux-design", title: "Product Architecture & UX Design", desc: "Redesigning confusing mobile apps for users", color: "border-purple-200 hover:border-purple-400" },
+                      { id: "media", title: "Creative Media & Digital Storytelling", desc: "Shaping engaging stories & digital campaigns", color: "border-rose-200 hover:border-rose-400" },
                     ].map((track) => (
                       <Link
                         key={track.id}

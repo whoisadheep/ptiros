@@ -226,13 +226,20 @@ export async function generateCareerReportPdfBytes(
             font: sansBold,
             color: COLORS.muted,
           });
-          const valLines = wrapLines(metric.value, sansBold, 11.5, boxW - 24);
-          page.drawText(valLines[0] || "", {
-            x: bx + 12,
-            y: y - 34,
-            size: 11.5,
-            font: sansBold,
-            color: COLORS.ink,
+          let valFontSize = 11.5;
+          let valLines = wrapLines(metric.value, sansBold, valFontSize, boxW - 24);
+          if (valLines.length > 1) {
+            valFontSize = 9.5;
+            valLines = wrapLines(metric.value, sansBold, valFontSize, boxW - 24);
+          }
+          valLines.slice(0, 2).forEach((vLine, lIdx) => {
+            page.drawText(vLine, {
+              x: bx + 12,
+              y: y - (valLines.length > 1 ? 28 + lIdx * 11 : 34),
+              size: valFontSize,
+              font: sansBold,
+              color: COLORS.ink,
+            });
           });
         });
         y -= rowH + 10;
@@ -296,12 +303,14 @@ export async function generateCareerReportPdfBytes(
       }
       y -= dims.length * 28 + 42;
     } else if (i === 2) {
-      const tracks = record.rankedTracks.slice(0, 5);
+      const tracks = record.rankedTracks.slice(0, 6);
+      const rowStep = 24;
+      const cardHeight = tracks.length * rowStep + 28;
       page.drawRectangle({
         x: margin,
-        y: y - (tracks.length * 28 + 28),
+        y: y - cardHeight,
         width: contentWidth,
-        height: tracks.length * 28 + 28,
+        height: cardHeight,
         color: COLORS.cardBg,
         borderColor: COLORS.subtleBorder,
         borderWidth: 0.6,
@@ -313,43 +322,43 @@ export async function generateCareerReportPdfBytes(
         font: sansBold,
         color: COLORS.terracotta,
       });
-      let barY = y - 36;
+      let barY = y - 34;
       const barMaxW = contentWidth - 28;
       for (let tIdx = 0; tIdx < tracks.length; tIdx++) {
         const tr = tracks[tIdx];
         page.drawText(sanitizePdfText(`#${tIdx + 1} ${tr.trackTitle}`), {
           x: margin + 14,
           y: barY,
-          size: 9.5,
+          size: 9,
           font: sansBold,
           color: COLORS.ink,
         });
         const pctLabel = `${tr.matchPercent}% Fit`;
-        const pctW = sansBold.widthOfTextAtSize(pctLabel, 9.5);
+        const pctW = sansBold.widthOfTextAtSize(pctLabel, 9);
         page.drawText(pctLabel, {
           x: margin + 14 + barMaxW - pctW,
           y: barY,
-          size: 9.5,
+          size: 9,
           font: sansBold,
           color: tIdx === 0 ? COLORS.terracotta : COLORS.ink,
         });
         page.drawRectangle({
           x: margin + 14,
-          y: barY - 10,
+          y: barY - 9,
           width: barMaxW,
-          height: 5,
+          height: 4.5,
           color: COLORS.trackBg,
         });
         page.drawRectangle({
           x: margin + 14,
-          y: barY - 10,
+          y: barY - 9,
           width: Math.max(8, (barMaxW * Math.min(100, tr.matchPercent)) / 100),
-          height: 5,
+          height: 4.5,
           color: tIdx === 0 ? COLORS.terracotta : COLORS.emerald,
         });
-        barY -= 28;
+        barY -= rowStep;
       }
-      y -= tracks.length * 28 + 42;
+      y -= cardHeight + 14;
     }
 
     // Bullet Insights Section
@@ -363,8 +372,8 @@ export async function generateCareerReportPdfBytes(
     y -= 18;
 
     for (const bullet of spec.bullets) {
-      if (y < 140) break;
-      const bulletLines = wrapLines(bullet, sans, 10.5, contentWidth - 18);
+      if (y < 105) break;
+      const bulletLines = wrapLines(bullet, sans, 10, contentWidth - 18);
       page.drawRectangle({
         x: margin + 2,
         y: y + 2,
@@ -373,50 +382,52 @@ export async function generateCareerReportPdfBytes(
         color: COLORS.terracotta,
       });
       for (const bLine of bulletLines) {
-        if (y < 95) break;
+        if (y < 84) break;
         page.drawText(bLine, {
           x: margin + 16,
           y,
-          size: 10.5,
-          font: sans,
-          color: COLORS.ink,
-        });
-        y -= 15;
-      }
-      y -= 8;
-    }
-
-    // Callout Box at bottom area if space permits
-    if (spec.callout && y > 135) {
-      const calloutLines = wrapLines(spec.callout.body, sans, 10, contentWidth - 28);
-      const boxHeight = Math.max(60, 32 + calloutLines.length * 14);
-      const boxY = Math.max(86, y - boxHeight - 6);
-      page.drawRectangle({
-        x: margin,
-        y: boxY,
-        width: contentWidth,
-        height: boxHeight,
-        color: COLORS.terracottaSoft,
-        borderColor: COLORS.terracotta,
-        borderWidth: 0.9,
-      });
-      page.drawText(sanitizePdfText(spec.callout.title.toUpperCase()), {
-        x: margin + 14,
-        y: boxY + boxHeight - 18,
-        size: 8.5,
-        font: sansBold,
-        color: COLORS.terracotta,
-      });
-      let cY = boxY + boxHeight - 34;
-      for (const cLine of calloutLines) {
-        page.drawText(cLine, {
-          x: margin + 14,
-          y: cY,
           size: 10,
           font: sans,
           color: COLORS.ink,
         });
-        cY -= 14;
+        y -= 14;
+      }
+      y -= 6;
+    }
+
+    // Callout Box at bottom area strictly if it fits without overlapping bullets
+    if (spec.callout) {
+      const calloutLines = wrapLines(spec.callout.body, sans, 9.5, contentWidth - 28);
+      const boxHeight = Math.max(54, 30 + calloutLines.length * 13);
+      const boxY = y - boxHeight - 6;
+      if (boxY >= 78) {
+        page.drawRectangle({
+          x: margin,
+          y: boxY,
+          width: contentWidth,
+          height: boxHeight,
+          color: COLORS.terracottaSoft,
+          borderColor: COLORS.terracotta,
+          borderWidth: 0.9,
+        });
+        page.drawText(sanitizePdfText(spec.callout.title.toUpperCase()), {
+          x: margin + 14,
+          y: boxY + boxHeight - 17,
+          size: 8.5,
+          font: sansBold,
+          color: COLORS.terracotta,
+        });
+        let cY = boxY + boxHeight - 32;
+        for (const cLine of calloutLines) {
+          page.drawText(cLine, {
+            x: margin + 14,
+            y: cY,
+            size: 9.5,
+            font: sans,
+            color: COLORS.ink,
+          });
+          cY -= 13;
+        }
       }
     }
 
@@ -427,9 +438,17 @@ export async function generateCareerReportPdfBytes(
       thickness: 0.5,
       color: COLORS.subtleBorder,
     });
-    const footerLeft = sanitizePdfText(
-      `PTIROS • Prepared for ${record.studentName} (${record.grade}) • Ref: ${record.id}`
+    const footerRight = sanitizePdfText(
+      tier === "full"
+        ? "PTIROS Complete 9-Page Career Dossier"
+        : "Free Basic Analysis • Full 9-Page Dossier at ptiros.in"
     );
+    const fW = sans.widthOfTextAtSize(footerRight, 8);
+    const maxFooterLeftW = Math.max(120, contentWidth - fW - 14);
+    const footerLeftRaw = sanitizePdfText(
+      `PTIROS • ${record.studentName} (${record.grade}) • ${record.id}`
+    );
+    const footerLeft = wrapLines(footerLeftRaw, sans, 8, maxFooterLeftW)[0] || "PTIROS";
     page.drawText(footerLeft, {
       x: margin,
       y: 38,
@@ -437,11 +456,6 @@ export async function generateCareerReportPdfBytes(
       font: sans,
       color: COLORS.muted,
     });
-    const footerRight =
-      tier === "full"
-        ? "PTIROS Paid Complete Dossier (<10 Pages)"
-        : "Free Basic Analysis • Full 9-Page Dossier at ptiros.in";
-    const fW = sans.widthOfTextAtSize(footerRight, 8);
     page.drawText(footerRight, {
       x: pageWidth - margin - fW,
       y: 38,

@@ -77,6 +77,8 @@ export default function CareerTestPage() {
     setStep("quiz");
   };
 
+  const [selectedLastOption, setSelectedLastOption] = useState<string | null>(null);
+
   const handleAnswerSelect = async (questionId: string, optionId: string) => {
     const updated = { ...answers, [questionId]: optionId };
     setAnswers(updated);
@@ -86,7 +88,11 @@ export default function CareerTestPage() {
       return;
     }
 
-    // Completed all 8 questions — evaluate on server and persist if signed in
+    // On Question 8, highlight selection and let student confirm cleanly
+    setSelectedLastOption(optionId);
+  };
+
+  const submitCompletedAssessment = async (finalAnswers: Record<string, string>) => {
     setIsScoring(true);
     setSubmitError(null);
     const res = await saveCareerTestResult({
@@ -100,7 +106,7 @@ export default function CareerTestPage() {
       parentDream: childhoodDream.trim() || user?.parentDream,
       childhoodDream: childhoodDream.trim() || undefined,
       parentPhone: phoneCheck.digits || user?.parentPhone,
-      answers: updated,
+      answers: finalAnswers,
     });
     setIsScoring(false);
 
@@ -509,24 +515,17 @@ export default function CareerTestPage() {
                           <span className="text-sm sm:text-base font-medium text-stone-900 block leading-snug">
                             {opt.text}
                           </span>
-                          <span className="text-[11px] text-stone-400 font-medium mt-1 block">
-                            Signal: {opt.traitLabel}
-                          </span>
                         </div>
                       </div>
                       <span className="text-xs font-bold text-[#C2410C] shrink-0">
-                        {isScoring && currentQ === CAREER_ASSESSMENT_QUESTIONS.length - 1 ? (
-                          <Loader2 className="size-4 animate-spin" />
-                        ) : (
-                          "Choose →"
-                        )}
+                        {isChosen ? "Selected ✓" : "Choose →"}
                       </span>
                     </button>
                   );
                 })}
               </div>
 
-              <div className="pt-2 flex items-center justify-between border-t border-stone-100">
+              <div className="pt-2 flex flex-wrap items-center justify-between gap-3 border-t border-stone-100">
                 <button
                   type="button"
                   disabled={isScoring}
@@ -539,9 +538,22 @@ export default function CareerTestPage() {
                   <ArrowLeft className="size-3.5" />
                   <span>{currentQ > 0 ? "Previous Scenario" : "Back to Setup"}</span>
                 </button>
-                <span className="text-[11px] text-stone-400">
-                  No wrong answers • Instant dynamic fit
-                </span>
+
+                {currentQ === CAREER_ASSESSMENT_QUESTIONS.length - 1 ? (
+                  <button
+                    type="button"
+                    disabled={isScoring || (!selectedLastOption && !answers[activeQuestion.id])}
+                    onClick={() => submitCompletedAssessment(answers)}
+                    className="px-5 py-2.5 rounded-xl bg-[#C2410C] hover:bg-[#9A3412] text-white font-bold text-xs inline-flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    {isScoring && <Loader2 className="size-3.5 animate-spin" />}
+                    <span>See My Career Analysis →</span>
+                  </button>
+                ) : (
+                  <span className="text-[11px] text-stone-400">
+                    No wrong answers • Instant dynamic fit
+                  </span>
+                )}
               </div>
             </motion.div>
           )}
@@ -561,6 +573,8 @@ export default function CareerTestPage() {
                   parentDream: childhoodDream || user?.parentDream,
                 }}
                 onRetake={() => {
+                  setActiveRecord(null);
+                  setSelectedLastOption(null);
                   setAnswers({});
                   setCurrentQ(0);
                   setStep("quiz");

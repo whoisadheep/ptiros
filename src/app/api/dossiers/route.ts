@@ -6,6 +6,7 @@ import {
   ADMIN_COOKIE_NAME,
   STUDENT_COOKIE_NAME,
   verifyStudentSessionToken,
+  normalizeIndianMobile,
 } from "@/lib/serverDb";
 import { ApiResponse, PaidDossierOrder } from "@/types/database";
 
@@ -15,9 +16,20 @@ export const runtime = "nodejs";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    if (!body.studentName || !body.parentPhone) {
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
       return NextResponse.json<ApiResponse<null>>(
-        { success: false, error: "Student name and parent phone are required" },
+        { success: false, error: "Invalid request payload" },
+        { status: 400 }
+      );
+    }
+
+    const studentName = typeof body.studentName === "string" ? body.studentName.trim().slice(0, 100) : "";
+    const rawPhone = typeof body.parentPhone === "string" ? body.parentPhone.trim() : "";
+    const phoneCheck = normalizeIndianMobile(rawPhone);
+
+    if (studentName.length < 2 || !phoneCheck.isValid) {
+      return NextResponse.json<ApiResponse<null>>(
+        { success: false, error: "Valid student name and 10-digit parent phone are required" },
         { status: 400 }
       );
     }
@@ -27,10 +39,16 @@ export async function POST(req: NextRequest) {
 
     const order = await saveDossierOrder({
       userId: authenticatedUserId || undefined,
-      careerTestId: typeof body.careerTestId === "string" ? body.careerTestId : undefined,
-      topTrackTitle: typeof body.topTrackTitle === "string" ? body.topTrackTitle.slice(0, 140) : undefined,
-      studentName: String(body.studentName).slice(0, 100).trim(),
-      parentPhone: String(body.parentPhone).trim(),
+      careerTestId:
+        authenticatedUserId && typeof body.careerTestId === "string"
+          ? body.careerTestId.trim().slice(0, 64)
+          : undefined,
+      topTrackTitle:
+        typeof body.topTrackTitle === "string"
+          ? body.topTrackTitle.trim().slice(0, 140)
+          : undefined,
+      studentName,
+      parentPhone: phoneCheck.normalized,
       status: "payment_pending",
     });
 

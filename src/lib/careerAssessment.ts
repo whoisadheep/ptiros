@@ -96,8 +96,8 @@ export const CAREER_TRACK_BLUEPRINTS: Record<CareerTrackId, CareerTrackBlueprint
     archetypeTitle: "The Pragmatic Systems Builder",
     archetypeSummary:
       "You naturally decompose complex systems into measurable components and learn fastest by testing real prototypes rather than memorizing passive theory.",
-    brainZones: ["Prefrontal Strategy", "Parietal Spatial-Logic"],
-    learningStyle: "Hands-on experimentation, modular debugging, and visual system diagrams",
+    brainZones: ["Structured Planning", "Visual & Spatial Logic"],
+    learningStyle: "Hands-on building, step-by-step debugging, and visual system diagrams",
     recommendedStream: "Science (PCM — Physics, Chemistry, Mathematics)",
     mandatorySubjects: ["Mathematics", "Physics", "Chemistry"],
     recommendedElectives: ["Computer Science (Python)", "Artificial Intelligence / Electronics"],
@@ -134,8 +134,8 @@ export const CAREER_TRACK_BLUEPRINTS: Record<CareerTrackId, CareerTrackBlueprint
     archetypeTitle: "The Civic Strategist",
     archetypeSummary:
       "You weigh fairness, rules, and second-order consequences instinctively, spotting flaws in arguments long before others notice them.",
-    brainZones: ["Left-Temporal Verbal", "Frontal Executive Critique"],
-    learningStyle: "Case debates, Socratic questioning, reading patterns, and structured briefs",
+    brainZones: ["Verbal Reasoning", "Analytical Argumentation"],
+    learningStyle: "Case debates, guided Q&A, reading patterns, and structured arguments",
     recommendedStream: "Humanities or Commerce with Legal Studies / Economics",
     mandatorySubjects: ["English", "Political Science or Business Studies"],
     recommendedElectives: ["Legal Studies", "Economics", "Applied Mathematics"],
@@ -172,7 +172,7 @@ export const CAREER_TRACK_BLUEPRINTS: Record<CareerTrackId, CareerTrackBlueprint
     archetypeTitle: "The Human-Centered Architect",
     archetypeSummary:
       "You combine sharp visual intuition with deep user empathy, noticing friction in everyday tools and reimagining simpler pathways.",
-    brainZones: ["Right-Parietal Spatial", "Prefrontal Empathy Mapping"],
+    brainZones: ["Visual Pattern Sense", "User Empathy"],
     learningStyle: "Observational sketching, rapid interactive prototyping, and user critiques",
     recommendedStream: "Open to Any Stream (Science, Commerce, or Humanities + Design Portfolio)",
     mandatorySubjects: ["English", "Mathematics or Psychology (Helpful)"],
@@ -210,7 +210,7 @@ export const CAREER_TRACK_BLUEPRINTS: Record<CareerTrackId, CareerTrackBlueprint
     archetypeTitle: "The Clinical Investigator",
     archetypeSummary:
       "You stay composed when responsibility is high, connect subtle biological clues systematically, and care deeply about tangible human recovery.",
-    brainZones: ["Diagnostic Prefrontal", "Insular Empathy & Calm"],
+    brainZones: ["Systematic Diagnosis", "Calm Under Responsibility"],
     learningStyle: "Structured NCERT conceptual mastery, clinical case tracing, and visual anatomy",
     recommendedStream: "Science (PCB — Physics, Chemistry, Biology)",
     mandatorySubjects: ["Biology", "Chemistry", "Physics"],
@@ -248,7 +248,7 @@ export const CAREER_TRACK_BLUEPRINTS: Record<CareerTrackId, CareerTrackBlueprint
     archetypeTitle: "The Quantitative Strategist",
     archetypeSummary:
       "You naturally weigh risk versus reward, look past emotional noise in numbers, and enjoy structuring long-term compounding decisions.",
-    brainZones: ["Parietal Numerical Grid", "Frontal Risk Calibration"],
+    brainZones: ["Numerical Pattern Recognition", "Risk Evaluation"],
     learningStyle: "Scenario modelling, market post-mortems, spreadsheet thinking, and applied probability",
     recommendedStream: "Commerce with Core/Applied Mathematics OR Science (PCM)",
     mandatorySubjects: ["Mathematics / Applied Mathematics", "Economics"],
@@ -286,7 +286,7 @@ export const CAREER_TRACK_BLUEPRINTS: Record<CareerTrackId, CareerTrackBlueprint
     archetypeTitle: "The Cultural Storyteller",
     archetypeSummary:
       "You sense why audiences pause, feel, and remember stories, uniting narrative instinct with modern digital distribution systems.",
-    brainZones: ["Visual-Auditory Association", "Social Narrative Framing"],
+    brainZones: ["Visual Story Sense", "Audience Connection"],
     learningStyle: "Project creation, visual breakdown, writing hooks, and audience experimentation",
     recommendedStream: "Humanities, Commerce, or Science (Open Stream Flexibility)",
     mandatorySubjects: ["English Literature / Communication", "Social Sciences / Psychology"],
@@ -360,8 +360,8 @@ export const CAREER_ASSESSMENT_QUESTIONS: AssessmentQuestion[] = [
   {
     id: "q2_bagless",
     number: 2,
-    category: "Interest & Curiosity (Bagless Day)",
-    question: "Your school announces a full zero-textbook Bagless Discovery Day. Which 3-hour studio do you sprint to join?",
+    category: "Interest & Curiosity (No-Textbook Activity Day)",
+    question: "Your school announces a full no-textbook Activity Day. Which 3-hour studio do you sprint to join?",
     hint: "Ignore board marks or parent expectations — just follow pure curiosity.",
     options: [
       {
@@ -462,7 +462,7 @@ export const CAREER_ASSESSMENT_QUESTIONS: AssessmentQuestion[] = [
       {
         id: "q4_c",
         text: "Re-reading exact rules/commitments so we make zero careless procedural mistakes",
-        traitLabel: "Fiduciary Discipline",
+        traitLabel: "Rule & Detail Checker",
         trackWeights: { "corporate-law": 4, medicine: 1 },
         dimensionWeights: { analytical: 3, communication: 2 },
       },
@@ -609,14 +609,14 @@ export const CAREER_ASSESSMENT_QUESTIONS: AssessmentQuestion[] = [
       },
       {
         id: "q8_b",
-        text: "Analyzing financial statements, market charts, and risk probability scenarios",
+        text: "Analyzing company balance sheets, market trends, and risk scenarios",
         traitLabel: "Market Craft",
         trackWeights: { finance: 4 },
         dimensionWeights: { quantitative: 4, analytical: 1 },
       },
       {
         id: "q8_c",
-        text: "Interviewing users, wireframing screens, and refining product usability",
+        text: "Interviewing app users, sketching screen layouts, and making tools easier to use",
         traitLabel: "Design Craft",
         trackWeights: { "ux-design": 4, media: 1 },
         dimensionWeights: { creative: 3, empathy: 3 },
@@ -685,7 +685,7 @@ export function getGradeActionPlan(grade: string, topTrack: CareerTrackBlueprint
         },
         {
           quarter: "Q2 (Months 4–6)",
-          title: "Bagless Days Mini-Portfolio",
+          title: "Weekend Hands-On Mini-Portfolio",
           detail: "Ship one tangible weekend mini-project (a small circuit, redesign sketch, debate journal, or science logbook) instead of passive memorizing.",
         },
         {
@@ -718,13 +718,13 @@ export function getGradeActionPlan(grade: string, topTrack: CareerTrackBlueprint
         },
         {
           quarter: "Q3 (Months 7–9)",
-          title: "Board Exam Kaizen + Activity Proof",
+          title: "Board Exam Checklists + Activity Proof",
           detail: "Balance 85%+ NCERT board fundamentals with one verified leadership, olympiad, or project artifact in your Activity Locker.",
         },
         {
           quarter: "Q4 (Months 10–12)",
           title: "Final Stream & Elective Confirmation Call",
-          detail: `Sit with parents and your PTIROS mentor (${MENTORS.find((m) => m.domainId.includes(topTrack.id.split("-")[0]))?.name || "Senior Mentor"}) to select ${topTrack.recommendedStream}.`,
+          detail: `Sit with parents and your PTIROS mentor (${MENTORS.find((m) => m.id === topTrack.mentorId)?.name || "Senior Mentor"}) to select ${topTrack.recommendedStream}.`,
         },
       ],
     };
@@ -812,22 +812,7 @@ export function evaluateCareerAssessment(
     }
   }
 
-  // Subtle alignment bonus from stated parent/student dream if keywords clearly align (never overrides psychometric answers)
-  const dreamLower = (context.parentDream || "").toLowerCase();
-  if (dreamLower.includes("robot") || dreamLower.includes("ai") || dreamLower.includes("engineer") || dreamLower.includes("cs")) {
-    trackRaw["ai-robotics"] += 1.5;
-  } else if (dreamLower.includes("law") || dreamLower.includes("ias") || dreamLower.includes("policy")) {
-    trackRaw["corporate-law"] += 1.5;
-  } else if (dreamLower.includes("design") || dreamLower.includes("ux") || dreamLower.includes("architect")) {
-    trackRaw["ux-design"] += 1.5;
-  } else if (dreamLower.includes("med") || dreamLower.includes("doctor") || dreamLower.includes("bio")) {
-    trackRaw.medicine += 1.5;
-  } else if (dreamLower.includes("fin") || dreamLower.includes("ca") || dreamLower.includes("econ") || dreamLower.includes("quant")) {
-    trackRaw.finance += 1.5;
-  } else if (dreamLower.includes("media") || dreamLower.includes("film") || dreamLower.includes("journal")) {
-    trackRaw.media += 1.5;
-  }
-
+  // Scoring reflects the student's 8 scenario answers purely, with no keyword bias from parentDream
   const maxTrackScore = Math.max(...Object.values(trackRaw), 1);
 
   const rankedTracks: CareerTrackMatchScore[] = (Object.keys(CAREER_TRACK_BLUEPRINTS) as CareerTrackId[])
@@ -932,14 +917,15 @@ export function buildReportPagesFromRecord(
   const thirdDim = record.dimensionScores[2];
 
   const studentLine = `${record.studentName} • ${record.grade}${context.curriculum ? ` (${context.curriculum})` : ""}${context.city ? ` • ${context.city}` : ""}`;
+  const cleanGradeLabel = record.grade.replace(/^Class\s+/i, "");
 
-  // Pages 1–4 = Free Basic Analysis (Half Basic Analysis, 4 pages)
-  // Pages 1–9 = Complete Dossier (< 10 pages, Paid Unlock + Download PDF)
+  // Pages 1–4 = Free Basic Analysis (4 pages)
+  // Pages 1–9 = Complete Dossier (9 pages, Paid Unlock + Download PDF)
   return [
     {
       pageNumber: 1,
       tier: "free",
-      tag: "Page 1 of 4 • Free Basic Snapshot",
+      tag: "Page 1 of 9 (Free) • Executive Profile",
       title: "Executive Cognitive Profile & Primary Fit",
       subtitle: studentLine,
       metrics: [
@@ -961,7 +947,7 @@ export function buildReportPagesFromRecord(
     {
       pageNumber: 2,
       tier: "free",
-      tag: "Page 2 of 4 • Free Basic Snapshot",
+      tag: "Page 2 of 9 (Free) • Learning Style",
       title: "How You Think, Learn & Decide",
       subtitle: `Learning Engine & Cognitive Style for ${record.studentName}`,
       metrics: record.dimensionScores.slice(0, 4).map((d) => ({
@@ -980,7 +966,7 @@ export function buildReportPagesFromRecord(
     {
       pageNumber: 3,
       tier: "free",
-      tag: "Page 3 of 4 • Free Basic Snapshot",
+      tag: "Page 3 of 9 (Free) • Track Comparison",
       title: "Top 3 Career Tracks & Stream Orientation",
       subtitle: "Ranked directly from your 8 scenario decisions",
       metrics: [
@@ -1002,25 +988,25 @@ export function buildReportPagesFromRecord(
     {
       pageNumber: 4,
       tier: "free",
-      tag: "Page 4 of 4 • Free Basic Snapshot",
+      tag: "Page 4 of 9 (Free) • Next Steps",
       title: "Immediate Next Steps & Full Dossier Scope",
       subtitle: gradeStageLabel,
       bullets: [
-        `Step 1 (Today): Run the ${topTrack.title} workplace simulator (${topTrack.simulatorUrl}) to earn resilience XP.`,
+        `Step 1 (Today): Run the ${topTrack.title} workplace simulator (${topTrack.simulatorUrl}) to test real-world tasks.`,
         `Step 2 (This Week): Add "${quarterlyActionPlan[0].title}" to your PTIROS Study Planner.`,
-        `Step 3 (With Parents): Upgrade to unlock Pages 5–9 for complete entrance exam calendars, top Indian colleges, 10-year salary ladders, dinner-table mediation prompts, and Mentor ${mentor.name}'s action blueprint.`,
+        `Step 3 (With Parents): Upgrade to unlock Pages 5–9 for subject safeguards, top Indian colleges & entrance routes, 10-year salary bands, family conversation prompts, and Mentor ${mentor.name}'s quarterly action plan.`,
       ],
       callout: {
         title: "Free vs. Complete 9-Page PDF Dossier",
-        body: "Pages 1–4 give you your core snapshot and top 3 tracks for free. Unlocking the full 9-page PDF adds stream safeguards, institution cutoffs, 10-year ROI, parent dialogue guides, and a saved archival PDF.",
+        body: "Pages 1–4 give you your core snapshot and top 3 tracks for free. Unlocking Pages 5–9 adds subject safeguards, target Indian colleges, 10-year salary bands, parent dialogue guides, and a saved 9-page PDF.",
       },
     },
-    // --- PAID PAGES 5–9 (Total 9 pages < 10 pages per specification) ---
+    // --- PAID PAGES 5–9 (9 pages total) ---
     {
       pageNumber: 5,
       tier: "paid",
-      tag: "Page 5 of 9 • Paid Complete Dossier",
-      title: "NEP 2020 Stream & Subject Combination Safeguards",
+      tag: "Page 5 of 9 (Paid) • Stream Strategy",
+      title: "Stream & Subject Combination Safeguards",
       subtitle: `Subject Selection Blueprint for ${topTrack.title}`,
       metrics: [
         { label: "Mandatory Core", value: topTrack.mandatorySubjects.join(", ") },
@@ -1039,8 +1025,8 @@ export function buildReportPagesFromRecord(
     {
       pageNumber: 6,
       tier: "paid",
-      tag: "Page 6 of 9 • Paid Complete Dossier",
-      title: "Top Indian Institutions & Entrance Exam Matrix",
+      tag: "Page 6 of 9 (Paid) • Colleges & Exams",
+      title: "Top Indian Institutions & Entrance Exam Routes",
       subtitle: `Admissions Pathways for ${topTrack.title} & ${secondaryTrack.title}`,
       bullets: [
         `Primary Entrance Exams: ${topTrack.entranceExams.join(" • ")}.`,
@@ -1053,13 +1039,13 @@ export function buildReportPagesFromRecord(
     {
       pageNumber: 7,
       tier: "paid",
-      tag: "Page 7 of 9 • Paid Complete Dossier",
-      title: "10-Year Economic Outlook & Indian Salary Ladders",
-      subtitle: `Empirical ROI & Talent Demand Curve (${topTrack.title})`,
+      tag: "Page 7 of 9 (Paid) • 10-Year Career Growth",
+      title: "10-Year Career Growth & Indian Salary Outlook",
+      subtitle: `Long-Term Demand & Expected Pay (${topTrack.title})`,
       metrics: [
-        { label: "Entry CTC (Yr 0–2)", value: topTrack.salaryLadder.entryLevel },
+        { label: "Starting Pay (Yr 0–2)", value: topTrack.salaryLadder.entryLevel },
         { label: "Mid-Career (Yr 5–7)", value: topTrack.salaryLadder.midCareer },
-        { label: "Leadership (Yr 10+)", value: topTrack.salaryLadder.leadership },
+        { label: "Senior Lead (Yr 10+)", value: topTrack.salaryLadder.leadership },
       ],
       bullets: [
         topTrack.salaryLadder.outlookNote,
@@ -1070,7 +1056,7 @@ export function buildReportPagesFromRecord(
     {
       pageNumber: 8,
       tier: "paid",
-      tag: "Page 8 of 9 • Paid Complete Dossier",
+      tag: "Page 8 of 9 (Paid) • Family Alignment",
       title: "Parent-Child Alignment & Dinner-Table Matrix",
       subtitle: context.parentName
         ? `Prepared calmly for ${record.studentName} & ${context.parentName}`
@@ -1086,20 +1072,20 @@ export function buildReportPagesFromRecord(
     {
       pageNumber: 9,
       tier: "paid",
-      tag: "Page 9 of 9 • Paid Complete Dossier",
-      title: "12-Month Kaizen Roadmap & Senior Mentor Brief",
+      tag: "Page 9 of 9 (Paid) • 12-Month Action Plan",
+      title: "12-Month Action Plan & Senior Mentor Brief",
       subtitle: `Paired Mentor: ${mentor.name} (${mentor.pedigree})`,
       bullets: [
         ...quarterlyActionPlan.map(
           (q) => `${q.quarter} — ${q.title}: ${q.detail}`
         ),
-        `Recommended 1-on-1 Session Focus with ${mentor.name}: Review Class ${record.grade} subject load, validate simulator fit, and lock 90-day study priorities.`,
+        `Recommended 1-on-1 Session Focus with ${mentor.name}: Review your Class ${cleanGradeLabel} subject load, validate simulator fit, and lock 90-day study priorities.`,
       ],
       callout: {
-        title: "Credential Status",
+        title: "APAAR Student ID (Optional)",
         body: context.aparId
           ? `APAAR Reference (${context.aparId}) linked for transcript continuity.`
-          : "APAAR ID can be linked anytime under Dashboard -> My Details once finalized with school.",
+          : "APAAR ID (India's 12-digit school Student ID) is optional and can be added anytime under Dashboard -> My Details.",
       },
     },
   ];

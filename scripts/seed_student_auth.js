@@ -116,6 +116,18 @@ async function setup() {
   `;
 
   await sql`
+    CREATE TABLE IF NOT EXISTS paid_dossiers (
+      id VARCHAR(64) PRIMARY KEY,
+      student_name VARCHAR(120) NOT NULL,
+      parent_phone VARCHAR(20) NOT NULL,
+      amount INTEGER DEFAULT 499,
+      currency VARCHAR(10) DEFAULT 'INR',
+      status VARCHAR(32) DEFAULT 'payment_pending',
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
+  `;
+
+  await sql`
     ALTER TABLE paid_dossiers
       ADD COLUMN IF NOT EXISTS user_id VARCHAR(64),
       ADD COLUMN IF NOT EXISTS career_test_id VARCHAR(64),

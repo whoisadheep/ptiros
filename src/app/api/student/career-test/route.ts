@@ -8,6 +8,7 @@ import {
   saveLead,
 } from "@/lib/serverDb";
 import {
+  CAREER_ASSESSMENT_QUESTIONS,
   evaluateCareerAssessment,
   type AssessmentStudentContext,
 } from "@/lib/careerAssessment";
@@ -45,34 +46,73 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const answers =
-      body.answers && typeof body.answers === "object"
-        ? (body.answers as Record<string, string>)
-        : {};
-
-    if (Object.keys(answers).length === 0) {
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
       return NextResponse.json(
-        { success: false, error: "Assessment answers are required" },
+        { success: false, error: "Invalid submission payload" },
         { status: 400 }
       );
+    }
+
+    if (
+      !body.answers ||
+      typeof body.answers !== "object" ||
+      Array.isArray(body.answers)
+    ) {
+      return NextResponse.json(
+        { success: false, error: "Assessment answers must be an object" },
+        { status: 400 }
+      );
+    }
+
+    const rawAnswers = body.answers as Record<string, unknown>;
+    const answerKeys = Object.keys(rawAnswers);
+    if (answerKeys.length === 0 || answerKeys.length > 20) {
+      return NextResponse.json(
+        { success: false, error: "Invalid number of assessment answers" },
+        { status: 400 }
+      );
+    }
+
+    // Validate every answered question maps to a real question and option ID
+    const answers: Record<string, string> = {};
+    for (const q of CAREER_ASSESSMENT_QUESTIONS) {
+      const val = rawAnswers[q.id];
+      if (typeof val !== "string") {
+        return NextResponse.json(
+          { success: false, error: `Missing or invalid answer for ${q.id}` },
+          { status: 400 }
+        );
+      }
+      const validOpt = q.options.find((o) => o.id === val || o.text === val);
+      if (!validOpt) {
+        return NextResponse.json(
+          { success: false, error: `Invalid option selected for ${q.id}` },
+          { status: 400 }
+        );
+      }
+      answers[q.id] = validOpt.id;
     }
 
     const token = req.cookies.get(STUDENT_COOKIE_NAME)?.value;
     const userId = verifyStudentSessionToken(token);
     const user = userId ? await getStudentUserById(userId) : null;
 
-    const studentName = String(body.studentName || user?.name || "PTIROS Student").trim();
-    const grade = String(body.grade || user?.grade || "Class 10").trim();
+    const studentName = String(body.studentName || user?.name || "PTIROS Student")
+      .trim()
+      .slice(0, 120);
+    const grade = String(body.grade || user?.grade || "Class 10")
+      .trim()
+      .slice(0, 40);
 
     const context: AssessmentStudentContext = {
       studentName,
       grade,
-      curriculum: body.curriculum || user?.curriculum,
-      city: body.city || user?.city,
-      state: body.state || user?.state,
-      schoolName: body.schoolName || user?.schoolName,
-      parentName: body.parentName || user?.parentName || user?.fatherName || user?.motherName,
-      parentDream: body.parentDream || user?.parentDream || body.childhoodDream,
+      curriculum: (typeof body.curriculum === "string" ? body.curriculum : user?.curriculum)?.slice(0, 40),
+      city: (typeof body.city === "string" ? body.city : user?.city)?.slice(0, 100),
+      state: (typeof body.state === "string" ? body.state : user?.state)?.slice(0, 80),
+      schoolName: (typeof body.schoolName === "string" ? body.schoolName : user?.schoolName)?.slice(0, 150),
+      parentName: (typeof body.parentName === "string" ? body.parentName : user?.parentName || user?.fatherName || user?.motherName)?.slice(0, 120),
+      parentDream: (typeof body.parentDream === "string" ? body.parentDream : user?.parentDream || (typeof body.childhoodDream === "string" ? body.childhoodDream : undefined))?.slice(0, 200),
       lastYearPercentage: user?.lastYearPercentage,
       lastYearRank: user?.lastYearRank,
       proSports: user?.proSports,
