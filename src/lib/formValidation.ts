@@ -185,3 +185,17 @@ export function evaluatePassword(password: string) {
     error,
   };
 }
+
+export function validateAparId(raw: string): FieldValidationResult & { digits: string } {
+  const digits = raw.replace(/[\s-]/g, "").trim();
+  if (!digits) {
+    return { valid: true, error: null, digits: "" };
+  }
+  if (!/^\d+$/.test(digits)) {
+    return { valid: false, error: "APAAR ID must contain digits only", digits };
+  }
+  if (digits.length !== 12) {
+    return { valid: false, error: `APAAR ID must be 12 digits (${digits.length}/12)`, digits };
+  }
+  return { valid: true, error: null, digits };
+}

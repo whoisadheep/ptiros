@@ -41,6 +41,10 @@ async function setup() {
 
   await sql`
     ALTER TABLE users
+      ALTER COLUMN password_hash DROP NOT NULL,
+      ADD COLUMN IF NOT EXISTS auth_provider VARCHAR(24) DEFAULT 'email',
+      ADD COLUMN IF NOT EXISTS google_id VARCHAR(128),
+      ADD COLUMN IF NOT EXISTS phone_verified BOOLEAN DEFAULT FALSE,
       ADD COLUMN IF NOT EXISTS age INTEGER,
       ADD COLUMN IF NOT EXISTS gender VARCHAR(24),
       ADD COLUMN IF NOT EXISTS address TEXT,
@@ -132,6 +136,18 @@ async function setup() {
       ADD COLUMN IF NOT EXISTS user_id VARCHAR(64),
       ADD COLUMN IF NOT EXISTS career_test_id VARCHAR(64),
       ADD COLUMN IF NOT EXISTS top_track_title VARCHAR(140);
+  `;
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS phone_otp_codes (
+      id VARCHAR(64) PRIMARY KEY,
+      phone VARCHAR(20) NOT NULL,
+      otp_hash TEXT NOT NULL,
+      attempts INTEGER DEFAULT 0,
+      expires_at TIMESTAMPTZ NOT NULL,
+      used BOOLEAN DEFAULT FALSE,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    );
   `;
 
   console.log("Neon student auth & portal schema ready.");

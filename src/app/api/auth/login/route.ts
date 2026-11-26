@@ -27,6 +27,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (!found.passwordHash) {
+      return NextResponse.json(
+        { success: false, error: "This account uses Google or Phone OTP sign-in." },
+        { status: 401 }
+      );
+    }
+
     const enteredHash = hashStudentPassword(password);
     if (enteredHash !== found.passwordHash) {
       return NextResponse.json(

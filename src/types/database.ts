@@ -127,6 +127,8 @@ export interface StudentUser {
   proSports?: boolean;
   competitions?: string;
   aparId?: string;
+  authProvider?: "email" | "google" | "phone";
+  phoneVerified?: boolean;
   avatarInitials: string;
   createdAt: string;
   updatedAt?: string;

@@ -68,6 +68,7 @@ import CareerIntelligenceFeed from "@/components/dashboard/CareerIntelligenceFee
 import StudentDetailsSection from "@/components/dashboard/StudentDetailsSection";
 import CareerReportViewer from "@/components/career-test/CareerReportViewer";
 import { getProfileCompleteness } from "@/lib/studentProfileOptions";
+import { validateAparId } from "@/lib/formValidation";
 
 type DashboardTab = "cockpit" | "details" | "planner" | "activities" | "saved" | "diary" | "credentials" | "analysis" | "mentorship";
 
@@ -101,6 +102,10 @@ export default function DashboardPage() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [celebrationGoal, setCelebrationGoal] = useState<string | null>(null);
   const [savingQuickPrompt, setSavingQuickPrompt] = useState(false);
+  const [aparDraft, setAparDraft] = useState("");
+  const [aparSaving, setAparSaving] = useState(false);
+  const [aparError, setAparError] = useState<string | null>(null);
+  const [aparDismissed, setAparDismissed] = useState(false);
 
   // Sync tab from URL search parameters on initial load
   useEffect(() => {
@@ -761,6 +766,75 @@ export default function DashboardPage() {
                     + Add Goal
                   </button>
                 </div>
+              </div>
+            )}
+
+            {/* Post-Onboarding APAAR Stage (Optional, later stage) */}
+            {!student.aparId && !aparDismissed && (
+              <div className="rounded-2xl border border-stone-200/90 bg-[#FDFBF7] px-4 py-3.5 shadow-2xs flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                <div className="space-y-0.5 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2 text-xs">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-stone-200/80 px-2.5 py-0.5 font-bold text-stone-800">
+                      <ShieldCheck className="size-3 text-orange-600" />
+                      <span>Later Stage · Optional</span>
+                    </span>
+                    <span className="font-semibold text-stone-800">
+                      Add Your 12-Digit APAAR Student ID
+                    </span>
+                  </div>
+                  <p className="text-xs text-stone-500">
+                    India&apos;s official 12-digit school Student ID — optional to link now for transcript continuity.
+                  </p>
+                  {aparError && (
+                    <p className="text-[11px] font-medium text-red-600">{aparError}</p>
+                  )}
+                </div>
+
+                <form
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    setAparError(null);
+                    const check = validateAparId(aparDraft);
+                    if (!check.valid || !check.digits) {
+                      setAparError(check.error || "Enter your 12-digit APAAR ID");
+                      return;
+                    }
+                    setAparSaving(true);
+                    const res = await updateProfile({ aparId: check.digits });
+                    setAparSaving(false);
+                    if (!res.success) {
+                      setAparError(res.error || "Could not save APAAR ID");
+                    }
+                  }}
+                  className="flex flex-wrap sm:flex-nowrap items-center gap-2 shrink-0"
+                >
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={14}
+                    value={aparDraft}
+                    onChange={(e) => {
+                      setAparDraft(e.target.value);
+                      if (aparError) setAparError(null);
+                    }}
+                    placeholder="12-digit APAAR ID"
+                    className="h-9 w-full sm:w-44 px-3 rounded-xl border border-stone-300 bg-white text-xs font-mono focus:outline-none focus:border-orange-500"
+                  />
+                  <button
+                    type="submit"
+                    disabled={aparSaving}
+                    className="h-9 px-3.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-xs font-bold transition cursor-pointer disabled:opacity-60 whitespace-nowrap"
+                  >
+                    {aparSaving ? "Saving..." : "Save ID"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAparDismissed(true)}
+                    className="h-9 px-2.5 rounded-xl text-xs font-semibold text-stone-500 hover:text-stone-800 cursor-pointer"
+                  >
+                    Later
+                  </button>
+                </form>
               </div>
             )}
 

@@ -10,6 +10,7 @@ import {
   validateIndianMobileField,
   validateAgeField,
   validatePercentageField,
+  validateAparId,
 } from "@/lib/formValidation";
 
 export async function PATCH(req: NextRequest) {
@@ -76,6 +77,14 @@ export async function PATCH(req: NextRequest) {
       updates.lastYearPercentage = body.lastYearPercentage.trim();
     }
 
+    if (typeof body.aparId === "string") {
+      const aparCheck = validateAparId(body.aparId);
+      if (!aparCheck.valid) {
+        return NextResponse.json({ success: false, error: aparCheck.error }, { status: 400 });
+      }
+      updates.aparId = aparCheck.digits;
+    }
+
     const stringFields = [
       "gender",
       "address",
@@ -91,7 +100,6 @@ export async function PATCH(req: NextRequest) {
       "parentDream",
       "lastYearRank",
       "competitions",
-      "aparId",
     ] as const;
 
     for (const key of stringFields) {

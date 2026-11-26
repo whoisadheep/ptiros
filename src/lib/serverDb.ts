@@ -4,6 +4,8 @@ import crypto from "crypto";
 import { neon } from "@neondatabase/serverless";
 import {
   DatabaseStore,
+  StudentGrade,
+  SchoolCurriculum,
   StudentLead,
   MentorshipSessionRecord,
   PaidDossierOrder,
@@ -862,6 +864,9 @@ function mapNeonUserRow(r: Record<string, any>): StudentUser {
       r.pro_sports !== null && r.pro_sports !== undefined ? Boolean(r.pro_sports) : undefined,
     competitions: r.competitions || undefined,
     aparId: r.apar_id || undefined,
+    authProvider: (r.auth_provider as "email" | "google" | "phone") || "email",
+    phoneVerified:
+      r.phone_verified !== null && r.phone_verified !== undefined ? Boolean(r.phone_verified) : false,
     avatarInitials: r.avatar_initials || "ST",
     createdAt: typeof r.created_at === "string" ? r.created_at : new Date(r.created_at).toISOString(),
     updatedAt: r.updated_at
@@ -880,8 +885,8 @@ export async function getStudentUserById(userId: string): Promise<StudentUser | 
         SELECT id, name, email, age, gender, address, single_child, father_name, mother_name,
                personal_phone, parent_email, grade, school_name, school_address, city, state,
                curriculum, parent_name, parent_phone, parent_dream, last_year_rank,
-               last_year_percentage, pro_sports, competitions, apar_id, avatar_initials,
-               created_at, updated_at
+               last_year_percentage, pro_sports, competitions, apar_id, auth_provider,
+               phone_verified, avatar_initials, created_at, updated_at
         FROM users
         WHERE id = ${userId}
         LIMIT 1;
@@ -907,7 +912,7 @@ export async function getStudentUserByEmail(email: string): Promise<{ user: Stud
                mother_name, personal_phone, parent_email, grade, school_name, school_address,
                city, state, curriculum, parent_name, parent_phone, parent_dream,
                last_year_rank, last_year_percentage, pro_sports, competitions, apar_id,
-               avatar_initials, created_at, updated_at
+               auth_provider, phone_verified, avatar_initials, created_at, updated_at
         FROM users
         WHERE LOWER(email) = ${cleanEmail}
         LIMIT 1;
@@ -1490,6 +1495,255 @@ export async function getStudentCareerTestById(
     return mapNeonCareerTestRow(rows[0]);
   } catch (err) {
     console.warn("Neon getStudentCareerTestById error:", err);
+    return null;
+  }
+}
+
+/* =========================================================================
+   GOOGLE OAUTH & PHONE OTP HELPERS (Neon Cloud)
+   ========================================================================= */
+
+export async function getStudentUserByPhone(phone10: string): Promise<StudentUser | null> {
+  const sql = getNeonSql();
+  if (!sql) return null;
+  try {
+    const rows = await sql`
+      SELECT id, name, email, age, gender, address, single_child, father_name, mother_name,
+             personal_phone, parent_email, grade, school_name, school_address, city, state,
+             curriculum, parent_name, parent_phone, parent_dream, last_year_rank,
+             last_year_percentage, pro_sports, competitions, apar_id, auth_provider,
+             phone_verified, avatar_initials, created_at, updated_at
+      FROM users
+      WHERE personal_phone = ${phone10} OR parent_phone = ${phone10}
+      ORDER BY created_at ASC
+      LIMIT 1;
+    `;
+    return rows.length > 0 ? mapNeonUserRow(rows[0]) : null;
+  } catch (err) {
+    console.warn("Neon getStudentUserByPhone error:", err);
+    return null;
+  }
+}
+
+export async function upsertGoogleStudentUser(data: {
+  googleId: string;
+  email: string;
+  name: string;
+}): Promise<{ user: StudentUser; isNew: boolean }> {
+  const sql = getNeonSql();
+  if (!sql) {
+    throw new Error("Database connection required for Google Sign-In");
+  }
+
+  const cleanEmail = data.email.trim().toLowerCase();
+  const cleanName = data.name.trim() || cleanEmail.split("@")[0] || "PTIROS Student";
+  const initials =
+    cleanName
+      .split(/\s+/)
+      .map((w) => w[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2) || "ST";
+
+  const existingRows = await sql`
+    SELECT id, name, email, age, gender, address, single_child, father_name, mother_name,
+           personal_phone, parent_email, grade, school_name, school_address, city, state,
+           curriculum, parent_name, parent_phone, parent_dream, last_year_rank,
+           last_year_percentage, pro_sports, competitions, apar_id, auth_provider,
+           phone_verified, avatar_initials, created_at, updated_at
+    FROM users
+    WHERE google_id = ${data.googleId} OR LOWER(email) = ${cleanEmail}
+    LIMIT 1;
+  `;
+
+  if (existingRows.length > 0) {
+    const existing = existingRows[0];
+    if (!existing.google_id) {
+      await sql`
+        UPDATE users
+        SET google_id = ${data.googleId}, updated_at = NOW()
+        WHERE id = ${existing.id};
+      `;
+    }
+    return { user: mapNeonUserRow(existing), isNew: false };
+  }
+
+  const userId = `usr_${crypto.randomBytes(4).toString("hex")}`;
+  const inserted = await sql`
+    INSERT INTO users (
+      id, name, email, password_hash, grade, city, curriculum,
+      auth_provider, google_id, avatar_initials
+    ) VALUES (
+      ${userId}, ${cleanName}, ${cleanEmail}, ${null}, 'Class 10', 'India', 'CBSE',
+      'google', ${data.googleId}, ${initials}
+    )
+    RETURNING *;
+  `;
+  return { user: mapNeonUserRow(inserted[0]), isNew: true };
+}
+
+export async function createPhoneStudentUser(data: {
+  phone: string;
+  name: string;
+  grade: string;
+  parentEmail?: string;
+  curriculum?: string;
+  city?: string;
+}): Promise<StudentUser> {
+  const sql = getNeonSql();
+  if (!sql) {
+    throw new Error("Database connection required for Phone Sign-Up");
+  }
+
+  const userId = `usr_${crypto.randomBytes(4).toString("hex")}`;
+  const cleanName = data.name.trim();
+  const initials =
+    cleanName
+      .split(/\s+/)
+      .map((w) => w[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2) || "ST";
+  const syntheticEmail = `${data.phone}@phone.ptiros.in`;
+
+  const inserted = await sql`
+    INSERT INTO users (
+      id, name, email, password_hash, personal_phone, parent_phone, parent_email,
+      grade, city, curriculum, auth_provider, phone_verified, avatar_initials
+    ) VALUES (
+      ${userId}, ${cleanName}, ${syntheticEmail}, ${null}, ${data.phone}, ${data.phone},
+      ${data.parentEmail?.trim().toLowerCase() || null},
+      ${data.grade}, ${data.city?.trim() || "India"}, ${data.curriculum?.trim() || "CBSE"},
+      'phone', TRUE, ${initials}
+    )
+    RETURNING *;
+  `;
+
+  try {
+    await saveLead({
+      studentName: cleanName,
+      grade: data.grade as StudentGrade,
+      city: data.city?.trim() || "India",
+      curriculum: (data.curriculum?.trim() || "CBSE") as SchoolCurriculum,
+      parentName: "Parent",
+      parentPhone: data.phone,
+      parentDream: "Exploring potential",
+      source: "career_test",
+      parentConsent: true,
+      notes: `Registered via Phone OTP (+91 ${data.phone})`,
+    });
+  } catch {}
+
+  return mapNeonUserRow(inserted[0]);
+}
+
+export async function createPhoneOtpRecord(
+  phone10: string
+): Promise<{ otp: string; expiresAt: string }> {
+  const sql = getNeonSql();
+  if (!sql) {
+    throw new Error("Database connection required for Phone OTP");
+  }
+
+  const otp = String(crypto.randomInt(100000, 999999));
+  const otpHash = crypto.createHash("sha256").update(`${phone10}:${otp}`).digest("hex");
+  const id = `otp_${crypto.randomBytes(4).toString("hex")}`;
+  const expiresAtDate = new Date(Date.now() + 10 * 60 * 1000);
+
+  await sql`
+    UPDATE phone_otp_codes
+    SET used = TRUE
+    WHERE phone = ${phone10} AND used = FALSE;
+  `;
+
+  await sql`
+    INSERT INTO phone_otp_codes (id, phone, otp_hash, attempts, expires_at, used)
+    VALUES (${id}, ${phone10}, ${otpHash}, 0, ${expiresAtDate.toISOString()}, FALSE);
+  `;
+
+  return { otp, expiresAt: expiresAtDate.toISOString() };
+}
+
+export async function verifyPhoneOtpRecord(
+  phone10: string,
+  code: string
+): Promise<{ ok: boolean; error?: string }> {
+  const sql = getNeonSql();
+  if (!sql) {
+    return { ok: false, error: "Database connection required" };
+  }
+
+  const cleanCode = code.replace(/\D/g, "").trim();
+  if (!/^\d{6}$/.test(cleanCode)) {
+    return { ok: false, error: "Enter the 6-digit verification code" };
+  }
+
+  const rows = await sql`
+    SELECT id, otp_hash, attempts, expires_at
+    FROM phone_otp_codes
+    WHERE phone = ${phone10} AND used = FALSE
+    ORDER BY created_at DESC
+    LIMIT 1;
+  `;
+
+  if (rows.length === 0) {
+    return { ok: false, error: "No active OTP found. Please request a new code." };
+  }
+
+  const rec = rows[0];
+  if (new Date(rec.expires_at).getTime() < Date.now()) {
+    return { ok: false, error: "OTP expired. Please request a new code." };
+  }
+  if (Number(rec.attempts) >= 5) {
+    return { ok: false, error: "Too many incorrect attempts. Request a new OTP." };
+  }
+
+  const givenHash = crypto.createHash("sha256").update(`${phone10}:${cleanCode}`).digest("hex");
+  const match = crypto.timingSafeEqual(Buffer.from(givenHash), Buffer.from(rec.otp_hash));
+
+  if (!match) {
+    await sql`
+      UPDATE phone_otp_codes
+      SET attempts = attempts + 1
+      WHERE id = ${rec.id};
+    `;
+    return { ok: false, error: "Incorrect 6-digit code. Please check and try again." };
+  }
+
+  await sql`
+    UPDATE phone_otp_codes
+    SET used = TRUE
+    WHERE id = ${rec.id};
+  `;
+
+  return { ok: true };
+}
+
+export function createPhoneVerificationToken(phone10: string): string {
+  const exp = Date.now() + 15 * 60 * 1000;
+  const payload = `${phone10}.${exp}`;
+  const sig = crypto.createHmac("sha256", STUDENT_SECRET).update(payload).digest("hex");
+  return `${payload}.${sig}`;
+}
+
+export function verifyPhoneVerificationToken(token: string): string | null {
+  if (!token || typeof token !== "string") return null;
+  const parts = token.split(".");
+  if (parts.length !== 3) return null;
+  const [phone10, expStr, givenSig] = parts;
+  if (!/^[6-9]\d{9}$/.test(phone10)) return null;
+  const exp = Number(expStr);
+  if (!Number.isFinite(exp) || exp < Date.now()) return null;
+  const expectedSig = crypto
+    .createHmac("sha256", STUDENT_SECRET)
+    .update(`${phone10}.${expStr}`)
+    .digest("hex");
+  try {
+    const a = Buffer.from(givenSig);
+    const b = Buffer.from(expectedSig);
+    if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
+    return phone10;
+  } catch {
     return null;
   }
 }

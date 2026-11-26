@@ -95,12 +95,28 @@ export default function StudentAuthExperience({
 }: StudentAuthExperienceProps) {
   const router = useRouter();
   const prefersReducedMotion = useReducedMotion();
-  const { isLoggedIn, login, signup } = useStudentAuth();
+  const { isLoggedIn, login, signup, refresh } = useStudentAuth();
 
   const [mode, setMode] = useState<AuthMode>(initialMode);
+  const [authChannel, setAuthChannel] = useState<"email" | "phone">("email");
   const [signupStep, setSignupStep] = useState<1 | 2 | 3>(1);
   const [justSignedUp, setJustSignedUp] = useState(false);
   const [nextPath, setNextPath] = useState<string>("/dashboard");
+  const [providers, setProviders] = useState<{ googleConfigured: boolean; otpPreviewEnabled: boolean }>({
+    googleConfigured: false,
+    otpPreviewEnabled: false,
+  });
+
+  // Phone OTP state
+  const [otpPhone, setOtpPhone] = useState("");
+  const [otpCode, setOtpCode] = useState("");
+  const [otpStage, setOtpStage] = useState<"phone" | "code" | "complete_profile">("phone");
+  const [otpDevPreview, setOtpDevPreview] = useState<string | null>(null);
+  const [verifiedPhoneToken, setVerifiedPhoneToken] = useState<string | null>(null);
+  const [otpName, setOtpName] = useState("");
+  const [otpGrade, setOtpGrade] = useState("Class 10");
+  const [otpParentEmail, setOtpParentEmail] = useState("");
+  const [isOtpBusy, setIsOtpBusy] = useState(false);
 
   // Sign In state
   const [loginEmail, setLoginEmail] = useState("");
@@ -197,12 +213,28 @@ export default function StudentAuthExperience({
     const params = new URLSearchParams(window.location.search);
     const qMode = params.get("mode");
     const qNext = params.get("next");
+    const qError = params.get("error");
     if (qMode === "signup" || qMode === "login") {
       setMode(qMode);
     }
     if (qNext && qNext.startsWith("/")) {
       setNextPath(qNext);
     }
+    if (qError === "google_not_configured") {
+      setErrorMsg("Google Sign-In is not configured on this server yet. Please use Email or Phone OTP.");
+    } else if (qError?.startsWith("google_")) {
+      setErrorMsg("Google Sign-In could not be completed. Please try again or use Email / Phone OTP.");
+    }
+
+    fetch("/api/auth/providers")
+      .then((r) => r.json())
+      .then((d) => {
+        setProviders({
+          googleConfigured: Boolean(d?.googleConfigured),
+          otpPreviewEnabled: Boolean(d?.otpPreviewEnabled),
+        });
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -242,6 +274,113 @@ export default function StudentAuthExperience({
         .slice(0, 2) || "ST"
     );
   }, [fullName]);
+
+  const handleGoogleContinue = () => {
+    setErrorMsg(null);
+    if (!providers.googleConfigured) {
+      setErrorMsg(
+        "Google Sign-In requires GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in server environment variables. Please use Email or Phone OTP right now."
+      );
+      return;
+    }
+    window.location.href = `/api/auth/google?next=${encodeURIComponent(nextPath || "/dashboard")}`;
+  };
+
+  const otpMobileCheck = validateIndianMobileField(otpPhone, true, "Mobile number");
+
+  const handleSendOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg(null);
+    setTouched((prev) => ({ ...prev, otpPhone: true }));
+    if (!otpMobileCheck.valid) return;
+
+    setIsOtpBusy(true);
+    try {
+      const res = await fetch("/api/auth/otp/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: otpMobileCheck.digits }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setErrorMsg(data.error || "Could not send verification code");
+      } else {
+        setOtpDevPreview(data.devOtpPreview || null);
+        setOtpStage("code");
+      }
+    } catch {
+      setErrorMsg("Network error while sending OTP");
+    } finally {
+      setIsOtpBusy(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg(null);
+    setIsOtpBusy(true);
+    try {
+      const res = await fetch("/api/auth/otp/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: otpMobileCheck.digits, otp: otpCode }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setErrorMsg(data.error || "Invalid verification code");
+      } else if (data.requiresProfile && data.verifiedPhoneToken) {
+        setVerifiedPhoneToken(data.verifiedPhoneToken);
+        setOtpStage("complete_profile");
+      } else {
+        await refresh();
+        router.push(nextPath || "/dashboard");
+      }
+    } catch {
+      setErrorMsg("Network error while verifying code");
+    } finally {
+      setIsOtpBusy(false);
+    }
+  };
+
+  const handleCompletePhoneSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg(null);
+    const nCheck = validateStudentName(otpName);
+    const peCheck = validateEmailField(otpParentEmail, false, "Parent email");
+    if (!nCheck.valid) {
+      setErrorMsg(nCheck.error || "Enter your full name");
+      return;
+    }
+    if (!peCheck.valid) {
+      setErrorMsg(peCheck.error || "Enter a valid parent email");
+      return;
+    }
+
+    setIsOtpBusy(true);
+    try {
+      const res = await fetch("/api/auth/otp/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          verifiedPhoneToken,
+          name: otpName.trim(),
+          grade: otpGrade,
+          parentEmail: otpParentEmail.trim() || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setErrorMsg(data.error || "Could not complete account setup");
+      } else {
+        await refresh();
+        setJustSignedUp(true);
+      }
+    } catch {
+      setErrorMsg("Network error while creating account");
+    } finally {
+      setIsOtpBusy(false);
+    }
+  };
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -800,9 +939,237 @@ export default function StudentAuthExperience({
               </div>
             )}
 
+            {/* Google + Email / Phone OTP Quick Switcher */}
+            {(mode === "login" || signupStep === 1) && (
+              <div className="mb-5 space-y-3">
+                <button
+                  type="button"
+                  onClick={handleGoogleContinue}
+                  className="w-full h-11 rounded-[10px] bg-white hover:bg-[#F7F4EE] border border-[#1F1B16]/[0.14] text-xs sm:text-sm font-medium text-[#1F1B16] transition-colors flex items-center justify-center gap-2.5 cursor-pointer shadow-[0_1px_2px_rgba(31,27,22,0.03)]"
+                >
+                  <svg className="size-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      fill="#4285F4"
+                      d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17Z"
+                    />
+                    <path
+                      fill="#34A853"
+                      d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.29v3.14C3.26 21.3 7.31 24 12 24Z"
+                    />
+                    <path
+                      fill="#FBBC05"
+                      d="M5.28 14.24c-.24-.72-.38-1.49-.38-2.24s.14-1.52.38-2.24V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.99-3.14Z"
+                    />
+                    <path
+                      fill="#EA4335"
+                      d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.99 3.14c.95-2.85 3.6-4.96 6.72-4.96Z"
+                    />
+                  </svg>
+                  <span>Continue with Google</span>
+                </button>
+
+                <div className="flex items-center gap-3">
+                  <div className="h-px flex-1 bg-[#1F1B16]/[0.08]" />
+                  <div className="inline-flex rounded-[8px] bg-[#EFE9DF] p-0.5 text-[11px] font-medium">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setErrorMsg(null);
+                        setAuthChannel("email");
+                      }}
+                      className={`px-2.5 py-1 rounded-[6px] transition cursor-pointer ${
+                        authChannel === "email"
+                          ? "bg-white text-[#1F1B16] shadow-2xs"
+                          : "text-[#5E554A] hover:text-[#1F1B16]"
+                      }`}
+                    >
+                      Email
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setErrorMsg(null);
+                        setAuthChannel("phone");
+                        setOtpStage("phone");
+                      }}
+                      className={`px-2.5 py-1 rounded-[6px] transition cursor-pointer ${
+                        authChannel === "phone"
+                          ? "bg-white text-[#1F1B16] shadow-2xs"
+                          : "text-[#5E554A] hover:text-[#1F1B16]"
+                      }`}
+                    >
+                      Phone OTP
+                    </button>
+                  </div>
+                  <div className="h-px flex-1 bg-[#1F1B16]/[0.08]" />
+                </div>
+              </div>
+            )}
+
             <AnimatePresence mode="wait" initial={false}>
-              {/* ==================== SIGN IN ==================== */}
-              {mode === "login" ? (
+              {/* ==================== PHONE OTP FLOW ==================== */}
+              {authChannel === "phone" && (mode === "login" || signupStep === 1) ? (
+                <motion.div
+                  key={`form-phone-${otpStage}`}
+                  initial={prefersReducedMotion ? false : { opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={prefersReducedMotion ? undefined : { opacity: 0, y: -6 }}
+                  transition={{ duration: 0.2, ease: EASE_OUT }}
+                  className="space-y-4"
+                >
+                  {otpStage === "phone" && (
+                    <form onSubmit={handleSendOtp} noValidate className="space-y-4">
+                      <div>
+                        <label htmlFor="otp-phone" className="block text-xs font-medium text-[#1F1B16] mb-1.5">
+                          Mobile number (10 digits)
+                        </label>
+                        <div className="relative">
+                          <Phone
+                            className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-[#685F54] pointer-events-none"
+                            strokeWidth={1.5}
+                          />
+                          <input
+                            id="otp-phone"
+                            type="tel"
+                            inputMode="numeric"
+                            value={otpPhone}
+                            onChange={(e) => setOtpPhone(e.target.value)}
+                            onBlur={() => markTouched("otpPhone")}
+                            placeholder="98765 43210"
+                            className={`w-full h-11 pl-10 pr-4 rounded-[10px] bg-white border text-sm text-[#1F1B16] placeholder:text-[#7B7266] focus:outline-none ${getFieldBorder(
+                              otpMobileCheck.valid,
+                              Boolean(touched.otpPhone && !otpMobileCheck.valid),
+                              otpPhone.trim().length > 0
+                            )}`}
+                          />
+                        </div>
+                        {touched.otpPhone && !otpMobileCheck.valid && (
+                          <p className="mt-1 text-[11px] text-[#B91C1C]" role="alert">
+                            {otpMobileCheck.error}
+                          </p>
+                        )}
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={isOtpBusy}
+                        className="w-full h-11 rounded-[10px] bg-[#C2410C] hover:bg-[#9A3412] text-white font-medium text-sm transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+                      >
+                        {isOtpBusy ? <Loader2 className="size-4 animate-spin" /> : null}
+                        <span>Send 6-Digit OTP</span>
+                        <ArrowRight className="size-4" strokeWidth={1.5} />
+                      </button>
+                    </form>
+                  )}
+
+                  {otpStage === "code" && (
+                    <form onSubmit={handleVerifyOtp} className="space-y-4">
+                      <div className="p-3 rounded-[10px] bg-[#F2EEE3] border border-[#1F1B16]/[0.08] text-xs text-[#1F1B16]">
+                        Code sent to <strong>+91 {otpMobileCheck.digits}</strong>.{" "}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setOtpStage("phone");
+                            setOtpCode("");
+                          }}
+                          className="underline text-[#9A3412] font-medium cursor-pointer"
+                        >
+                          Change number
+                        </button>
+                        {otpDevPreview && (
+                          <div className="mt-1.5 font-mono text-[11px] text-[#15803D]">
+                            Preview OTP code: <strong>{otpDevPreview}</strong>
+                          </div>
+                        )}
+                      </div>
+
+                      <div>
+                        <label htmlFor="otp-code" className="block text-xs font-medium text-[#1F1B16] mb-1.5">
+                          Enter 6-digit verification code
+                        </label>
+                        <input
+                          id="otp-code"
+                          type="text"
+                          inputMode="numeric"
+                          maxLength={6}
+                          value={otpCode}
+                          onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                          placeholder="000000"
+                          className="w-full h-11 px-4 rounded-[10px] bg-white border border-[#1F1B16]/[0.14] text-center font-mono text-base tracking-[0.35em] text-[#1F1B16] focus:outline-none focus:border-[#C2410C]"
+                        />
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={isOtpBusy || otpCode.length < 6}
+                        className="w-full h-11 rounded-[10px] bg-[#C2410C] hover:bg-[#9A3412] text-white font-medium text-sm transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+                      >
+                        {isOtpBusy ? <Loader2 className="size-4 animate-spin" /> : null}
+                        <span>Verify &amp; Continue</span>
+                        <ArrowRight className="size-4" strokeWidth={1.5} />
+                      </button>
+                    </form>
+                  )}
+
+                  {otpStage === "complete_profile" && (
+                    <form onSubmit={handleCompletePhoneSignup} className="space-y-3.5">
+                      <p className="text-xs text-[#5E554A]">
+                        Verified <strong>+91 {otpMobileCheck.digits}</strong>. Add your name and class to create your student pass:
+                      </p>
+                      <div>
+                        <label className="block text-xs font-medium text-[#1F1B16] mb-1">
+                          Student full name *
+                        </label>
+                        <input
+                          type="text"
+                          value={otpName}
+                          onChange={(e) => setOtpName(e.target.value)}
+                          placeholder="e.g. Aarav Sharma"
+                          className="w-full h-11 px-3.5 rounded-[10px] bg-white border border-[#1F1B16]/[0.14] text-sm"
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-medium text-[#1F1B16] mb-1">
+                            Current class *
+                          </label>
+                          <select
+                            value={otpGrade}
+                            onChange={(e) => setOtpGrade(e.target.value)}
+                            className="w-full h-11 px-3 rounded-[10px] bg-white border border-[#1F1B16]/[0.14] text-sm"
+                          >
+                            {STUDENT_GRADES.map((g) => (
+                              <option key={g.value} value={g.value}>
+                                {g.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-[#1F1B16] mb-1">
+                            Parent email (optional)
+                          </label>
+                          <input
+                            type="email"
+                            value={otpParentEmail}
+                            onChange={(e) => setOtpParentEmail(e.target.value)}
+                            placeholder="parent@example.com"
+                            className="w-full h-11 px-3.5 rounded-[10px] bg-white border border-[#1F1B16]/[0.14] text-sm"
+                          />
+                        </div>
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={isOtpBusy}
+                        className="w-full h-11 rounded-[10px] bg-[#C2410C] hover:bg-[#9A3412] text-white font-medium text-sm transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+                      >
+                        {isOtpBusy ? <Loader2 className="size-4 animate-spin" /> : null}
+                        <span>Create Student Account →</span>
+                      </button>
+                    </form>
+                  )}
+                </motion.div>
+              ) : mode === "login" ? (
                 <motion.form
                   key="form-login"
                   noValidate

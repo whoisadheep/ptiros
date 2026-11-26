@@ -31,6 +31,7 @@ import {
   validateIndianMobileField,
   validateAgeField,
   validatePercentageField,
+  validateAparId,
 } from "@/lib/formValidation";
 
 type DetailsFilter = "all" | "personal" | "academic" | "sports" | "apaar";
@@ -188,6 +189,7 @@ export default function StudentDetailsSection() {
   const parentMobileCheck = validateIndianMobileField(parentPhone, true, "Parent mobile");
   const personalMobileCheck = validateIndianMobileField(personalPhone, false, "Personal mobile");
   const pctCheck = validatePercentageField(lastYearPercentage);
+  const aparCheck = validateAparId(aparId);
 
   const immediatePhoneBad = (raw: string, chk: ReturnType<typeof validateIndianMobileField>) => {
     if (chk.valid) return false;
@@ -954,11 +956,15 @@ export default function StudentDetailsSection() {
             </p>
             <input
               type="text"
+              inputMode="numeric"
               value={aparId}
               onChange={(e) => setAparId(e.target.value)}
               placeholder="12-digit APAAR ID (optional)"
               className="w-full max-w-md h-11 px-3.5 rounded-xl border border-stone-200 bg-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
             />
+            {aparId.trim().length > 0 && !aparCheck.valid && (
+              <p className="text-xs font-medium text-red-600">{aparCheck.error}</p>
+            )}
           </section>
         )}
 
@@ -966,7 +972,7 @@ export default function StudentDetailsSection() {
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
           <span className="text-xs text-stone-500 flex items-center gap-1.5">
             <Sparkles className="size-3.5 text-orange-600" />
-            Changes sync immediately to your PTIROS account in Neon Postgres
+            Changes sync immediately to your PTIROS account
           </span>
           <button
             type="submit"
