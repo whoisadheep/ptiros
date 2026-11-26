@@ -235,6 +235,43 @@ export interface StudentSavedPathway {
   savedAt: string;
 }
 
+export interface StudentAssignedCourse {
+  id: string;
+  userId: string;
+  courseCode: string;
+  title: string;
+  category: string;
+  description?: string;
+  simulatorUrl?: string;
+  status: "assigned" | "in_progress" | "completed";
+  assignedBy?: string;
+  mentorNote?: string;
+  dueDate?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminStudentSummary {
+  id: string;
+  name: string;
+  email: string;
+  grade: string;
+  curriculum: string;
+  city: string;
+  parentName?: string;
+  parentPhone?: string;
+  parentDream?: string;
+  aparId?: string;
+  createdAt: string;
+  goalsCount: number;
+  bookingsCount: number;
+  simulationsCount: number;
+  assignedCoursesCount: number;
+  assignedCourses: StudentAssignedCourse[];
+  goals: StudentPlannerGoal[];
+  bookings: MentorshipSessionRecord[];
+}
+
 export interface StudentPortalData {
   user: StudentUser;
   diary: StudentDiaryEntry[];
@@ -245,6 +282,7 @@ export interface StudentPortalData {
   activities?: StudentActivity[];
   savedPathways?: StudentSavedPathway[];
   bookings?: MentorshipSessionRecord[];
+  assignedCourses?: StudentAssignedCourse[];
 }
 
 export type ApiResponse<T> =

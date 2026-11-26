@@ -363,6 +363,12 @@ function TrackBookingContent() {
                       <p className="text-stone-800 leading-relaxed italic bg-white p-2.5 rounded-xl border border-stone-200/60">
                         &ldquo;{b.primaryQuestion}&rdquo;
                       </p>
+                      {b.adminNotes && (
+                        <div className="mt-2 p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-950 text-xs">
+                          <span className="font-bold text-emerald-800 block mb-0.5">Mentor Action Notes:</span>
+                          <span>{b.adminNotes}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
 

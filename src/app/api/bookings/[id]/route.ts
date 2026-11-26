@@ -38,7 +38,14 @@ export async function PATCH(
       id,
       body.status as BookingStatus,
       body.meetingLink,
-      body.adminNotes
+      body.adminNotes,
+      {
+        date: body.date,
+        timeSlot: body.timeSlot,
+        mentorId: body.mentorId,
+        mentorName: body.mentorName,
+        domainTitle: body.domainTitle,
+      }
     );
 
     if (!updated) {

@@ -11,6 +11,7 @@ import {
   PaidDossierOrder,
   StudentPortalData,
   MentorshipSessionRecord,
+  StudentAssignedCourse,
 } from "@/types/database";
 
 interface CareerTestSubmissionPayload {
@@ -35,6 +36,11 @@ interface StudentAuthContextType {
   careerTests: StudentCareerTestRecord[];
   dossiers: PaidDossierOrder[];
   bookings: MentorshipSessionRecord[];
+  assignedCourses: StudentAssignedCourse[];
+  updateAssignedCourseStatus: (
+    courseId: string,
+    status: StudentAssignedCourse["status"]
+  ) => Promise<boolean>;
   isLoading: boolean;
   isLoggedIn: boolean;
   isAuthModalOpen: boolean;
@@ -104,6 +110,7 @@ export function StudentAuthProvider({ children }: { children: React.ReactNode })
   const [careerTests, setCareerTests] = useState<StudentCareerTestRecord[]>([]);
   const [dossiers, setDossiers] = useState<PaidDossierOrder[]>([]);
   const [bookings, setBookings] = useState<MentorshipSessionRecord[]>([]);
+  const [assignedCourses, setAssignedCourses] = useState<StudentAssignedCourse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "signup">("login");
@@ -121,6 +128,7 @@ export function StudentAuthProvider({ children }: { children: React.ReactNode })
           setCareerTests(data.careerTests || []);
           setDossiers(data.dossiers || []);
           setBookings(data.bookings || []);
+          setAssignedCourses(data.assignedCourses || []);
 
           // Scope any cached offline simulation completions strictly to this student ID
           try {
@@ -144,6 +152,7 @@ export function StudentAuthProvider({ children }: { children: React.ReactNode })
           setCareerTests([]);
           setDossiers([]);
           setBookings([]);
+          setAssignedCourses([]);
 
           try {
             const rawGuest = localStorage.getItem("ptiros_guest_simulations");
@@ -475,6 +484,50 @@ export function StudentAuthProvider({ children }: { children: React.ReactNode })
     }
   };
 
+  const updateAssignedCourseStatus = async (
+    courseId: string,
+    status: StudentAssignedCourse["status"]
+  ): Promise<boolean> => {
+    try {
+      const res = await fetch("/api/student/courses", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ courseId, status }),
+      });
+      if (res.ok) {
+        setAssignedCourses((prev) =>
+          prev.map((c) => (c.id === courseId ? { ...c, status, updatedAt: new Date().toISOString() } : c))
+        );
+        return true;
+      }
+    } catch (err) {
+      console.error("Update assigned course status error:", err);
+    }
+    return false;
+  };
+
+  // Live background sync on tab focus, visibility change, and 25s interval while active
+  useEffect(() => {
+    if (!user) return;
+    const handleVisibilityOrFocus = () => {
+      if (document.visibilityState === "visible") {
+        refresh();
+      }
+    };
+    window.addEventListener("focus", handleVisibilityOrFocus);
+    document.addEventListener("visibilitychange", handleVisibilityOrFocus);
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === "visible") {
+        refresh();
+      }
+    }, 25000);
+    return () => {
+      window.removeEventListener("focus", handleVisibilityOrFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityOrFocus);
+      window.clearInterval(interval);
+    };
+  }, [user?.id, refresh]);
+
   return (
     <StudentAuthContext.Provider
       value={{
@@ -485,6 +538,8 @@ export function StudentAuthProvider({ children }: { children: React.ReactNode })
         careerTests,
         dossiers,
         bookings,
+        assignedCourses,
+        updateAssignedCourseStatus,
         isLoading,
         isLoggedIn: !!user,
         isAuthModalOpen,

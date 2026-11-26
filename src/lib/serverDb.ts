@@ -18,6 +18,8 @@ import {
   StudentSimResult,
   StudentCareerTestRecord,
   StudentPortalData,
+  StudentAssignedCourse,
+  AdminStudentSummary,
 } from "@/types/database";
 
 const DATA_DIR = path.join(process.cwd(), "data");
@@ -450,16 +452,30 @@ export async function updateBookingStatus(
   id: string,
   status: BookingStatus,
   meetingLink?: string,
-  adminNotes?: string
+  adminNotes?: string,
+  reschedule?: {
+    date?: string;
+    timeSlot?: string;
+    mentorId?: string;
+    mentorName?: string;
+    domainTitle?: string;
+  }
 ): Promise<MentorshipSessionRecord | null> {
   const sql = getNeonSql();
   if (sql) {
     try {
+      const hasMeetingLink = meetingLink !== undefined;
+      const hasAdminNotes = adminNotes !== undefined;
       await sql`
         UPDATE mentorship_bookings SET
           status = ${status},
-          meeting_link = COALESCE(${meetingLink || null}, meeting_link),
-          admin_notes = COALESCE(${adminNotes || null}, admin_notes),
+          meeting_link = CASE WHEN ${hasMeetingLink} THEN ${meetingLink || null} ELSE meeting_link END,
+          admin_notes = CASE WHEN ${hasAdminNotes} THEN ${adminNotes || null} ELSE admin_notes END,
+          date = COALESCE(${reschedule?.date || null}, date),
+          time_slot = COALESCE(${reschedule?.timeSlot || null}, time_slot),
+          mentor_id = COALESCE(${reschedule?.mentorId || null}, mentor_id),
+          mentor_name = COALESCE(${reschedule?.mentorName || null}, mentor_name),
+          domain_title = COALESCE(${reschedule?.domainTitle || null}, domain_title),
           updated_at = NOW()
         WHERE id = ${id}
       `;
@@ -495,6 +511,11 @@ export async function updateBookingStatus(
     booking.status = status;
     if (meetingLink !== undefined) booking.meetingLink = meetingLink;
     if (adminNotes !== undefined) booking.adminNotes = adminNotes;
+    if (reschedule?.date) booking.date = reschedule.date;
+    if (reschedule?.timeSlot) booking.timeSlot = reschedule.timeSlot;
+    if (reschedule?.mentorId) booking.mentorId = reschedule.mentorId;
+    if (reschedule?.mentorName) booking.mentorName = reschedule.mentorName;
+    if (reschedule?.domainTitle) booking.domainTitle = reschedule.domainTitle;
     booking.updatedAt = new Date().toISOString();
     await fs.writeFile(DB_FILE, JSON.stringify(store, null, 2), "utf8");
     return booking;
@@ -1207,7 +1228,9 @@ export async function getStudentPortalData(userId: string): Promise<StudentPorta
     userId: user.id,
   });
 
-  return { user, diary, goals, simulations, careerTests, dossiers, bookings };
+  const assignedCourses = await getAssignedCoursesByUserId(user.id);
+
+  return { user, diary, goals, simulations, careerTests, dossiers, bookings, assignedCourses };
 }
 
 export async function addStudentDiaryEntry(
@@ -1746,4 +1769,292 @@ export function verifyPhoneVerificationToken(token: string): string | null {
   } catch {
     return null;
   }
+}
+
+// =========================================================================
+// ADMIN <-> STUDENT SYNC: ASSIGNED COURSES & ADMIN STUDENT WORKSPACE
+// =========================================================================
+
+async function ensureAssignedCoursesTable() {
+  const sql = getNeonSql();
+  if (!sql) return;
+  await sql`
+    CREATE TABLE IF NOT EXISTS student_assigned_courses (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      course_code TEXT NOT NULL,
+      title TEXT NOT NULL,
+      category TEXT NOT NULL,
+      description TEXT,
+      simulator_url TEXT,
+      status TEXT NOT NULL DEFAULT 'assigned',
+      assigned_by TEXT DEFAULT 'PTIROS Mentor Council',
+      mentor_note TEXT,
+      due_date TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `;
+}
+
+export async function getAssignedCoursesByUserId(userId: string): Promise<StudentAssignedCourse[]> {
+  const sql = getNeonSql();
+  if (!sql) return [];
+  try {
+    await ensureAssignedCoursesTable();
+    const rows = await sql`
+      SELECT id, user_id, course_code, title, category, description, simulator_url, status, assigned_by, mentor_note, due_date, created_at, updated_at
+      FROM student_assigned_courses
+      WHERE user_id = ${userId}
+      ORDER BY created_at DESC;
+    `;
+    return rows.map((r) => ({
+      id: String(r.id),
+      userId: String(r.user_id),
+      courseCode: String(r.course_code),
+      title: String(r.title),
+      category: String(r.category),
+      description: r.description ? String(r.description) : undefined,
+      simulatorUrl: r.simulator_url ? String(r.simulator_url) : undefined,
+      status: (r.status as StudentAssignedCourse["status"]) || "assigned",
+      assignedBy: r.assigned_by ? String(r.assigned_by) : undefined,
+      mentorNote: r.mentor_note ? String(r.mentor_note) : undefined,
+      dueDate: r.due_date ? String(r.due_date) : undefined,
+      createdAt: typeof r.created_at === "string" ? r.created_at : new Date(r.created_at).toISOString(),
+      updatedAt: typeof r.updated_at === "string" ? r.updated_at : new Date(r.updated_at).toISOString(),
+    }));
+  } catch (err) {
+    console.warn("getAssignedCoursesByUserId failed:", err);
+    return [];
+  }
+}
+
+export async function assignCourseToStudent(input: {
+  userId: string;
+  courseCode: string;
+  title: string;
+  category: string;
+  description?: string;
+  simulatorUrl?: string;
+  assignedBy?: string;
+  mentorNote?: string;
+  dueDate?: string;
+}): Promise<StudentAssignedCourse | null> {
+  const sql = getNeonSql();
+  if (!sql) return null;
+  await ensureAssignedCoursesTable();
+  const id = `crs_${crypto.randomBytes(6).toString("hex")}`;
+  await sql`
+    INSERT INTO student_assigned_courses (
+      id, user_id, course_code, title, category, description, simulator_url, status, assigned_by, mentor_note, due_date
+    ) VALUES (
+      ${id},
+      ${input.userId},
+      ${input.courseCode},
+      ${input.title},
+      ${input.category},
+      ${input.description || null},
+      ${input.simulatorUrl || null},
+      'assigned',
+      ${input.assignedBy || "PTIROS Mentor Council"},
+      ${input.mentorNote || null},
+      ${input.dueDate || null}
+    );
+  `;
+  const rows = await sql`SELECT * FROM student_assigned_courses WHERE id = ${id} LIMIT 1`;
+  if (!rows.length) return null;
+  const r = rows[0];
+  return {
+    id: String(r.id),
+    userId: String(r.user_id),
+    courseCode: String(r.course_code),
+    title: String(r.title),
+    category: String(r.category),
+    description: r.description ? String(r.description) : undefined,
+    simulatorUrl: r.simulator_url ? String(r.simulator_url) : undefined,
+    status: (r.status as StudentAssignedCourse["status"]) || "assigned",
+    assignedBy: r.assigned_by ? String(r.assigned_by) : undefined,
+    mentorNote: r.mentor_note ? String(r.mentor_note) : undefined,
+    dueDate: r.due_date ? String(r.due_date) : undefined,
+    createdAt: new Date(r.created_at).toISOString(),
+    updatedAt: new Date(r.updated_at).toISOString(),
+  };
+}
+
+export async function updateAssignedCourseStatus(
+  id: string,
+  status: StudentAssignedCourse["status"],
+  userId?: string
+): Promise<StudentAssignedCourse | null> {
+  const sql = getNeonSql();
+  if (!sql) return null;
+  await ensureAssignedCoursesTable();
+  if (userId) {
+    await sql`
+      UPDATE student_assigned_courses
+      SET status = ${status}, updated_at = NOW()
+      WHERE id = ${id} AND user_id = ${userId};
+    `;
+  } else {
+    await sql`
+      UPDATE student_assigned_courses
+      SET status = ${status}, updated_at = NOW()
+      WHERE id = ${id};
+    `;
+  }
+  const rows = await sql`SELECT * FROM student_assigned_courses WHERE id = ${id} LIMIT 1`;
+  if (!rows.length) return null;
+  const r = rows[0];
+  return {
+    id: String(r.id),
+    userId: String(r.user_id),
+    courseCode: String(r.course_code),
+    title: String(r.title),
+    category: String(r.category),
+    description: r.description ? String(r.description) : undefined,
+    simulatorUrl: r.simulator_url ? String(r.simulator_url) : undefined,
+    status: (r.status as StudentAssignedCourse["status"]) || "assigned",
+    assignedBy: r.assigned_by ? String(r.assigned_by) : undefined,
+    mentorNote: r.mentor_note ? String(r.mentor_note) : undefined,
+    dueDate: r.due_date ? String(r.due_date) : undefined,
+    createdAt: new Date(r.created_at).toISOString(),
+    updatedAt: new Date(r.updated_at).toISOString(),
+  };
+}
+
+export async function deleteAssignedCourse(id: string): Promise<boolean> {
+  const sql = getNeonSql();
+  if (!sql) return false;
+  await ensureAssignedCoursesTable();
+  await sql`DELETE FROM student_assigned_courses WHERE id = ${id};`;
+  return true;
+}
+
+export async function getAllAdminStudents(): Promise<AdminStudentSummary[]> {
+  const sql = getNeonSql();
+  if (!sql) return [];
+  await ensureAssignedCoursesTable();
+
+  const [userRows, courseRows, goalRows, bookingRows, simRows] = await Promise.all([
+    sql`
+      SELECT id, name, email, grade, curriculum, city, parent_name, parent_phone, parent_dream, apar_id, created_at
+      FROM users
+      ORDER BY created_at DESC;
+    `,
+    sql`
+      SELECT id, user_id, course_code, title, category, description, simulator_url, status, assigned_by, mentor_note, due_date, created_at, updated_at
+      FROM student_assigned_courses
+      ORDER BY created_at DESC;
+    `,
+    sql`
+      SELECT id, user_id, title, time_view, completed, deadline, created_at
+      FROM student_planner_goals
+      ORDER BY created_at DESC;
+    `,
+    sql`
+      SELECT *
+      FROM mentorship_bookings
+      ORDER BY created_at DESC;
+    `,
+    sql`
+      SELECT id, user_id
+      FROM student_sim_results;
+    `,
+  ]);
+
+  const coursesByUser = new Map<string, StudentAssignedCourse[]>();
+  for (const r of courseRows) {
+    const uid = String(r.user_id);
+    const list = coursesByUser.get(uid) || [];
+    list.push({
+      id: String(r.id),
+      userId: uid,
+      courseCode: String(r.course_code),
+      title: String(r.title),
+      category: String(r.category),
+      description: r.description ? String(r.description) : undefined,
+      simulatorUrl: r.simulator_url ? String(r.simulator_url) : undefined,
+      status: (r.status as StudentAssignedCourse["status"]) || "assigned",
+      assignedBy: r.assigned_by ? String(r.assigned_by) : undefined,
+      mentorNote: r.mentor_note ? String(r.mentor_note) : undefined,
+      dueDate: r.due_date ? String(r.due_date) : undefined,
+      createdAt: new Date(r.created_at).toISOString(),
+      updatedAt: new Date(r.updated_at).toISOString(),
+    });
+    coursesByUser.set(uid, list);
+  }
+
+  const goalsByUser = new Map<string, StudentPlannerGoal[]>();
+  for (const r of goalRows) {
+    const uid = String(r.user_id);
+    const list = goalsByUser.get(uid) || [];
+    list.push({
+      id: String(r.id),
+      userId: uid,
+      title: String(r.title),
+      timeView: (r.time_view as "daily" | "monthly" | "yearly") || "daily",
+      completed: Boolean(r.completed),
+      deadline: r.deadline ? String(r.deadline) : undefined,
+      createdAt: new Date(r.created_at).toISOString(),
+    });
+    goalsByUser.set(uid, list);
+  }
+
+  const bookingsByUser = new Map<string, MentorshipSessionRecord[]>();
+  for (const r of bookingRows) {
+    const uid = r.user_id ? String(r.user_id) : "";
+    if (!uid) continue;
+    const list = bookingsByUser.get(uid) || [];
+    list.push({
+      id: String(r.id),
+      userId: uid,
+      mentorId: String(r.mentor_id),
+      mentorName: String(r.mentor_name),
+      domainTitle: String(r.domain_title),
+      studentName: String(r.student_name),
+      parentPhone: String(r.parent_phone),
+      date: String(r.date),
+      timeSlot: String(r.time_slot),
+      primaryQuestion: String(r.primary_question),
+      status: r.status as BookingStatus,
+      meetingLink: r.meeting_link ? String(r.meeting_link) : undefined,
+      adminNotes: r.admin_notes ? String(r.admin_notes) : undefined,
+      createdAt: new Date(r.created_at).toISOString(),
+      updatedAt: new Date(r.updated_at).toISOString(),
+    });
+    bookingsByUser.set(uid, list);
+  }
+
+  const simCountsByUser = new Map<string, number>();
+  for (const r of simRows) {
+    const uid = String(r.user_id);
+    simCountsByUser.set(uid, (simCountsByUser.get(uid) || 0) + 1);
+  }
+
+  return userRows.map((u) => {
+    const uid = String(u.id);
+    const courses = coursesByUser.get(uid) || [];
+    const goals = goalsByUser.get(uid) || [];
+    const bookings = bookingsByUser.get(uid) || [];
+    return {
+      id: uid,
+      name: String(u.name),
+      email: String(u.email),
+      grade: String(u.grade || "Class 10"),
+      curriculum: String(u.curriculum || "CBSE"),
+      city: String(u.city || "India"),
+      parentName: u.parent_name ? String(u.parent_name) : undefined,
+      parentPhone: u.parent_phone ? String(u.parent_phone) : undefined,
+      parentDream: u.parent_dream ? String(u.parent_dream) : undefined,
+      aparId: u.apar_id ? String(u.apar_id) : undefined,
+      createdAt: new Date(u.created_at).toISOString(),
+      goalsCount: goals.length,
+      bookingsCount: bookings.length,
+      simulationsCount: simCountsByUser.get(uid) || 0,
+      assignedCoursesCount: courses.length,
+      assignedCourses: courses,
+      goals,
+      bookings,
+    };
+  });
 }

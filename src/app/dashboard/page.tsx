@@ -82,6 +82,8 @@ export default function DashboardPage() {
     simulations,
     careerTests,
     bookings,
+    assignedCourses,
+    updateAssignedCourseStatus,
     isLoading,
     isLoggedIn,
     logout,
@@ -1209,6 +1211,98 @@ export default function DashboardPage() {
               </motion.div>
             </div>
 
+            {/* ── Assigned Courses & Mentor Modules (Synced from Admin) ── */}
+            {assignedCourses.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, delay: 0.25 }}
+                className="rounded-3xl bg-white border border-orange-200/80 p-5 sm:p-6 shadow-xs space-y-4"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-stone-100">
+                  <div>
+                    <h3 className="text-sm font-display font-bold text-stone-900 flex items-center gap-2">
+                      <BookOpen className="size-4 text-orange-600" />
+                      <span>Assigned Courses &amp; Mentor Modules</span>
+                      <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-800">
+                        {assignedCourses.length} Synced
+                      </span>
+                    </h3>
+                    <p className="text-xs text-stone-500 mt-0.5">
+                      Experiential labs and study modules assigned by your PTIROS Mentor Council.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {assignedCourses.map((course) => (
+                    <div
+                      key={course.id}
+                      className="rounded-2xl border border-stone-200 bg-stone-50/60 p-4 flex flex-col justify-between gap-3"
+                    >
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-white border border-stone-200 text-stone-600">
+                            {course.category}
+                          </span>
+                          <span
+                            className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
+                              course.status === "completed"
+                                ? "bg-emerald-100 text-emerald-800"
+                                : course.status === "in_progress"
+                                ? "bg-blue-100 text-blue-800"
+                                : "bg-amber-100 text-amber-800"
+                            }`}
+                          >
+                            {course.status.replace("_", " ")}
+                          </span>
+                        </div>
+                        <h4 className="text-sm font-bold text-stone-900">{course.title}</h4>
+                        {course.mentorNote && (
+                          <p className="text-xs text-stone-600 leading-relaxed">
+                            <strong className="text-stone-800">Mentor Note:</strong> {course.mentorNote}
+                          </p>
+                        )}
+                        {course.dueDate && (
+                          <p className="text-[11px] text-stone-500 flex items-center gap-1">
+                            <Clock className="size-3 text-orange-600" /> Target: {course.dueDate}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-stone-200/70">
+                        <div className="flex items-center gap-1.5">
+                          {(["assigned", "in_progress", "completed"] as const).map((st) => (
+                            <button
+                              key={st}
+                              type="button"
+                              onClick={() => updateAssignedCourseStatus(course.id, st)}
+                              className={`px-2 py-1 rounded-lg text-[10px] font-bold capitalize transition cursor-pointer ${
+                                course.status === st
+                                  ? "bg-stone-900 text-white"
+                                  : "bg-white border border-stone-200 text-stone-600 hover:bg-stone-100"
+                              }`}
+                            >
+                              {st.replace("_", " ")}
+                            </button>
+                          ))}
+                        </div>
+                        {course.simulatorUrl && (
+                          <Link
+                            href={course.simulatorUrl}
+                            className="inline-flex items-center gap-1 text-xs font-bold text-orange-600 hover:underline"
+                          >
+                            <span>Open Lab</span>
+                            <ArrowUpRight className="size-3.5" />
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
             {/* ── Row 4: Career Intelligence Feed ── */}
             <CareerIntelligenceFeed />
           </div>
@@ -2035,13 +2129,23 @@ export default function DashboardPage() {
                             </div>
 
                             {/* Step 4 */}
-                            <div className="p-3 rounded-xl bg-white border border-stone-200/70 opacity-75">
-                              <div className="flex items-center gap-1.5 text-stone-600 font-semibold text-xs mb-1">
-                                <ShieldCheck className="size-3.5 text-stone-400" />
-                                <span>4. Debrief & Plan</span>
+                            <div
+                              className={`p-3 rounded-xl border ${
+                                b.adminNotes || b.status === "completed"
+                                  ? "bg-emerald-50/70 border-emerald-300"
+                                  : "bg-white border-stone-200/70 opacity-75"
+                              }`}
+                            >
+                              <div
+                                className={`flex items-center gap-1.5 font-semibold text-xs mb-1 ${
+                                  b.adminNotes || b.status === "completed" ? "text-emerald-700 font-bold" : "text-stone-600"
+                                }`}
+                              >
+                                <ShieldCheck className="size-3.5" />
+                                <span>4. Debrief &amp; Plan</span>
                               </div>
-                              <p className="text-[11px] text-stone-400 leading-tight">
-                                Post-call notes & action goals
+                              <p className="text-[11px] text-stone-600 leading-tight">
+                                {b.adminNotes ? b.adminNotes : "Post-call notes & action goals"}
                               </p>
                             </div>
                           </div>
