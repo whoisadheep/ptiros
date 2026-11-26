@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import ScrollReveal from "./ui/ScrollReveal";
@@ -14,6 +15,8 @@ const testHighlights = [
 ] as const;
 
 export default function CareerTestCTA() {
+  const prefersReducedMotion = useReducedMotion();
+
   return (
     <section
       id="career-test"
@@ -22,11 +25,69 @@ export default function CareerTestCTA() {
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-12 lg:gap-14">
-          {/* Left Column: Brain Line Art */}
+          {/* Left Column: Brain Line Art + Neural Orbit Motion Graphic */}
           <div className="flex flex-col items-center justify-center lg:col-span-5">
             <ScrollReveal direction="up" distance={20} duration={0.5}>
               <div className="relative w-full max-w-md aspect-square flex items-center justify-center p-4">
-                <div className="relative w-full h-full max-w-[360px] max-h-[360px]">
+                {/* Rotating Neural Constellation SVG */}
+                <svg
+                  className="pointer-events-none absolute inset-0 w-full h-full"
+                  viewBox="0 0 400 400"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <motion.circle
+                    cx="200"
+                    cy="200"
+                    r="168"
+                    stroke="#fed7aa"
+                    strokeWidth="1.5"
+                    strokeDasharray="6 8"
+                    animate={prefersReducedMotion ? undefined : { rotate: 360 }}
+                    transition={{ duration: 36, repeat: Infinity, ease: "linear" }}
+                    style={{ transformOrigin: "200px 200px" }}
+                  />
+                  <motion.circle
+                    cx="200"
+                    cy="200"
+                    r="142"
+                    stroke="#fdba74"
+                    strokeWidth="1"
+                    strokeDasharray="2 10"
+                    animate={prefersReducedMotion ? undefined : { rotate: -360 }}
+                    transition={{ duration: 28, repeat: Infinity, ease: "linear" }}
+                    style={{ transformOrigin: "200px 200px" }}
+                  />
+                </svg>
+
+                {/* Floating Cognitive Dimension Pills */}
+                <motion.span
+                  animate={prefersReducedMotion ? undefined : { y: [0, -6, 0] }}
+                  transition={{ duration: 3.6, repeat: Infinity, ease: "easeInOut" }}
+                  className="hidden sm:inline-flex absolute top-6 left-4 z-10 px-2.5 py-1 rounded-full bg-white/95 border border-orange-200 shadow-xs text-[11px] font-bold text-stone-700"
+                >
+                  Analytical Logic
+                </motion.span>
+                <motion.span
+                  animate={prefersReducedMotion ? undefined : { y: [0, 6, 0] }}
+                  transition={{ duration: 4.2, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
+                  className="hidden sm:inline-flex absolute bottom-8 right-2 z-10 px-2.5 py-1 rounded-full bg-white/95 border border-amber-200 shadow-xs text-[11px] font-bold text-stone-700"
+                >
+                  Creative Synthesis
+                </motion.span>
+                <motion.span
+                  animate={prefersReducedMotion ? undefined : { y: [0, -5, 0] }}
+                  transition={{ duration: 3.9, repeat: Infinity, ease: "easeInOut", delay: 1.1 }}
+                  className="hidden sm:inline-flex absolute top-14 right-2 z-10 px-2.5 py-1 rounded-full bg-orange-50/95 border border-orange-200 shadow-xs text-[11px] font-bold text-orange-800"
+                >
+                  250+ Tracks
+                </motion.span>
+
+                <motion.div
+                  animate={prefersReducedMotion ? undefined : { scale: [1, 1.025, 1] }}
+                  transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                  className="relative w-full h-full max-w-[320px] max-h-[320px]"
+                >
                   <Image
                     src="/client_brain.png"
                     alt="PTIROS Cognitive Mapping Model"
@@ -34,11 +95,11 @@ export default function CareerTestCTA() {
                     className="object-contain"
                     priority
                   />
-                </div>
+                </motion.div>
               </div>
 
               <p className="mt-2 text-center text-xs font-medium text-stone-500">
-                Cognitive Aptitude & Neurological Assessment Model
+                Cognitive Aptitude &amp; Neurological Assessment Model
               </p>
             </ScrollReveal>
           </div>
@@ -47,6 +108,16 @@ export default function CareerTestCTA() {
           <div className="lg:col-span-7">
             <ScrollReveal direction="up" delay={0.1} distance={20} duration={0.5}>
               <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-stone-900 p-8 sm:p-12 text-white shadow-xs">
+                <motion.div
+                  aria-hidden="true"
+                  animate={
+                    prefersReducedMotion
+                      ? undefined
+                      : { opacity: [0.18, 0.34, 0.18], scale: [1, 1.12, 1] }
+                  }
+                  transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+                  className="pointer-events-none absolute -right-16 -top-16 size-64 rounded-full bg-orange-500/25 blur-3xl"
+                />
                 <div className="relative z-10 space-y-6">
                   {/* Header pill & Title */}
                   <div className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3.5 py-1 text-xs font-semibold text-stone-200">
