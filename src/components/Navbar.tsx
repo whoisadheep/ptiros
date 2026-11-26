@@ -336,12 +336,9 @@ export default function Navbar() {
                   <p className="text-[10px] font-bold uppercase tracking-wider text-stone-400 px-2 pb-1">
                     Direct Triggers
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsOpen(false);
-                      openBookingModal();
-                    }}
+                  <Link
+                    href="/book-mentorship"
+                    onClick={() => setIsOpen(false)}
                     className="w-full flex items-center justify-between rounded-xl px-3 py-2 text-stone-700 hover:bg-orange-50/70 transition-colors text-left cursor-pointer"
                   >
                     <div className="flex items-center gap-3">
@@ -349,7 +346,7 @@ export default function Navbar() {
                       <span className="text-xs font-semibold">Book 1:1 Gurukul Mentor Call</span>
                     </div>
                     <ArrowRight className="size-3.5 text-stone-400" />
-                  </button>
+                  </Link>
 
                   <button
                     type="button"

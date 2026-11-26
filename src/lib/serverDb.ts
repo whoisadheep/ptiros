@@ -142,53 +142,53 @@ export async function getDatabase(): Promise<DatabaseStore> {
         sql`SELECT * FROM paid_dossiers ORDER BY created_at DESC`,
       ]);
 
-      const leads: StudentLead[] = leadsRows.map((r: any) => ({
-        id: r.id,
-        studentName: r.student_name,
-        grade: r.grade,
-        schoolName: r.school_name || undefined,
-        city: r.city,
-        curriculum: r.curriculum,
-        parentName: r.parent_name,
-        parentPhone: r.parent_phone,
-        parentDream: r.parent_dream,
-        source: r.source,
-        status: r.status,
-        notes: r.notes || undefined,
+      const leads: StudentLead[] = leadsRows.map((r) => ({
+        id: String(r.id),
+        studentName: String(r.student_name),
+        grade: r.grade as StudentGrade,
+        schoolName: r.school_name ? String(r.school_name) : undefined,
+        city: String(r.city),
+        curriculum: r.curriculum as SchoolCurriculum,
+        parentName: String(r.parent_name),
+        parentPhone: String(r.parent_phone),
+        parentDream: String(r.parent_dream),
+        source: r.source as StudentLead["source"],
+        status: r.status as LeadStatus,
+        notes: r.notes ? String(r.notes) : undefined,
         parentConsent: Boolean(r.parent_consent),
-        createdAt: new Date(r.created_at).toISOString(),
-        updatedAt: new Date(r.updated_at).toISOString(),
+        createdAt: new Date(r.created_at as string | number | Date).toISOString(),
+        updatedAt: new Date(r.updated_at as string | number | Date).toISOString(),
       }));
 
-      const bookings: MentorshipSessionRecord[] = bookingsRows.map((r: any) => ({
-        id: r.id,
-        userId: r.user_id || undefined,
-        mentorId: r.mentor_id,
-        mentorName: r.mentor_name,
-        domainTitle: r.domain_title,
-        studentName: r.student_name,
-        parentPhone: r.parent_phone,
-        date: r.date,
-        timeSlot: r.time_slot,
-        primaryQuestion: r.primary_question,
-        status: r.status,
-        meetingLink: r.meeting_link || undefined,
-        adminNotes: r.admin_notes || undefined,
-        createdAt: new Date(r.created_at).toISOString(),
-        updatedAt: new Date(r.updated_at).toISOString(),
+      const bookings: MentorshipSessionRecord[] = bookingsRows.map((r) => ({
+        id: String(r.id),
+        userId: r.user_id ? String(r.user_id) : undefined,
+        mentorId: String(r.mentor_id),
+        mentorName: String(r.mentor_name),
+        domainTitle: String(r.domain_title),
+        studentName: String(r.student_name),
+        parentPhone: String(r.parent_phone),
+        date: String(r.date),
+        timeSlot: String(r.time_slot),
+        primaryQuestion: String(r.primary_question),
+        status: r.status as BookingStatus,
+        meetingLink: r.meeting_link ? String(r.meeting_link) : undefined,
+        adminNotes: r.admin_notes ? String(r.admin_notes) : undefined,
+        createdAt: new Date(r.created_at as string | number | Date).toISOString(),
+        updatedAt: new Date(r.updated_at as string | number | Date).toISOString(),
       }));
 
-      const dossiers: PaidDossierOrder[] = dossiersRows.map((r: any) => ({
-        id: r.id,
-        userId: r.user_id || undefined,
-        careerTestId: r.career_test_id || undefined,
-        topTrackTitle: r.top_track_title || undefined,
-        studentName: r.student_name,
-        parentPhone: r.parent_phone,
+      const dossiers: PaidDossierOrder[] = dossiersRows.map((r) => ({
+        id: String(r.id),
+        userId: r.user_id ? String(r.user_id) : undefined,
+        careerTestId: r.career_test_id ? String(r.career_test_id) : undefined,
+        topTrackTitle: r.top_track_title ? String(r.top_track_title) : undefined,
+        studentName: String(r.student_name),
+        parentPhone: String(r.parent_phone),
         amount: Number(r.amount) || 499,
-        currency: r.currency || "INR",
-        status: r.status,
-        createdAt: new Date(r.created_at).toISOString(),
+        currency: (r.currency as "INR") || "INR",
+        status: r.status as PaidDossierOrder["status"],
+        createdAt: new Date(r.created_at as string | number | Date).toISOString(),
       }));
 
       return {
@@ -208,7 +208,7 @@ export async function getDatabase(): Promise<DatabaseStore> {
   try {
     const raw = await fs.readFile(DB_FILE, "utf8");
     return JSON.parse(raw) as DatabaseStore;
-  } catch (err) {
+  } catch {
     return {
       leads: [],
       bookings: [],
@@ -538,7 +538,7 @@ export async function getStudentBookings(query: {
 
   if (sql) {
     try {
-      let rows: any[] = [];
+      let rows: Record<string, unknown>[] = [];
       if (userIdClean && phoneClean) {
         rows = await sql`
           SELECT * FROM mentorship_bookings
@@ -565,22 +565,22 @@ export async function getStudentBookings(query: {
         `;
       }
 
-      return rows.map((r: any) => ({
-        id: r.id,
-        userId: r.user_id || undefined,
-        mentorId: r.mentor_id,
-        mentorName: r.mentor_name,
-        domainTitle: r.domain_title,
-        studentName: r.student_name,
-        parentPhone: r.parent_phone,
-        date: r.date,
-        timeSlot: r.time_slot,
-        primaryQuestion: r.primary_question,
-        status: r.status,
-        meetingLink: r.meeting_link || undefined,
-        adminNotes: r.admin_notes || undefined,
-        createdAt: new Date(r.created_at).toISOString(),
-        updatedAt: new Date(r.updated_at).toISOString(),
+      return rows.map((r) => ({
+        id: String(r.id),
+        userId: r.user_id ? String(r.user_id) : undefined,
+        mentorId: String(r.mentor_id),
+        mentorName: String(r.mentor_name),
+        domainTitle: String(r.domain_title),
+        studentName: String(r.student_name),
+        parentPhone: String(r.parent_phone),
+        date: String(r.date),
+        timeSlot: String(r.time_slot),
+        primaryQuestion: String(r.primary_question),
+        status: r.status as BookingStatus,
+        meetingLink: r.meeting_link ? String(r.meeting_link) : undefined,
+        adminNotes: r.admin_notes ? String(r.admin_notes) : undefined,
+        createdAt: new Date(r.created_at as string | number | Date).toISOString(),
+        updatedAt: new Date(r.updated_at as string | number | Date).toISOString(),
       }));
     } catch (err) {
       console.warn("Neon getStudentBookings failed, fallback to local file:", err);
@@ -856,44 +856,44 @@ function formatDateString(d: Date = new Date()): string {
   return `${month} ${day}, ${year}`;
 }
 
-function mapNeonUserRow(r: Record<string, any>): StudentUser {
+function mapNeonUserRow(r: Record<string, unknown>): StudentUser {
   return {
-    id: r.id,
-    name: r.name,
-    email: r.email,
+    id: String(r.id),
+    name: String(r.name),
+    email: String(r.email),
     age: r.age !== null && r.age !== undefined ? Number(r.age) : undefined,
-    gender: r.gender || undefined,
-    address: r.address || undefined,
+    gender: r.gender ? String(r.gender) : undefined,
+    address: r.address ? String(r.address) : undefined,
     singleChild:
       r.single_child !== null && r.single_child !== undefined ? Boolean(r.single_child) : undefined,
-    fatherName: r.father_name || undefined,
-    motherName: r.mother_name || undefined,
-    personalPhone: r.personal_phone || undefined,
-    parentEmail: r.parent_email || undefined,
-    grade: r.grade,
-    schoolName: r.school_name || undefined,
-    schoolAddress: r.school_address || undefined,
-    city: r.city,
-    state: r.state || undefined,
-    curriculum: r.curriculum,
-    parentName: r.parent_name || undefined,
-    parentPhone: r.parent_phone || undefined,
-    parentDream: r.parent_dream || undefined,
-    lastYearRank: r.last_year_rank || undefined,
-    lastYearPercentage: r.last_year_percentage || undefined,
+    fatherName: r.father_name ? String(r.father_name) : undefined,
+    motherName: r.mother_name ? String(r.mother_name) : undefined,
+    personalPhone: r.personal_phone ? String(r.personal_phone) : undefined,
+    parentEmail: r.parent_email ? String(r.parent_email) : undefined,
+    grade: String(r.grade),
+    schoolName: r.school_name ? String(r.school_name) : undefined,
+    schoolAddress: r.school_address ? String(r.school_address) : undefined,
+    city: String(r.city),
+    state: r.state ? String(r.state) : undefined,
+    curriculum: String(r.curriculum),
+    parentName: r.parent_name ? String(r.parent_name) : undefined,
+    parentPhone: r.parent_phone ? String(r.parent_phone) : undefined,
+    parentDream: r.parent_dream ? String(r.parent_dream) : undefined,
+    lastYearRank: r.last_year_rank ? String(r.last_year_rank) : undefined,
+    lastYearPercentage: r.last_year_percentage ? String(r.last_year_percentage) : undefined,
     proSports:
       r.pro_sports !== null && r.pro_sports !== undefined ? Boolean(r.pro_sports) : undefined,
-    competitions: r.competitions || undefined,
-    aparId: r.apar_id || undefined,
+    competitions: r.competitions ? String(r.competitions) : undefined,
+    aparId: r.apar_id ? String(r.apar_id) : undefined,
     authProvider: (r.auth_provider as "email" | "google" | "phone") || "email",
     phoneVerified:
       r.phone_verified !== null && r.phone_verified !== undefined ? Boolean(r.phone_verified) : false,
-    avatarInitials: r.avatar_initials || "ST",
-    createdAt: typeof r.created_at === "string" ? r.created_at : new Date(r.created_at).toISOString(),
+    avatarInitials: r.avatar_initials ? String(r.avatar_initials) : "ST",
+    createdAt: typeof r.created_at === "string" ? r.created_at : new Date(r.created_at as string | number | Date).toISOString(),
     updatedAt: r.updated_at
       ? typeof r.updated_at === "string"
         ? r.updated_at
-        : new Date(r.updated_at).toISOString()
+        : new Date(r.updated_at as string | number | Date).toISOString()
       : undefined,
   };
 }
@@ -1021,10 +1021,10 @@ export async function createStudentUser(data: CreateStudentInput): Promise<Stude
   try {
     await saveLead({
       studentName: data.name.trim(),
-      grade: data.grade as any,
+      grade: data.grade as StudentGrade,
       schoolName: data.schoolName?.trim(),
       city: data.city.trim(),
-      curriculum: data.curriculum as any,
+      curriculum: data.curriculum as SchoolCurriculum,
       parentName:
         data.parentName?.trim() ||
         data.fatherName?.trim() ||
@@ -1207,17 +1207,17 @@ export async function getStudentPortalData(userId: string): Promise<StudentPorta
         WHERE user_id = ${userId}
         ORDER BY created_at DESC;
       `;
-      dossiers = dossierRows.map((r: any) => ({
-        id: r.id,
-        userId: r.user_id || undefined,
-        careerTestId: r.career_test_id || undefined,
-        topTrackTitle: r.top_track_title || undefined,
-        studentName: r.student_name,
-        parentPhone: r.parent_phone,
+      dossiers = dossierRows.map((r) => ({
+        id: String(r.id),
+        userId: r.user_id ? String(r.user_id) : undefined,
+        careerTestId: r.career_test_id ? String(r.career_test_id) : undefined,
+        topTrackTitle: r.top_track_title ? String(r.top_track_title) : undefined,
+        studentName: String(r.student_name),
+        parentPhone: String(r.parent_phone),
         amount: Number(r.amount) || 499,
-        currency: r.currency || "INR",
-        status: r.status,
-        createdAt: typeof r.created_at === "string" ? r.created_at : new Date(r.created_at).toISOString(),
+        currency: (r.currency as "INR") || "INR",
+        status: r.status as PaidDossierOrder["status"],
+        createdAt: typeof r.created_at === "string" ? r.created_at : new Date(r.created_at as string | number | Date).toISOString(),
       }));
     } catch (err) {
       console.warn("Neon getStudentPortalData error:", err);
@@ -1369,7 +1369,7 @@ export async function addStudentSimResult(
   };
 }
 
-function mapNeonCareerTestRow(r: Record<string, any>): StudentCareerTestRecord {
+function mapNeonCareerTestRow(r: Record<string, unknown>): StudentCareerTestRecord {
   const parseJsonField = <T,>(val: unknown, fallback: T): T => {
     if (typeof val === "string") {
       try {
@@ -1385,24 +1385,24 @@ function mapNeonCareerTestRow(r: Record<string, any>): StudentCareerTestRecord {
   };
 
   return {
-    id: r.id,
-    userId: r.user_id,
-    studentName: r.student_name,
-    grade: r.grade,
-    topTrackId: r.top_track_id,
-    topTrackTitle: r.top_track_title,
+    id: String(r.id),
+    userId: String(r.user_id),
+    studentName: String(r.student_name),
+    grade: String(r.grade),
+    topTrackId: String(r.top_track_id),
+    topTrackTitle: String(r.top_track_title),
     matchConfidence: Number(r.match_confidence),
-    archetype: r.archetype,
-    recommendedStream: r.recommended_stream,
+    archetype: String(r.archetype),
+    recommendedStream: String(r.recommended_stream),
     answers: parseJsonField<Record<string, string>>(r.answers_json, {}),
     dimensionScores: parseJsonField(r.dimension_scores_json, []),
     rankedTracks: parseJsonField(r.ranked_tracks_json, []),
     dossierUnlocked: Boolean(r.dossier_unlocked),
-    dossierOrderId: r.dossier_order_id || undefined,
+    dossierOrderId: r.dossier_order_id ? String(r.dossier_order_id) : undefined,
     completedAt:
       typeof r.completed_at === "string"
         ? r.completed_at
-        : new Date(r.completed_at).toISOString(),
+        : new Date(r.completed_at as string | number | Date).toISOString(),
   };
 }
 

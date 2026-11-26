@@ -166,12 +166,9 @@ export default function FloatingCopilot() {
                 <ArrowRight className="size-3.5 text-stone-400 group-hover:text-primary group-hover:translate-x-0.5 transition" />
               </Link>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setIsOpen(false);
-                  openBookingModal();
-                }}
+              <Link
+                href="/book-mentorship"
+                onClick={() => setIsOpen(false)}
                 className="w-full flex items-center justify-between p-2.5 rounded-xl bg-stone-50 hover:bg-orange-50/80 hover:text-orange-950 border border-stone-100 hover:border-orange-200 transition group cursor-pointer text-left"
               >
                 <div className="flex items-center gap-2">
@@ -179,7 +176,7 @@ export default function FloatingCopilot() {
                   <span>Book 1:1 Gurukul Mentor</span>
                 </div>
                 <ArrowRight className="size-3.5 text-stone-400 group-hover:text-primary group-hover:translate-x-0.5 transition" />
-              </button>
+              </Link>
             </div>
 
             {/* Bottom Status */}

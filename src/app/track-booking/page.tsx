@@ -234,14 +234,13 @@ function TrackBookingContent() {
                   <RefreshCw className="size-3.5" />
                   <span>Sync Status</span>
                 </button>
-                <button
-                  type="button"
-                  onClick={() => openBookingModal()}
+                <Link
+                  href="/book-mentorship"
                   className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-1.5 text-xs font-bold text-white hover:bg-primary-dark transition cursor-pointer"
                 >
                   <Plus className="size-3.5" />
                   <span>Book 1:1 Call</span>
-                </button>
+                </Link>
               </div>
             </div>
 
@@ -452,13 +451,12 @@ function TrackBookingContent() {
               </p>
             </div>
             <div className="pt-2 flex flex-wrap justify-center gap-3">
-              <button
-                type="button"
-                onClick={() => openBookingModal()}
+              <Link
+                href="/book-mentorship"
                 className="px-5 py-2.5 rounded-full bg-primary hover:bg-primary-dark text-white font-bold text-xs transition cursor-pointer"
               >
                 Book a 1:1 Session Now
-              </button>
+              </Link>
               <Link
                 href="/dashboard?tab=mentorship"
                 className="px-5 py-2.5 rounded-full border border-stone-300 bg-white hover:bg-stone-50 text-stone-800 font-bold text-xs transition"

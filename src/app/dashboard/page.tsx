@@ -480,15 +480,15 @@ export default function DashboardPage() {
 
           {/* Right Action Stack */}
           <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
-            <button
-              onClick={() => openBookingModal(trajectoryMeta.primaryMentor.trackId)}
+            <Link
+              href={`/book-mentorship?track=${encodeURIComponent(trajectoryMeta.primaryMentor.trackId)}`}
               className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-600 text-white font-bold text-xs shadow-xs hover:from-orange-600 hover:to-amber-700 transition cursor-pointer active:scale-95"
               title="1:1 Mentor Desk"
             >
               <Users className="size-3.5" />
               <span className="hidden sm:inline">1:1 Mentor Desk</span>
               <span className="inline sm:hidden text-[11px]">Mentor</span>
-            </button>
+            </Link>
 
             {isLoggedIn ? (
               <button
@@ -789,9 +789,9 @@ export default function DashboardPage() {
                         <Plus className="size-3.5" /> <span>{nextStep.ctaLabel}</span>
                       </button>
                     ) : (
-                      <button type="button" onClick={() => openBookingModal(trajectoryMeta.primaryMentor.trackId)} className="inline-flex items-center gap-2 rounded-xl bg-stone-900 hover:bg-stone-800 px-5 py-2.5 text-xs font-bold text-white transition active:scale-95 cursor-pointer">
+                      <Link href={`/book-mentorship?track=${encodeURIComponent(trajectoryMeta.primaryMentor.trackId)}`} className="inline-flex items-center gap-2 rounded-xl bg-stone-900 hover:bg-stone-800 px-5 py-2.5 text-xs font-bold text-white transition active:scale-95 cursor-pointer">
                         <Users className="size-3.5" /> <span>{nextStep.ctaLabel}</span>
-                      </button>
+                      </Link>
                     )}
                   </div>
                 </div>
@@ -1011,13 +1011,13 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 </div>
-                <button
-                  onClick={() => openBookingModal(trajectoryMeta.primaryMentor.trackId)}
+                <Link
+                  href={`/book-mentorship?track=${encodeURIComponent(trajectoryMeta.primaryMentor.trackId)}`}
                   className="w-full py-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <span>{activeBookings.length > 0 ? "Book Follow-Up" : "Book 1:1 Call"}</span>
                   <ArrowUpRight className="size-3" />
-                </button>
+                </Link>
               </motion.div>
 
               {/* ─ Bento Cell: Career Test Result (spans 3 cols) ─ */}
