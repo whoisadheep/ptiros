@@ -66,6 +66,7 @@ import ActivityLocker from "@/components/dashboard/ActivityLocker";
 import SavedPathways from "@/components/dashboard/SavedPathways";
 import CareerIntelligenceFeed from "@/components/dashboard/CareerIntelligenceFeed";
 import StudentDetailsSection from "@/components/dashboard/StudentDetailsSection";
+import CareerReportViewer from "@/components/career-test/CareerReportViewer";
 import { getProfileCompleteness } from "@/lib/studentProfileOptions";
 
 type DashboardTab = "cockpit" | "details" | "planner" | "activities" | "saved" | "diary" | "credentials" | "analysis" | "mentorship";
@@ -77,6 +78,7 @@ export default function DashboardPage() {
     diary,
     goals,
     simulations,
+    careerTests,
     bookings,
     isLoading,
     isLoggedIn,
@@ -175,32 +177,44 @@ export default function DashboardPage() {
   const [isSavingDiary, setIsSavingDiary] = useState(false);
   const [diarySearch, setDiarySearch] = useState("");
 
-  // Career Test result from local quest
-  const [careerTestResult, setCareerTestResult] = useState<{
-    studentName: string;
-    className: string;
-    topMatch: string;
-    matchConfidence: string;
-    superpowers: string[];
-    archetype: string;
-  } | null>(null);
+  // Selected Career Test analysis report from Neon Postgres
+  const [selectedTestId, setSelectedTestId] = useState<string | null>(null);
+  const activeCareerTest = useMemo(() => {
+    if (careerTests.length === 0) return null;
+    if (selectedTestId) {
+      return careerTests.find((t) => t.id === selectedTestId) || careerTests[0];
+    }
+    return careerTests[0];
+  }, [careerTests, selectedTestId]);
 
+  // If student finished career test right before creating/signing into account, attach automatically
   useEffect(() => {
-    if (!user?.id) {
-      setCareerTestResult(null);
-      return;
-    }
+    if (!user?.id) return;
     try {
-      const raw = localStorage.getItem(`ptiros_career_test_result_${user.id}`);
-      if (raw) {
-        setCareerTestResult(JSON.parse(raw));
-      } else {
-        setCareerTestResult(null);
+      const guestAnswersRaw = localStorage.getItem("ptiros_career_test_guest_answers");
+      if (guestAnswersRaw) {
+        const parsed = JSON.parse(guestAnswersRaw);
+        if (parsed?.answers && Object.keys(parsed.answers).length > 0) {
+          fetch("/api/student/career-test", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              answers: parsed.answers,
+              childhoodDream: parsed.childhoodDream,
+            }),
+          })
+            .then((res) => {
+              if (res.ok) {
+                localStorage.removeItem("ptiros_career_test_guest_answers");
+                localStorage.removeItem("ptiros_career_test_guest");
+                refreshStudentAuth();
+              }
+            })
+            .catch(() => {});
+        }
       }
-    } catch {
-      setCareerTestResult(null);
-    }
-  }, [user?.id]);
+    } catch {}
+  }, [user?.id, refreshStudentAuth]);
 
   // Goal creation drawer / inline modal
   const [showGoalModal, setShowGoalModal] = useState(false);
@@ -215,47 +229,51 @@ export default function DashboardPage() {
   // Dynamic trajectory summary built strictly from the signed-in student's real progress
   const trajectoryMeta = useMemo(() => {
     const latestSim = simulations[0];
+    const latestTest = careerTests[0];
     const earnedCredits = Math.min(simulations.length * 4, 20);
     const dynamicCompetencies = [
+      ...(latestTest
+        ? latestTest.dimensionScores.slice(0, 4).map((d) => ({
+            name: d.label,
+            score: d.score,
+            status: d.score >= 82 ? "Top Strength" : "Core Aptitude",
+          }))
+        : []),
       ...simulations.map((s) => ({
-        name: s.trackTitle,
+        name: `${s.trackTitle} (Lab)`,
         score: s.fitScore,
         status: s.fitScore >= 85 ? "Strong Fit" : s.fitScore >= 65 ? "Developing" : "Explored",
       })),
-      ...(careerTestResult
-        ? [
-            {
-              name: careerTestResult.topMatch,
-              score: parseInt(careerTestResult.matchConfidence, 10) || 90,
-              status: "Quest Match",
-            },
-          ]
-        : []),
     ];
 
     const firstName = user?.name?.split(" ")[0] || "Student";
+    const matchedMentor = latestTest
+      ? MENTORS.find((m) => latestTest.rankedTracks?.[0]?.mentorId === m.id) || MENTORS[0]
+      : MENTORS[0];
     return {
-      trackTitle: latestSim
+      trackTitle: latestTest
+        ? latestTest.topTrackTitle
+        : latestSim
         ? latestSim.trackTitle
-        : careerTestResult
-        ? careerTestResult.topMatch
         : `Welcome to Your Portal, ${firstName}`,
       targetAspirations: user?.parentDream
         ? user.parentDream
-        : latestSim || careerTestResult
-        ? "Explored via PTIROS Career Match & Simulation Labs"
+        : latestTest
+        ? `Recommended Stream: ${latestTest.recommendedStream}`
+        : latestSim
+        ? "Explored via PTIROS Workplace Simulation Labs"
         : "Follow the 4-step guide above to discover your career fit, try a simulation, set a study goal, and talk 1-on-1 with a mentor.",
       primaryMentor: {
-        name: MENTORS[0].name,
-        role: MENTORS[0].domainTitle,
-        pedigree: MENTORS[0].pedigree,
-        trackId: MENTORS[0].domainId,
+        name: matchedMentor.name,
+        role: matchedMentor.domainTitle,
+        pedigree: matchedMentor.pedigree,
+        trackId: matchedMentor.domainId,
       },
       competencies: dynamicCompetencies,
       nepCredits: earnedCredits,
       boardReadiness: Math.min(simulations.length * 16, 100),
     };
-  }, [user, simulations, careerTestResult]);
+  }, [user, simulations, careerTests]);
 
   // Goal stats
   const completedGoals = goals.filter((g) => g.completed).length;
@@ -264,7 +282,8 @@ export default function DashboardPage() {
 
   // Guided 4-step onboarding & next recommended step
   const guidedSteps = useMemo(() => {
-    const step1Done = Boolean(careerTestResult);
+    const latestTest = careerTests[0];
+    const step1Done = Boolean(latestTest);
     const step2Done = simulations.length > 0;
     const step3Done = goals.length > 0 || diary.length > 0;
     const step4Done = bookings.length > 0;
@@ -273,15 +292,15 @@ export default function DashboardPage() {
       {
         number: 1,
         title: "Take Career Match Test",
-        subtitle: "3 min • No studying needed",
+        subtitle: "3–4 min • Free 4-page PDF",
         description:
-          "Answer 4 quick interest questions to discover which streams and real careers fit you best.",
+          "Answer 8 quick scenario questions to unlock your dynamic Career Analysis & downloadable PDF.",
         done: step1Done,
-        doneSummary: careerTestResult
-          ? `Matched: ${careerTestResult.topMatch}`
+        doneSummary: latestTest
+          ? `${latestTest.topTrackTitle} (${latestTest.matchConfidence}%)`
           : "Completed",
-        ctaLabel: step1Done ? "Retake Test" : "Start Step 1",
-        href: "/career-test",
+        ctaLabel: step1Done ? "View / Retake" : "Start Step 1",
+        href: step1Done ? "/dashboard?tab=analysis" : "/career-test",
         actionType: "link" as const,
       },
       {
@@ -326,7 +345,7 @@ export default function DashboardPage() {
         actionType: "booking" as const,
       },
     ];
-  }, [careerTestResult, simulations, goals, diary, bookings]);
+  }, [careerTests, simulations, goals, diary, bookings]);
 
   const completedStepsCount = guidedSteps.filter((s) => s.done).length;
   const nextStep = guidedSteps.find((s) => !s.done) || null;
@@ -968,7 +987,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Career Match Quest Result (if completed) */}
-            {careerTestResult && (
+            {activeCareerTest && (
               <div className="rounded-2xl sm:rounded-3xl border border-orange-200 bg-white p-5 sm:p-6 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div className="flex items-center gap-3.5">
                   <div className="size-11 rounded-2xl bg-orange-100 flex items-center justify-center text-orange-600 shrink-0">
@@ -977,33 +996,38 @@ export default function DashboardPage() {
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
-                        Quest Result • {careerTestResult.matchConfidence} Match
+                        Diagnostic Result • {activeCareerTest.matchConfidence}% Match
                       </span>
                       <span className="text-xs text-stone-400">
-                        {careerTestResult.archetype}
+                        {activeCareerTest.archetype}
                       </span>
                     </div>
                     <h3 className="text-base font-bold text-stone-900 mt-0.5">
-                      Top Match: {careerTestResult.topMatch}
+                      Top Match: {activeCareerTest.topTrackTitle}
                     </h3>
                     <p className="text-xs text-stone-500 mt-0.5">
-                      Superpowers: {careerTestResult.superpowers?.join(" • ") || "Analytical Thinking"}
+                      Top Dimensions:{" "}
+                      {activeCareerTest.dimensionScores
+                        .slice(0, 2)
+                        .map((d) => `${d.label} (${d.score}%)`)
+                        .join(" • ") || "Analytical Logic"}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2.5 shrink-0 self-end md:self-auto">
-                  <Link
-                    href="/simulator"
-                    className="px-4 py-2 rounded-xl bg-orange-600 text-white font-bold text-xs hover:bg-orange-700 transition shadow-xs active:scale-95 inline-flex items-center gap-1.5"
+                <div className="flex flex-wrap items-center gap-2.5 shrink-0 self-end md:self-auto">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("analysis")}
+                    className="px-4 py-2 rounded-xl bg-orange-600 text-white font-bold text-xs hover:bg-orange-700 transition shadow-xs active:scale-95 inline-flex items-center gap-1.5 cursor-pointer"
                   >
-                    <span>Test-Drive in Simulator</span>
+                    <span>Open Report &amp; PDF</span>
                     <ArrowUpRight className="size-3.5" />
-                  </Link>
+                  </button>
                   <Link
-                    href="/career-test"
+                    href={activeCareerTest.rankedTracks?.[0]?.simulatorUrl || "/simulator"}
                     className="px-3 py-2 rounded-xl border border-stone-200 text-stone-700 font-bold text-xs hover:bg-stone-50 transition"
                   >
-                    Retake Quiz
+                    Launch Simulator
                   </Link>
                 </div>
               </div>
@@ -1316,10 +1340,19 @@ export default function DashboardPage() {
                   </div>
 
                   <button
-                    onClick={openDossierModal}
+                    onClick={() =>
+                      openDossierModal({
+                        careerTestId: activeCareerTest?.id,
+                        topTrackTitle: activeCareerTest?.topTrackTitle,
+                      })
+                    }
                     className="w-full py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
                   >
-                    <span>Preview 10-Page Parent Dossier</span>
+                    <span>
+                      {activeCareerTest?.dossierUnlocked
+                        ? "Download Full 9-Page Dossier"
+                        : "Preview 9-Page Parent Dossier"}
+                    </span>
                     <ExternalLink className="size-3" />
                   </button>
                 </div>
@@ -1802,48 +1835,106 @@ export default function DashboardPage() {
         {activeTab === "details" && <StudentDetailsSection />}
 
         {/* ========================================================= */}
-        {/* TAB 5: APTITUDE DIAGNOSTICS & SIMULATION SCORES */}
+        {/* TAB 5: CAREER TEST ANALYSIS & SIMULATION SCORES           */}
         {/* ========================================================= */}
         {activeTab === "analysis" && (
-          <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 border border-stone-200/80 shadow-xs space-y-6 sm:space-y-8">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-stone-100">
-              <div>
-                <h2 className="text-lg sm:text-xl font-display font-bold text-stone-900">
-                  Career Test 360° Diagnostic Dossier
-                </h2>
-                <p className="text-xs text-stone-500 mt-0.5">
-                  Evaluated across Quantitative Logic, Spatial Telemetry, Public Speaking, and Ethical Dilemmas.
-                </p>
-              </div>
-              <Link
-                href="/career-test"
-                className="w-full sm:w-auto text-center justify-center px-4 py-2 rounded-xl bg-orange-600 text-white font-bold text-xs hover:bg-orange-700 transition shadow-xs active:scale-95"
-              >
-                {careerTestResult ? "Retake Career Test →" : "Take Career Test →"}
-              </Link>
-            </div>
+          <div className="space-y-6">
+            {/* Section A: Saved Psychometric Career Test Report (4-Page Free + 9-Page Paid PDF) */}
+            {activeCareerTest ? (
+              <div className="space-y-4">
+                {careerTests.length > 1 && (
+                  <div className="bg-white rounded-2xl p-4 border border-stone-200/80 flex flex-wrap items-center justify-between gap-3">
+                    <span className="text-xs font-bold text-stone-700">
+                      Saved Diagnostic Attempts ({careerTests.length})
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {careerTests.map((t, idx) => (
+                        <button
+                          key={t.id}
+                          type="button"
+                          onClick={() => setSelectedTestId(t.id)}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
+                            activeCareerTest.id === t.id
+                              ? "bg-stone-900 text-white"
+                              : "bg-stone-100 text-stone-700 hover:bg-stone-200"
+                          }`}
+                        >
+                          {idx === 0 ? "Latest: " : ""}
+                          {t.topTrackTitle} ({t.matchConfidence}%)
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-              {simulations.map((sim) => (
-                <div key={sim.id} className="p-4 sm:p-6 rounded-2xl bg-stone-50 border border-stone-200/80 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-orange-600 uppercase tracking-wider">
-                      {sim.trackTitle}
-                    </span>
-                    <span className="font-mono font-bold text-base text-stone-900">
-                      {sim.fitScore}% Fit
-                    </span>
-                  </div>
-                  <div className="text-sm font-semibold text-stone-800">
-                    Badge Earned: <span className="text-orange-600">{sim.badgeEarned || "Autonomous Systems Architect"}</span>
-                  </div>
-                  <p className="text-xs text-stone-500">
-                    Resilience Points: <strong className="text-stone-800">{sim.resiliencePoints} XP</strong> earned through difficult choice tradeoffs in simulation.
+                <CareerReportViewer
+                  record={activeCareerTest}
+                  showDashboardLink={false}
+                  onRetake={() => router.push("/career-test")}
+                />
+              </div>
+            ) : (
+              <div className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 border border-stone-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-orange-600">
+                    Career Match Diagnostic Not Taken Yet
+                  </span>
+                  <h2 className="text-lg sm:text-xl font-display font-bold text-stone-900 mt-1">
+                    Unlock Your Free 4-Page Career Analysis &amp; PDF
+                  </h2>
+                  <p className="text-xs sm:text-sm text-stone-500 mt-1 max-w-xl">
+                    Answer 8 stress-free scenario questions in 3–4 minutes to see your cognitive superpowers, ranked streams, and downloadable PDF report.
                   </p>
                 </div>
-              ))}
+                <Link
+                  href="/career-test"
+                  className="shrink-0 w-full sm:w-auto text-center px-6 py-3 rounded-xl bg-orange-600 text-white font-bold text-xs sm:text-sm hover:bg-orange-700 transition shadow-xs"
+                >
+                  Start Career Test →
+                </Link>
+              </div>
+            )}
 
-              {simulations.length === 0 && (
+            {/* Section B: Workplace Simulation Scores */}
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 border border-stone-200/80 shadow-xs space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-stone-100">
+                <div>
+                  <h3 className="text-lg sm:text-xl font-display font-bold text-stone-900">
+                    Hands-On Career Simulation Labs
+                  </h3>
+                  <p className="text-xs text-stone-500 mt-0.5">
+                    Real-world problem solving scores across Engineering, Law, Clinical Medicine, Finance, Design &amp; Media.
+                  </p>
+                </div>
+                <Link
+                  href="/simulator"
+                  className="w-full sm:w-auto text-center justify-center px-4 py-2 rounded-xl bg-stone-900 text-white font-bold text-xs hover:bg-stone-800 transition shadow-xs"
+                >
+                  Open Simulation Hub →
+                </Link>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                {simulations.map((sim) => (
+                  <div key={sim.id} className="p-4 sm:p-6 rounded-2xl bg-stone-50 border border-stone-200/80 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-orange-600 uppercase tracking-wider">
+                        {sim.trackTitle}
+                      </span>
+                      <span className="font-mono font-bold text-base text-stone-900">
+                        {sim.fitScore}% Fit
+                      </span>
+                    </div>
+                    <div className="text-sm font-semibold text-stone-800">
+                      Badge Earned: <span className="text-orange-600">{sim.badgeEarned || "Autonomous Systems Architect"}</span>
+                    </div>
+                    <p className="text-xs text-stone-500">
+                      Resilience Points: <strong className="text-stone-800">{sim.resiliencePoints} XP</strong> earned through difficult choice tradeoffs in simulation.
+                    </p>
+                  </div>
+                ))}
+
+                {simulations.length === 0 && (
                 <div className="col-span-1 md:col-span-2 space-y-4">
                   <div className="p-6 rounded-2xl bg-orange-50/70 border border-orange-200 text-center space-y-2">
                     <PtiroMascot
@@ -1894,6 +1985,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
               )}
+              </div>
             </div>
           </div>
         )}

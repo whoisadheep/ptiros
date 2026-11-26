@@ -7,15 +7,33 @@ import {
   StudentDiaryEntry,
   StudentPlannerGoal,
   StudentSimResult,
+  StudentCareerTestRecord,
+  PaidDossierOrder,
   StudentPortalData,
   MentorshipSessionRecord,
 } from "@/types/database";
+
+interface CareerTestSubmissionPayload {
+  studentName?: string;
+  grade?: string;
+  curriculum?: string;
+  city?: string;
+  state?: string;
+  schoolName?: string;
+  parentName?: string;
+  parentDream?: string;
+  parentPhone?: string;
+  childhoodDream?: string;
+  answers: Record<string, string>;
+}
 
 interface StudentAuthContextType {
   user: StudentUser | null;
   diary: StudentDiaryEntry[];
   goals: StudentPlannerGoal[];
   simulations: StudentSimResult[];
+  careerTests: StudentCareerTestRecord[];
+  dossiers: PaidDossierOrder[];
   bookings: MentorshipSessionRecord[];
   isLoading: boolean;
   isLoggedIn: boolean;
@@ -67,6 +85,11 @@ interface StudentAuthContextType {
     resiliencePoints: number;
     badgeEarned?: string;
   }) => Promise<boolean>;
+  saveCareerTestResult: (payload: CareerTestSubmissionPayload) => Promise<{
+    success: boolean;
+    savedToPortal: boolean;
+    record: StudentCareerTestRecord | null;
+  }>;
   refresh: () => Promise<void>;
 }
 
@@ -78,6 +101,8 @@ export function StudentAuthProvider({ children }: { children: React.ReactNode })
   const [diary, setDiary] = useState<StudentDiaryEntry[]>([]);
   const [goals, setGoals] = useState<StudentPlannerGoal[]>([]);
   const [simulations, setSimulations] = useState<StudentSimResult[]>([]);
+  const [careerTests, setCareerTests] = useState<StudentCareerTestRecord[]>([]);
+  const [dossiers, setDossiers] = useState<PaidDossierOrder[]>([]);
   const [bookings, setBookings] = useState<MentorshipSessionRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -93,6 +118,8 @@ export function StudentAuthProvider({ children }: { children: React.ReactNode })
           setUser(data.user);
           setDiary(data.diary || []);
           setGoals(data.goals || []);
+          setCareerTests(data.careerTests || []);
+          setDossiers(data.dossiers || []);
           setBookings(data.bookings || []);
 
           // Scope any cached offline simulation completions strictly to this student ID
@@ -114,6 +141,8 @@ export function StudentAuthProvider({ children }: { children: React.ReactNode })
           setUser(null);
           setDiary([]);
           setGoals([]);
+          setCareerTests([]);
+          setDossiers([]);
           setBookings([]);
 
           try {
@@ -161,6 +190,26 @@ export function StudentAuthProvider({ children }: { children: React.ReactNode })
         return { success: false, error: data.error || "Login failed" };
       }
       await refresh();
+      // Sync any completed guest Career Match Test into the newly registered account
+      try {
+        const guestAnswersRaw = localStorage.getItem("ptiros_career_test_guest_answers");
+        if (guestAnswersRaw) {
+          const parsed = JSON.parse(guestAnswersRaw);
+          if (parsed?.answers && Object.keys(parsed.answers).length > 0) {
+            await fetch("/api/student/career-test", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                answers: parsed.answers,
+                childhoodDream: parsed.childhoodDream,
+              }),
+            });
+            localStorage.removeItem("ptiros_career_test_guest_answers");
+            localStorage.removeItem("ptiros_career_test_guest");
+            await refresh();
+          }
+        }
+      } catch {}
       closeAuthModal();
       return { success: true };
     } catch {
@@ -206,6 +255,26 @@ export function StudentAuthProvider({ children }: { children: React.ReactNode })
         return { success: false, error: data.error || "Signup failed" };
       }
       await refresh();
+      // Sync any completed guest Career Match Test into the newly registered account
+      try {
+        const guestAnswersRaw = localStorage.getItem("ptiros_career_test_guest_answers");
+        if (guestAnswersRaw) {
+          const parsed = JSON.parse(guestAnswersRaw);
+          if (parsed?.answers && Object.keys(parsed.answers).length > 0) {
+            await fetch("/api/student/career-test", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                answers: parsed.answers,
+                childhoodDream: parsed.childhoodDream,
+              }),
+            });
+            localStorage.removeItem("ptiros_career_test_guest_answers");
+            localStorage.removeItem("ptiros_career_test_guest");
+            await refresh();
+          }
+        }
+      } catch {}
       closeAuthModal();
       return { success: true };
     } catch {
@@ -241,6 +310,8 @@ export function StudentAuthProvider({ children }: { children: React.ReactNode })
       setDiary([]);
       setGoals([]);
       setSimulations([]);
+      setCareerTests([]);
+      setDossiers([]);
       setBookings([]);
       if (redirectTo) {
         router.push(redirectTo);
@@ -381,6 +452,45 @@ export function StudentAuthProvider({ children }: { children: React.ReactNode })
     }
   };
 
+  const saveCareerTestResult = async (payload: CareerTestSubmissionPayload) => {
+    try {
+      const res = await fetch("/api/student/career-test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success || !json.record) {
+        return { success: false, savedToPortal: false, record: null };
+      }
+
+      const record = json.record as StudentCareerTestRecord;
+      if (json.savedToPortal) {
+        setCareerTests((prev) => [record, ...prev.filter((c) => c.id !== record.id)]);
+      } else {
+        try {
+          localStorage.setItem("ptiros_career_test_guest", JSON.stringify(record));
+          localStorage.setItem(
+            "ptiros_career_test_guest_answers",
+            JSON.stringify({
+              answers: payload.answers,
+              childhoodDream: payload.childhoodDream,
+            })
+          );
+        } catch {}
+      }
+
+      return {
+        success: true,
+        savedToPortal: Boolean(json.savedToPortal),
+        record,
+      };
+    } catch (err) {
+      console.error("Save career test error:", err);
+      return { success: false, savedToPortal: false, record: null };
+    }
+  };
+
   return (
     <StudentAuthContext.Provider
       value={{
@@ -388,6 +498,8 @@ export function StudentAuthProvider({ children }: { children: React.ReactNode })
         diary,
         goals,
         simulations,
+        careerTests,
+        dossiers,
         bookings,
         isLoading,
         isLoggedIn: !!user,
@@ -405,6 +517,7 @@ export function StudentAuthProvider({ children }: { children: React.ReactNode })
         addGoal,
         deleteGoal,
         saveSimulationResult,
+        saveCareerTestResult,
         refresh,
       }}
     >

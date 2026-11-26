@@ -21,6 +21,10 @@ import {
   Building,
   Minus,
   Plus,
+  Compass,
+  LayoutDashboard,
+  CheckCircle2,
+  Sparkles,
 } from "lucide-react";
 import { useStudentAuth } from "@/context/StudentAuthContext";
 import {
@@ -95,6 +99,8 @@ export default function StudentAuthExperience({
 
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [signupStep, setSignupStep] = useState<1 | 2 | 3>(1);
+  const [justSignedUp, setJustSignedUp] = useState(false);
+  const [nextPath, setNextPath] = useState<string>("/dashboard");
 
   // Sign In state
   const [loginEmail, setLoginEmail] = useState("");
@@ -190,16 +196,20 @@ export default function StudentAuthExperience({
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     const qMode = params.get("mode");
+    const qNext = params.get("next");
     if (qMode === "signup" || qMode === "login") {
       setMode(qMode);
+    }
+    if (qNext && qNext.startsWith("/")) {
+      setNextPath(qNext);
     }
   }, []);
 
   useEffect(() => {
-    if (isLoggedIn) {
-      router.replace("/dashboard");
+    if (isLoggedIn && !justSignedUp) {
+      router.replace(nextPath || "/dashboard");
     }
-  }, [isLoggedIn, router]);
+  }, [isLoggedIn, justSignedUp, nextPath, router]);
 
   const switchMode = (nextMode: AuthMode) => {
     setMode(nextMode);
@@ -250,7 +260,7 @@ export default function StudentAuthExperience({
     if (!res.success) {
       setErrorMsg(res.error || "Invalid email or password");
     } else {
-      router.push("/dashboard");
+      router.push(nextPath || "/dashboard");
     }
   };
 
@@ -364,7 +374,7 @@ export default function StudentAuthExperience({
     if (!res.success) {
       setErrorMsg(res.error || "Could not create your student account");
     } else {
-      router.push("/dashboard");
+      setJustSignedUp(true);
     }
   };
 
@@ -599,6 +609,83 @@ export default function StudentAuthExperience({
 
           {/* Card Shell */}
           <div className="rounded-[20px] bg-[#FDFBF7] border border-[#1F1B16]/[0.08] p-5 sm:p-8 shadow-[0_1px_2px_rgba(31,27,22,0.04),0_12px_32px_rgba(31,27,22,0.05)]">
+            {justSignedUp ? (
+              <motion.div
+                key="signup-complete-choice"
+                initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25, ease: EASE_OUT }}
+                className="space-y-6"
+              >
+                <div className="flex items-start gap-3.5">
+                  <div className="size-11 rounded-2xl bg-[#15803D]/10 border border-[#15803D]/20 flex items-center justify-center shrink-0 text-[#15803D]">
+                    <CheckCircle2 className="size-5" strokeWidth={1.75} />
+                  </div>
+                  <div>
+                    <span className="inline-block text-[11px] font-semibold uppercase tracking-wider text-[#15803D]">
+                      Account & Student Pass Ready
+                    </span>
+                    <h2 className="font-display text-xl sm:text-2xl font-medium tracking-[-0.02em] text-[#1F1B16] mt-0.5">
+                      Welcome, {fullName.trim().split(" ")[0] || "Explorer"}
+                    </h2>
+                    <p className="text-xs sm:text-sm text-[#5E554A] mt-1 leading-relaxed">
+                      Your profile ({grade} • {curriculum}) is saved. Choose where you want to start right now:
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <button
+                    type="button"
+                    onClick={() => router.push("/career-test")}
+                    className="w-full p-4 rounded-2xl bg-[#C2410C] hover:bg-[#9A3412] text-white text-left transition flex items-center justify-between gap-3 shadow-sm cursor-pointer active:scale-[0.99]"
+                  >
+                    <div className="flex items-start gap-3 min-w-0">
+                      <span className="size-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0 mt-0.5">
+                        <Compass className="size-4.5" strokeWidth={1.75} />
+                      </span>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm font-semibold">Take Career Match Test Now</span>
+                          <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/20">
+                            3–4 Min • Free Basic Report
+                          </span>
+                        </div>
+                        <p className="text-xs text-white/85 mt-1 leading-snug">
+                          Answer 8 scenario questions for your instant 4-page basic analysis & downloadable PDF.
+                        </p>
+                      </div>
+                    </div>
+                    <ArrowRight className="size-4 shrink-0" strokeWidth={1.75} />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => router.push("/dashboard")}
+                    className="w-full p-4 rounded-2xl bg-white hover:bg-[#F2EEE3] border border-[#1F1B16]/[0.12] text-[#1F1B16] text-left transition flex items-center justify-between gap-3 cursor-pointer"
+                  >
+                    <div className="flex items-start gap-3 min-w-0">
+                      <span className="size-9 rounded-xl bg-[#EFE9DF] flex items-center justify-center shrink-0 mt-0.5 text-[#5E554A]">
+                        <LayoutDashboard className="size-4.5" strokeWidth={1.75} />
+                      </span>
+                      <div className="min-w-0">
+                        <span className="text-sm font-semibold block">Open Student Portal (Main Dashboard)</span>
+                        <p className="text-xs text-[#5E554A] mt-0.5 leading-snug">
+                          Explore workplace simulations, study planner, journal, and mentor booking anytime.
+                        </p>
+                      </div>
+                    </div>
+                    <ArrowRight className="size-4 text-[#5E554A] shrink-0" strokeWidth={1.5} />
+                  </button>
+                </div>
+
+                <div className="pt-2 border-t border-[#1F1B16]/[0.08] flex items-center gap-2 text-xs text-[#685F54]">
+                  <Sparkles className="size-3.5 text-[#C2410C] shrink-0" strokeWidth={1.5} />
+                  <span>Your Career Test score saves automatically to your portal once completed.</span>
+                </div>
+              </motion.div>
+            ) : (
+            <>
             {/* Segmented Mode Toggle */}
             <div
               role="tablist"
@@ -1626,6 +1713,8 @@ export default function StudentAuthExperience({
                 </motion.form>
               )}
             </AnimatePresence>
+            </>
+            )}
           </div>
         </motion.div>
 

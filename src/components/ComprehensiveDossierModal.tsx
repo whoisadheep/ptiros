@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import Link from "next/link";
 import { useUserProfile } from "@/context/UserProfileContext";
+import { useStudentAuth } from "@/context/StudentAuthContext";
 import { useScrollLock } from "@/hooks/useScrollLock";
+import { validateIndianMobileField, validateStudentName } from "@/lib/formValidation";
 import {
   Target,
-  Landmark,
   BarChart3,
   Globe,
   Compass,
@@ -19,11 +21,18 @@ import {
   Check,
   Sparkles,
   ShieldCheck,
+  Download,
+  Lock,
+  Unlock,
+  Loader2,
+  RefreshCw,
+  ExternalLink,
   LucideIcon,
 } from "lucide-react";
 
 interface PageTeaser {
   pageNumber: number;
+  tier: "free" | "paid";
   title: string;
   badge: string;
   previewPoints: string[];
@@ -33,166 +42,274 @@ interface PageTeaser {
 const DOSSIER_PAGES: PageTeaser[] = [
   {
     pageNumber: 1,
-    title: "Executive Cognitive Summary & Fit Index",
-    badge: "Core Diagnostic",
+    tier: "free",
+    title: "Executive Cognitive Profile & Primary Fit",
+    badge: "Free Page 1",
     icon: Target,
     previewPoints: [
-      "Cross-validated score across 5 Career Simulation pillars",
-      "Cognitive strength profile vs top 10% Indian cohort",
-      "Executive overview tailored for school principals and parents",
+      "Dynamic 5-axis aptitude score calculated from your scenario decisions",
+      "Primary learning archetype and match confidence index",
+      "Clean executive summary ready for student & parent review",
     ],
   },
   {
     pageNumber: 2,
-    title: "NEP 2020 5+3+3+4 Competency Mapping",
-    badge: "Govt Standard",
-    icon: Landmark,
+    tier: "free",
+    title: "How You Think, Learn & Decide",
+    badge: "Free Page 2",
+    icon: BarChart3,
     previewPoints: [
-      "Alignment with National Education Policy Middle & Secondary stages",
-      "Experiential learning credit breakdown for academic transcripts",
-      "National Skill Qualification Framework (NSQF) level compatibility",
+      "Dominant brain-style zones paired with natural study engine",
+      "Decision pattern analysis under tight deadlines",
+      "Balanced pacing note tailored to sports & extracurricular load",
     ],
   },
   {
     pageNumber: 3,
-    title: "RIASEC Holland Hexagon Psychometric Chart",
-    badge: "Psychometrics",
-    icon: BarChart3,
+    tier: "free",
+    title: "Top 3 Career Tracks & Stream Orientation",
+    badge: "Free Page 3",
+    icon: Globe,
     previewPoints: [
-      "Realistic, Investigative, Artistic, Social, Enterprising, Conventional score map",
-      "Inconsistency index detection to weed out peer pressure bias",
-      "Sub-cluster work style recommendations",
+      "Primary (#1), Secondary (#2), and Plan-B (#3) career rankings",
+      "Direct test-drive links into realistic workplace simulations",
+      "Recommended Class 11–12 academic stream alignment",
     ],
   },
   {
     pageNumber: 4,
-    title: "3-Tier Indian & Global Career Trajectory",
-    badge: "Macro Analysis",
-    icon: Globe,
+    tier: "free",
+    title: "Immediate Next Steps & Full Scope",
+    badge: "Free Page 4",
+    icon: Zap,
     previewPoints: [
-      "Primary track, lateral transition options, and emerging hybrid roles",
-      "Automation risk index: How AI will impact this career by 2035",
-      "Comparison between domestic Indian market and overseas growth hubs",
+      "Immediate 7-day simulator & planner setup tasks",
+      "Clear comparison between Free Basic Report & Paid Full Dossier",
+      "Direct download as a crisp 4-page PDF snapshot",
     ],
   },
   {
     pageNumber: 5,
-    title: "Class 11-12 Stream Combination & Pitfall Guide",
-    badge: "Crucial Decision",
+    tier: "paid",
+    title: "NEP 2020 Stream & Subject Safeguards",
+    badge: "Paid Page 5",
     icon: Compass,
     previewPoints: [
-      "Exact subject combination strategy (PCM vs PCB vs Commerce with Applied Math)",
-      "High-risk academic traps: When coaching institutes misalign with aptitude",
-      "Alternate Plan B and Plan C subject electives",
+      "Mandatory core subjects vs dual-eligibility electives",
+      "High-risk academic pitfalls to avoid in Class 11 selection",
+      "Coaching vs conceptual board clarity reality check",
     ],
   },
   {
     pageNumber: 6,
-    title: "Top Indian Institutions & Entrance Exam Strategy",
-    badge: "Admissions",
+    tier: "paid",
+    title: "Top Indian Institutions & Exam Matrix",
+    badge: "Paid Page 6",
     icon: GraduationCap,
     previewPoints: [
-      "IITs, NITs, NLUs, AIIMS, BITS, and premier private universities breakdown",
-      "Historical cutoff trajectories and seats-per-applicant ratio",
-      "Entrance exam prep calendar (JEE, NEET, CLAT, CUET, UCEED, IPMAT)",
+      "IITs, IIITs, NLUs, AIIMS, NID/IDC, SRCC & IIM IPM pathways",
+      "Entrance exams (JEE, NEET, CLAT, UCEED, IPMAT, CUET) matrix",
+      "Plan-B institutional admissions routes side by side",
     ],
   },
   {
     pageNumber: 7,
+    tier: "paid",
     title: "10-Year Economic Outlook & Salary Ladders",
-    badge: "Financial ROI",
+    badge: "Paid Page 7",
     icon: Briefcase,
     previewPoints: [
-      "Entry-level CTC (₹8L-₹24L) vs 5-Year Mid-Career (₹22L-₹55L) vs Leadership (₹70L+)",
-      "Tier 1 campus placements vs off-campus industry demand curves",
-      "Education loan payback period calculations",
+      "Realistic Indian Entry (Yr 0–2), Mid-Career, and Leadership CTC bands",
+      "Long-term sector demand drivers through 2035",
+      "Why portfolio projects boost compensation beyond exam marks",
     ],
   },
   {
     pageNumber: 8,
-    title: "Parent-Child Dialogue & Conflict Resolution Matrix",
-    badge: "Family Alignment",
+    tier: "paid",
+    title: "Parent-Child Alignment & Dialogue Guide",
+    badge: "Paid Page 8",
     icon: Users,
     previewPoints: [
-      "Objective mediation guide for differing parental expectations vs student aptitude",
-      "4 structured dinner-table discussion prompts with empirical data",
-      "Bridging the generational gap in new-age tech and media careers",
+      "Bridges parent career dreams objectively with student aptitude",
+      "Calm, data-backed perspective for parents on modern tracks",
+      "3 structured dinner-table conversation prompts",
     ],
   },
   {
     pageNumber: 9,
-    title: "4-Year Action Checklist (Grades 9-12)",
-    badge: "Execution",
-    icon: Zap,
-    previewPoints: [
-      "Quarter-by-quarter milestones: competitions, olympiads, and portfolio projects",
-      "Extracurricular activities that genuinely matter to tier-1 admissions",
-      "Continuous reflection points to track personal growth",
-    ],
-  },
-  {
-    pageNumber: 10,
-    title: "Senior Gurukul Mentor Action Blueprint",
-    badge: "1-on-1 Guidance",
+    tier: "paid",
+    title: "12-Month Kaizen Roadmap & Senior Mentor Brief",
+    badge: "Paid Page 9",
     icon: Handshake,
     previewPoints: [
-      "Direct notes from senior industry mentor evaluation",
-      "Tailored preparation checklist for 20-minute strategic counseling call",
-      "Permanent PTIROS lifetime membership and community access pass",
+      "Grade-specific Q1–Q4 execution milestones (Middle/Crossroads/Senior)",
+      "APAAR & student credential readiness checklist",
+      "Paired 1-on-1 Gurukul mentor briefing agenda",
     ],
   },
 ];
 
 export default function ComprehensiveDossierModal() {
-  const { isDossierModalOpen, closeDossierModal, profile } = useUserProfile();
-  const [selectedPageIndex, setSelectedPageIndex] = useState(0);
+  const { isDossierModalOpen, closeDossierModal, dossierContext, profile } = useUserProfile();
+  const { user, careerTests, dossiers, isLoggedIn, refresh } = useStudentAuth();
 
-  // Accessibility: Escape key and body scroll lock
-  // Universal scroll lock & Lenis pause
+  const [selectedPageIndex, setSelectedPageIndex] = useState(4);
+  const [studentNameDraft, setStudentNameDraft] = useState<string | null>(null);
+  const [parentPhoneDraft, setParentPhoneDraft] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [createdOrderId, setCreatedOrderId] = useState<string | null>(null);
+  const [checkingUnlock, setCheckingUnlock] = useState(false);
+
+  const studentNameInput = studentNameDraft ?? user?.name ?? profile?.studentName ?? "";
+  const parentPhoneInput = parentPhoneDraft ?? user?.parentPhone ?? profile?.parentPhone ?? "";
+
+  const handleClose = () => {
+    setFormError(null);
+    setCreatedOrderId(null);
+    setStudentNameDraft(null);
+    setParentPhoneDraft(null);
+    closeDossierModal();
+  };
+
   useScrollLock(isDossierModalOpen);
 
-  // Accessibility: Escape key
   useEffect(() => {
     if (!isDossierModalOpen) return;
-
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closeDossierModal();
+      if (e.key === "Escape") {
+        setFormError(null);
+        setCreatedOrderId(null);
+        setStudentNameDraft(null);
+        setParentPhoneDraft(null);
+        closeDossierModal();
+      }
     };
-
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isDossierModalOpen, closeDossierModal]);
 
+  const activeTest = useMemo(() => {
+    if (dossierContext?.careerTestId) {
+      return careerTests.find((t) => t.id === dossierContext.careerTestId) || careerTests[0];
+    }
+    return careerTests[0];
+  }, [careerTests, dossierContext]);
+
+  const matchingPendingOrder = useMemo(() => {
+    if (createdOrderId) {
+      return { id: createdOrderId, status: "payment_pending" as const };
+    }
+    if (!dossiers.length) return null;
+    if (activeTest) {
+      return dossiers.find((d) => d.careerTestId === activeTest.id) || dossiers[0];
+    }
+    return dossiers[0];
+  }, [dossiers, activeTest, createdOrderId]);
+
+  const isUnlocked = Boolean(
+    activeTest?.dossierUnlocked ||
+      dossiers.some((d) => d.status === "paid" || d.status === "pdf_dispatched")
+  );
+
   if (!isDossierModalOpen) return null;
 
-  const activePage = DOSSIER_PAGES[selectedPageIndex];
+  const activePage = DOSSIER_PAGES[selectedPageIndex] || DOSSIER_PAGES[4];
   const ActivePageIcon = activePage.icon;
+  const effectiveStudentName = studentNameInput.trim() || user?.name || profile?.studentName || "Student";
+  const effectiveTrackTitle =
+    dossierContext?.topTrackTitle || activeTest?.topTrackTitle || "PTIROS 360° Career Match";
 
-  const handleUnlockDossier = () => {
-    const studentName = profile?.studentName || "PTIROS Student";
-
-    // Record order in server database
-    fetch("/api/dossiers", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        studentName,
-        parentPhone: profile?.parentPhone || "9876543210",
-        status: "payment_pending",
-      }),
-    }).catch(() => {});
-
-    const text =
-      `*PTIROS 360° Comprehensive 10-Page Career Dossier Unlock Request*\n\n` +
-      `[Student] ${studentName}\n` +
-      `[Grade] ${profile?.grade || "Class 10"}\n` +
-      `[City] ${profile?.city || "India"}\n` +
-      `[Parent Contact] ${profile?.parentPhone ? "+91 " + profile.parentPhone : "Pending"}\n` +
-      `[Offer Selected] Full 10-Page Dossier (₹499 Early Pioneer Pass)\n\n` +
-      `Please issue our personalized 10-page verified PDF dossier and activate our 1-on-1 Gurukul mentor session: https://ptiros.in`;
-
-    window.open(`https://api.whatsapp.com/send?phone=919876543210&text=${encodeURIComponent(text)}`, "_blank");
+  const handleDownloadFullPdf = async () => {
+    if (!activeTest) return;
+    setDownloadingPdf(true);
+    setFormError(null);
+    try {
+      const res = await fetch(
+        `/api/student/career-test/${encodeURIComponent(activeTest.id)}/pdf?tier=full`
+      );
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setFormError(err.error || "Complete dossier requires confirmed unlock.");
+        setDownloadingPdf(false);
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `PTIROS-Complete-9Page-Dossier-${effectiveStudentName.replace(/[^a-zA-Z0-9]+/g, "-")}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {
+      setFormError("Network error while downloading PDF.");
+    } finally {
+      setDownloadingPdf(false);
+    }
   };
+
+  const handleRequestUnlock = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError(null);
+
+    const nameCheck = validateStudentName(studentNameInput);
+    if (!nameCheck.valid) {
+      setFormError(nameCheck.error || "Enter student name");
+      return;
+    }
+
+    const phoneCheck = validateIndianMobileField(
+      parentPhoneInput,
+      true,
+      "Parent WhatsApp number"
+    );
+    if (!phoneCheck.valid) {
+      setFormError(phoneCheck.error || "Enter a valid 10-digit parent mobile number");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const res = await fetch("/api/dossiers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          studentName: studentNameInput.trim(),
+          parentPhone: phoneCheck.digits,
+          careerTestId: activeTest?.id,
+          topTrackTitle: effectiveTrackTitle,
+          status: "payment_pending",
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success || !json.data) {
+        setFormError(json.error || "Could not create dossier unlock order");
+        setSubmitting(false);
+        return;
+      }
+      setCreatedOrderId(json.data.id);
+      if (isLoggedIn) {
+        await refresh();
+      }
+    } catch {
+      setFormError("Network error while placing unlock order");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const whatsappText =
+    `*PTIROS Complete 9-Page Career Dossier Unlock Request*\n\n` +
+    `Order Ref: ${matchingPendingOrder?.id || "New Order"}\n` +
+    `Student: ${effectiveStudentName}\n` +
+    `Grade: ${activeTest?.grade || user?.grade || profile?.grade || "Class 10"}\n` +
+    `Matched Track: ${effectiveTrackTitle}\n` +
+    `Parent Mobile: +91 ${parentPhoneInput.replace(/\D/g, "").slice(-10)}\n` +
+    `Plan: Complete 9-Page PDF Dossier (₹499 Early Pioneer Pass)`;
 
   return (
     <div
@@ -202,180 +319,333 @@ export default function ComprehensiveDossierModal() {
       data-lenis-prevent
       className="fixed inset-0 z-[1000] flex items-center justify-center p-3 sm:p-4 bg-stone-900/75 backdrop-blur-md animate-in fade-in duration-200 overscroll-contain"
     >
-      <div data-lenis-prevent className="relative w-full max-w-3xl max-h-[90dvh] overflow-y-auto rounded-2xl sm:rounded-3xl bg-white p-4 sm:p-8 shadow-2xl border border-stone-200 text-stone-900 overscroll-contain">
+      <div
+        data-lenis-prevent
+        className="relative w-full max-w-3xl max-h-[90dvh] overflow-y-auto rounded-2xl sm:rounded-3xl bg-white p-4 sm:p-8 shadow-2xl border border-stone-200 text-stone-900 overscroll-contain space-y-5"
+      >
         {/* Header Bar */}
         <div className="flex items-start sm:items-center justify-between gap-2 border-b border-stone-100 pb-4">
           <div className="flex items-center gap-3 min-w-0">
-            <span className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-2xl bg-orange-100 text-orange-600">
+            <span className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-2xl bg-orange-100 text-[#C2410C]">
               <FileText className="size-5" />
             </span>
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <h2 id="dossier-sample-title" className="text-base sm:text-xl font-bold tracking-tight text-stone-900">
-                  PTIROS 360° Full Career Dossier
+                  PTIROS Complete 9-Page Career Dossier
                 </h2>
-                <span className="rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-bold text-orange-800 uppercase tracking-wider shrink-0">
-                  10 Pages
+                <span className="rounded-full bg-orange-100 px-2.5 py-0.5 text-[10px] font-bold text-[#C2410C] uppercase tracking-wider shrink-0">
+                  9 Pages (&lt;10 Pages)
                 </span>
               </div>
               <p className="text-xs text-stone-500 mt-0.5">
-                Compare the Free 3-Page Snapshot vs the Complete 10-Page Paid Parent-Student Strategic Dossier
+                Compare your Free 4-Page Basic Analysis vs. the Full 9-Page Downloadable PDF Dossier
               </p>
             </div>
           </div>
           <button
             type="button"
-            onClick={closeDossierModal}
-            className="rounded-full p-2 text-stone-400 hover:bg-stone-100 hover:text-stone-700 transition shrink-0"
+            onClick={handleClose}
+            className="rounded-full p-2 text-stone-400 hover:bg-stone-100 hover:text-stone-700 transition shrink-0 cursor-pointer"
             aria-label="Close modal"
           >
             <X className="size-5" />
           </button>
         </div>
 
-        {/* Free vs Paid Tier Value Matrix */}
-        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-          <div className="rounded-2xl border border-stone-200 bg-stone-50/60 p-3">
-            <div className="font-bold text-stone-600 flex items-center gap-1.5 mb-1">
+        {/* Free vs Paid Matrix */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+          <div className="rounded-2xl border border-stone-200 bg-stone-50/70 p-3.5">
+            <div className="font-bold text-stone-700 flex items-center gap-1.5 mb-1.5">
               <FileText className="size-3.5 text-stone-500" />
-              <span>Free Snapshot (Included)</span>
+              <span>Free Basic Analysis (Pages 1–4)</span>
             </div>
             <ul className="space-y-1 text-stone-500 text-[11px]">
-              <li className="flex items-center gap-1">
-                <Check className="size-3 text-stone-400" /> Basic 3-Page Summary
+              <li className="flex items-center gap-1.5">
+                <Check className="size-3 text-emerald-600 shrink-0" /> Executive Cognitive Profile & Archetype
               </li>
-              <li className="flex items-center gap-1">
-                <Check className="size-3 text-stone-400" /> Top Career Category Match
+              <li className="flex items-center gap-1.5">
+                <Check className="size-3 text-emerald-600 shrink-0" /> 5-Axis Aptitude Scores & Learning Style
               </li>
-              <li className="flex items-center gap-1">
-                <Check className="size-3 text-stone-400" /> General Salary Range
+              <li className="flex items-center gap-1.5">
+                <Check className="size-3 text-emerald-600 shrink-0" /> Top 3 Ranked Career Tracks + Free 4-Pg PDF
               </li>
-              <li className="text-stone-400 line-through">Detailed College Cutoff Matrix</li>
-              <li className="text-stone-400 line-through">1-on-1 Mentor Strategy Call</li>
+              <li className="text-stone-400 line-through">Detailed College & Entrance Exam Matrix</li>
+              <li className="text-stone-400 line-through">10-Year ROI & Parent Dinner-Table Guide</li>
             </ul>
           </div>
 
-          <div className="rounded-2xl border border-orange-200 bg-orange-50/70 p-3 ring-1 ring-orange-400/30">
-            <div className="font-bold text-orange-950 flex items-center justify-between mb-1">
+          <div className="rounded-2xl border border-orange-200 bg-orange-50/70 p-3.5 ring-1 ring-orange-400/25">
+            <div className="font-bold text-orange-950 flex items-center justify-between mb-1.5">
               <span className="flex items-center gap-1.5">
-                <Sparkles className="size-3.5 text-orange-600" />
-                <span>Full 10-Page Dossier</span>
+                <Sparkles className="size-3.5 text-[#C2410C]" />
+                <span>Complete Paid Dossier (Pages 1–9)</span>
               </span>
-              <span className="text-[11px] font-extrabold text-orange-700 bg-orange-100 px-2 py-0.5 rounded-full">
+              <span className="text-[11px] font-extrabold text-[#C2410C] bg-orange-100 px-2 py-0.5 rounded-full">
                 ₹499 Only
               </span>
             </div>
-            <ul className="space-y-1 text-orange-900 text-[11px]">
-              <li className="flex items-center gap-1">
-                <Check className="size-3 text-orange-600" /> All 10 In-Depth Diagnostic Modules
+            <ul className="space-y-1 text-orange-950/90 text-[11px]">
+              <li className="flex items-center gap-1.5">
+                <Check className="size-3 text-[#C2410C] shrink-0" /> All 9 Pages Saved & Downloadable as PDF
               </li>
-              <li className="flex items-center gap-1">
-                <Check className="size-3 text-orange-600" /> NEP 2020 Transcript Credential
+              <li className="flex items-center gap-1.5">
+                <Check className="size-3 text-[#C2410C] shrink-0" /> NEP 2020 Stream & Subject Safeguards
               </li>
-              <li className="flex items-center gap-1">
-                <Check className="size-3 text-orange-600" /> Subject Stream & Coaching Strategy
+              <li className="flex items-center gap-1.5">
+                <Check className="size-3 text-[#C2410C] shrink-0" /> Tier-1 Indian Colleges & Exam Strategy
               </li>
-              <li className="flex items-center gap-1">
-                <Check className="size-3 text-orange-600" /> Parent-Child Dinner Mediation Guide
+              <li className="flex items-center gap-1.5">
+                <Check className="size-3 text-[#C2410C] shrink-0" /> 10-Yr Salary Ladders & Parent Alignment Matrix
               </li>
-              <li className="flex items-center gap-1">
-                <Check className="size-3 text-orange-600" /> Priority 1-on-1 Mentor Reservation
+              <li className="flex items-center gap-1.5">
+                <Check className="size-3 text-[#C2410C] shrink-0" /> Grade-Specific 12-Month Kaizen Roadmap
               </li>
             </ul>
           </div>
         </div>
 
-        {/* Page Preview Carousel / Tabs */}
-        <div className="mt-6">
+        {/* Page Inspector Tabs (1..9) */}
+        <div>
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-bold uppercase tracking-wider text-stone-500">
-              Interactive Page Inspector (Click to explore)
+              9-Page Dossier Breakdown (Click to inspect)
             </span>
-            <span className="text-xs text-orange-600 font-semibold">
+            <span className="text-xs text-[#C2410C] font-semibold">
               Page {activePage.pageNumber} of {DOSSIER_PAGES.length}
             </span>
           </div>
 
-          {/* Horizontal scrollable tab chips */}
-          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+          <div className="flex gap-1.5 overflow-x-auto pb-2 scrollbar-none">
             {DOSSIER_PAGES.map((page, idx) => {
               const isSelected = selectedPageIndex === idx;
-              const PageIcon = page.icon;
               return (
                 <button
                   key={page.pageNumber}
                   type="button"
                   onClick={() => setSelectedPageIndex(idx)}
-                  className={`flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-1.5 text-xs font-medium transition shrink-0 cursor-pointer ${
+                  className={`flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-1.5 text-xs font-semibold transition shrink-0 cursor-pointer ${
                     isSelected
-                      ? "bg-stone-900 text-white shadow-sm"
-                      : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+                      ? "bg-stone-900 text-white shadow-xs"
+                      : page.tier === "paid"
+                      ? "bg-orange-50 text-orange-900 hover:bg-orange-100"
+                      : "bg-stone-100 text-stone-700 hover:bg-stone-200"
                   }`}
                 >
-                  <PageIcon className="size-3.5" />
+                  {page.tier === "paid" && !isUnlocked ? (
+                    <Lock className="size-3 text-[#C2410C]" />
+                  ) : (
+                    <page.icon className="size-3.5" />
+                  )}
                   <span>Pg {page.pageNumber}</span>
                 </button>
               );
             })}
           </div>
 
-          {/* Selected Page Teaser Card */}
-          <div className="mt-3 rounded-2xl border border-stone-200 bg-stone-50/50 p-5">
+          <div className="mt-2 rounded-2xl border border-stone-200 bg-[#F7F4EE] p-4 sm:p-5">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <span className="inline-block rounded-full bg-orange-100 px-2.5 py-0.5 text-[10px] font-bold text-orange-800">
+                <span className="inline-block rounded-full bg-orange-100 px-2.5 py-0.5 text-[10px] font-bold text-[#C2410C]">
                   {activePage.badge}
                 </span>
-                <h4 className="mt-1.5 text-base font-bold text-stone-900 flex items-center gap-2">
-                  <ActivePageIcon className="size-4 text-orange-600" />
+                <h4 className="mt-1.5 text-sm sm:text-base font-bold text-stone-900 flex items-center gap-2">
+                  <ActivePageIcon className="size-4 text-[#C2410C] shrink-0" />
                   <span>{activePage.title}</span>
                 </h4>
               </div>
-              <div className="rounded-xl border border-stone-200 bg-white px-3 py-1.5 text-right shadow-sm shrink-0">
-                <span className="text-[10px] uppercase font-bold text-stone-400 block">Dossier Sheet</span>
-                <span className="text-sm font-black text-stone-900">0{activePage.pageNumber} / 10</span>
+              <div className="rounded-xl border border-stone-200 bg-white px-3 py-1.5 text-right shadow-2xs shrink-0">
+                <span className="text-[10px] uppercase font-bold text-stone-400 block">Sheet</span>
+                <span className="text-xs sm:text-sm font-black text-stone-900">
+                  0{activePage.pageNumber} / 09
+                </span>
               </div>
             </div>
 
-            <div className="mt-4 space-y-2">
-              <span className="text-xs font-semibold text-stone-600 block">
-                What this section reveals for {profile?.studentName || "your child"}:
+            <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              {activePage.previewPoints.map((point, i) => (
+                <div
+                  key={i}
+                  className="rounded-xl bg-white p-3 border border-stone-200/80 text-xs text-stone-700 leading-relaxed"
+                >
+                  <span className="text-[#C2410C] font-bold block mb-0.5">0{i + 1}.</span>
+                  {point}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Unlock / Download Action Box */}
+        {formError && (
+          <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 font-medium">
+            {formError}
+          </div>
+        )}
+
+        {isUnlocked && activeTest ? (
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <Unlock className="size-5 text-emerald-700 shrink-0 mt-0.5" />
+              <div>
+                <div className="text-xs font-bold uppercase tracking-wider text-emerald-800">
+                  Complete 9-Page Dossier Unlocked
+                </div>
+                <p className="text-xs text-emerald-900/90 mt-0.5">
+                  Your verified 9-page PDF for <strong>{activeTest.topTrackTitle}</strong> is ready to download and saved in your portal.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleDownloadFullPdf}
+              disabled={downloadingPdf}
+              className="cursor-pointer px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center justify-center gap-2 shrink-0 disabled:opacity-60"
+            >
+              {downloadingPdf ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <Download className="size-3.5" />
+              )}
+              <span>Download Full 9-Page PDF</span>
+            </button>
+          </div>
+        ) : !isLoggedIn ? (
+          <div className="rounded-2xl border border-orange-200 bg-orange-50/70 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="text-xs text-stone-700 space-y-1">
+              <strong className="text-stone-900 block">
+                Sign in or create an account to save &amp; unlock your 9-Page Dossier
+              </strong>
+              <span>
+                Your Career Match score and unlocked PDF remain saved in your Student Portal across devices.
               </span>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                {activePage.previewPoints.map((point, i) => (
-                  <div key={i} className="rounded-xl bg-white p-3 border border-stone-200/80 shadow-xs text-xs text-stone-700 leading-relaxed">
-                    <span className="text-orange-500 font-bold block mb-1">0{i + 1}.</span>
-                    {point}
-                  </div>
-                ))}
-              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <Link
+                href="/signup?next=/career-test"
+                onClick={closeDossierModal}
+                className="px-4 py-2.5 rounded-xl bg-[#C2410C] text-white font-bold text-xs hover:bg-[#9A3412] transition whitespace-nowrap"
+              >
+                Create Free Account →
+              </Link>
+              <Link
+                href="/login?next=/career-test"
+                onClick={closeDossierModal}
+                className="px-3.5 py-2.5 rounded-xl bg-white border border-stone-200 text-stone-800 font-semibold text-xs hover:bg-stone-50 transition whitespace-nowrap"
+              >
+                Sign In
+              </Link>
             </div>
           </div>
-        </div>
-
-        {/* Footer CTAs */}
-        <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-stone-100 pt-4">
-          <div className="text-xs text-stone-500 text-center sm:text-left flex items-center gap-1.5">
-            <ShieldCheck className="size-4 text-stone-600 shrink-0" />
-            <span>Includes Instant PDF Download + 20-min 1-on-1 Mentor strategy call.</span>
-          </div>
-          <div className="flex gap-2 w-full sm:w-auto">
-            <button
-              type="button"
+        ) : !activeTest ? (
+          <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="text-xs text-stone-700">
+              <strong className="text-stone-900 block">Take the 8-Question Career Match Test First</strong>
+              <span>Your personalized 9-page PDF is generated directly from your live test scores.</span>
+            </div>
+            <Link
+              href="/career-test"
               onClick={closeDossierModal}
-              className="flex-1 sm:flex-none rounded-xl border border-stone-300 px-4 py-2.5 text-xs font-semibold text-stone-700 hover:bg-stone-50 cursor-pointer"
+              className="px-4 py-2.5 rounded-xl bg-[#C2410C] text-white font-bold text-xs hover:bg-[#9A3412] transition whitespace-nowrap text-center"
             >
-              Close Preview
-            </button>
-            <button
-              type="button"
-              onClick={handleUnlockDossier}
-              className="flex-1 sm:flex-none rounded-xl bg-gradient-to-r from-orange-600 to-amber-600 px-6 py-2.5 text-xs font-bold text-white shadow-lg hover:brightness-105 active:scale-95 transition cursor-pointer"
-            >
-              Unlock 10-Page Dossier (₹499) →
-            </button>
+              Take Career Test Now →
+            </Link>
           </div>
-        </div>
+        ) : matchingPendingOrder ? (
+          <div className="rounded-2xl border border-orange-200 bg-orange-50/70 p-4 sm:p-5 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#C2410C]">
+                  Unlock Request Recorded • Ref {matchingPendingOrder.id}
+                </span>
+                <p className="text-xs text-stone-700 mt-0.5">
+                  Send your order reference to PTIROS Concierge to confirm ₹499 payment. As soon as approved, the full 9-page PDF downloads automatically right here.
+                </p>
+              </div>
+              <button
+                type="button"
+                disabled={checkingUnlock}
+                onClick={async () => {
+                  setCheckingUnlock(true);
+                  await refresh();
+                  setCheckingUnlock(false);
+                }}
+                className="px-3.5 py-2 rounded-xl bg-white border border-stone-300 text-xs font-bold text-stone-800 hover:bg-stone-50 inline-flex items-center gap-1.5 shrink-0 cursor-pointer"
+              >
+                <RefreshCw className={`size-3.5 ${checkingUnlock ? "animate-spin" : ""}`} />
+                <span>Refresh Unlock Status</span>
+              </button>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2.5">
+              <a
+                href={`https://api.whatsapp.com/send?phone=919876543210&text=${encodeURIComponent(whatsappText)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition"
+              >
+                <span>Complete ₹499 Unlock via WhatsApp Concierge</span>
+                <ExternalLink className="size-3.5" />
+              </a>
+            </div>
+          </div>
+        ) : (
+          <form
+            onSubmit={handleRequestUnlock}
+            className="rounded-2xl border border-stone-200 bg-stone-50/80 p-4 space-y-3"
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[11px] font-bold text-stone-700 mb-1">
+                  Student Name on Dossier *
+                </label>
+                <input
+                  type="text"
+                  value={studentNameInput}
+                  onChange={(e) => setStudentNameDraft(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-stone-300 bg-white text-xs"
+                  placeholder="Student full name"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-stone-700 mb-1">
+                  Parent WhatsApp Mobile *
+                </label>
+                <input
+                  type="tel"
+                  value={parentPhoneInput}
+                  onChange={(e) => setParentPhoneDraft(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-stone-300 bg-white text-xs"
+                  placeholder="10-digit parent mobile"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+              <div className="text-xs text-stone-500 flex items-center gap-1.5">
+                <ShieldCheck className="size-4 text-emerald-600 shrink-0" />
+                <span>Saved permanently in Dashboard + Instant 9-Page PDF once confirmed.</span>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  className="rounded-xl border border-stone-300 px-4 py-2.5 text-xs font-semibold text-stone-700 hover:bg-stone-100 cursor-pointer"
+                >
+                  Close
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="rounded-xl bg-[#C2410C] hover:bg-[#9A3412] px-5 py-2.5 text-xs font-bold text-white shadow-sm transition cursor-pointer inline-flex items-center gap-1.5 disabled:opacity-60"
+                >
+                  {submitting && <Loader2 className="size-3.5 animate-spin" />}
+                  <span>Request Unlock (₹499) →</span>
+                </button>
+              </div>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );

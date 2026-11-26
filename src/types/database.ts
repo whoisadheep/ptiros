@@ -64,6 +64,9 @@ export interface MentorshipSessionRecord {
 
 export interface PaidDossierOrder {
   id: string; // "ord_XXXXXXXX"
+  userId?: string;
+  careerTestId?: string;
+  topTrackTitle?: string;
   studentName: string;
   parentPhone: string;
   amount: number; // 499
@@ -160,6 +163,48 @@ export interface StudentSimResult {
   completedAt: string;
 }
 
+export type CareerDimensionId =
+  | "analytical"
+  | "creative"
+  | "quantitative"
+  | "empathy"
+  | "communication";
+
+export interface CareerDimensionScore {
+  id: CareerDimensionId;
+  label: string;
+  score: number;
+  summary: string;
+}
+
+export interface CareerTrackMatchScore {
+  trackId: string;
+  trackTitle: string;
+  categoryLabel: string;
+  matchPercent: number;
+  recommendedStream: string;
+  simulatorUrl: string;
+  mentorId: string;
+}
+
+export interface StudentCareerTestRecord {
+  id: string;
+  userId: string;
+  studentName: string;
+  grade: string;
+  topTrackId: string;
+  topTrackTitle: string;
+  matchConfidence: number;
+  archetype: string;
+  recommendedStream: string;
+  answers: Record<string, string>;
+  dimensionScores: CareerDimensionScore[];
+  rankedTracks: CareerTrackMatchScore[];
+  dossierUnlocked: boolean;
+  dossierOrderId?: string;
+  completedAt: string;
+}
+
 export interface StudentActivity {
   id: string;
   userId: string;
@@ -193,6 +238,8 @@ export interface StudentPortalData {
   diary: StudentDiaryEntry[];
   goals: StudentPlannerGoal[];
   simulations: StudentSimResult[];
+  careerTests?: StudentCareerTestRecord[];
+  dossiers?: PaidDossierOrder[];
   activities?: StudentActivity[];
   savedPathways?: StudentSavedPathway[];
   bookings?: MentorshipSessionRecord[];

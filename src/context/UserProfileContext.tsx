@@ -4,6 +4,11 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { UserProfile } from "@/types/profile";
 import { getStoredProfile, setStoredProfile, clearStoredProfile } from "@/lib/storage";
 
+interface DossierModalOptions {
+  careerTestId?: string;
+  topTrackTitle?: string;
+}
+
 interface UserProfileContextType {
   profile: UserProfile | null;
   isLoaded: boolean;
@@ -19,7 +24,8 @@ interface UserProfileContextType {
   openBookingModal: (trackId?: string) => void;
   closeBookingModal: () => void;
   isDossierModalOpen: boolean;
-  openDossierModal: () => void;
+  dossierContext?: DossierModalOptions;
+  openDossierModal: (options?: DossierModalOptions) => void;
   closeDossierModal: () => void;
 }
 
@@ -34,6 +40,7 @@ export function UserProfileProvider({ children }: { children: React.ReactNode })
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [selectedMentorTrackId, setSelectedMentorTrackId] = useState<string | undefined>();
   const [isDossierModalOpen, setIsDossierModalOpen] = useState(false);
+  const [dossierContext, setDossierContext] = useState<DossierModalOptions | undefined>();
 
   useEffect(() => {
     const loaded = getStoredProfile();
@@ -104,8 +111,14 @@ export function UserProfileProvider({ children }: { children: React.ReactNode })
     setSelectedMentorTrackId(undefined);
   };
 
-  const openDossierModal = () => setIsDossierModalOpen(true);
-  const closeDossierModal = () => setIsDossierModalOpen(false);
+  const openDossierModal = (options?: DossierModalOptions) => {
+    setDossierContext(options);
+    setIsDossierModalOpen(true);
+  };
+  const closeDossierModal = () => {
+    setIsDossierModalOpen(false);
+    setDossierContext(undefined);
+  };
 
   return (
     <UserProfileContext.Provider
@@ -123,6 +136,7 @@ export function UserProfileProvider({ children }: { children: React.ReactNode })
         openBookingModal,
         closeBookingModal,
         isDossierModalOpen,
+        dossierContext,
         openDossierModal,
         closeDossierModal,
       }}

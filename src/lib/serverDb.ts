@@ -14,6 +14,7 @@ import {
   StudentDiaryEntry,
   StudentPlannerGoal,
   StudentSimResult,
+  StudentCareerTestRecord,
   StudentPortalData,
 } from "@/types/database";
 
@@ -175,6 +176,9 @@ export async function getDatabase(): Promise<DatabaseStore> {
 
       const dossiers: PaidDossierOrder[] = dossiersRows.map((r: any) => ({
         id: r.id,
+        userId: r.user_id || undefined,
+        careerTestId: r.career_test_id || undefined,
+        topTrackTitle: r.top_track_title || undefined,
         studentName: r.student_name,
         parentPhone: r.parent_phone,
         amount: Number(r.amount) || 499,
@@ -581,22 +585,41 @@ export async function saveDossierOrder(
   const cleanPhone = phoneNorm.isValid ? phoneNorm.normalized : orderInput.parentPhone;
   const newId = `ord_${crypto.randomBytes(4).toString("hex")}`;
   const now = new Date().toISOString();
+  const status = orderInput.status || "payment_pending";
 
   if (sql) {
     try {
       await sql`
         INSERT INTO paid_dossiers (
-          id, student_name, parent_phone, amount, currency, status
+          id, user_id, career_test_id, top_track_title, student_name, parent_phone, amount, currency, status
         ) VALUES (
-          ${newId}, ${orderInput.studentName}, ${cleanPhone}, 499, 'INR', ${orderInput.status || 'payment_pending'}
+          ${newId},
+          ${orderInput.userId || null},
+          ${orderInput.careerTestId || null},
+          ${orderInput.topTrackTitle || null},
+          ${orderInput.studentName},
+          ${cleanPhone},
+          499,
+          'INR',
+          ${status}
         )
       `;
+      if (orderInput.careerTestId) {
+        const isPaid = status === "paid" || status === "pdf_dispatched";
+        await sql`
+          UPDATE student_career_tests
+          SET dossier_order_id = ${newId},
+              dossier_unlocked = CASE WHEN ${isPaid} THEN TRUE ELSE dossier_unlocked END
+          WHERE id = ${orderInput.careerTestId}
+        `;
+      }
       return {
         ...orderInput,
         id: newId,
         parentPhone: cleanPhone,
         amount: 499,
         currency: "INR",
+        status,
         createdAt: now,
       };
     } catch (err) {
@@ -612,11 +635,70 @@ export async function saveDossierOrder(
       parentPhone: cleanPhone,
       amount: 499,
       currency: "INR",
+      status,
       createdAt: now,
     };
     store.dossiers.unshift(newOrder);
     await fs.writeFile(DB_FILE, JSON.stringify(store, null, 2), "utf8");
     return newOrder;
+  });
+}
+
+export async function updateDossierOrderStatus(
+  orderId: string,
+  status: PaidDossierOrder["status"]
+): Promise<PaidDossierOrder | null> {
+  const sql = getNeonSql();
+  if (sql) {
+    try {
+      const rows = await sql`
+        UPDATE paid_dossiers
+        SET status = ${status}
+        WHERE id = ${orderId}
+        RETURNING *;
+      `;
+      if (rows.length === 0) return null;
+      const r = rows[0];
+      if (status === "paid" || status === "pdf_dispatched") {
+        if (r.career_test_id) {
+          await sql`
+            UPDATE student_career_tests
+            SET dossier_unlocked = TRUE, dossier_order_id = ${orderId}
+            WHERE id = ${r.career_test_id};
+          `;
+        } else if (r.user_id) {
+          await sql`
+            UPDATE student_career_tests
+            SET dossier_unlocked = TRUE, dossier_order_id = ${orderId}
+            WHERE user_id = ${r.user_id};
+          `;
+        }
+      }
+      return {
+        id: r.id,
+        userId: r.user_id || undefined,
+        careerTestId: r.career_test_id || undefined,
+        topTrackTitle: r.top_track_title || undefined,
+        studentName: r.student_name,
+        parentPhone: r.parent_phone,
+        amount: Number(r.amount) || 499,
+        currency: r.currency || "INR",
+        status: r.status,
+        createdAt: new Date(r.created_at).toISOString(),
+      };
+    } catch (err) {
+      console.warn("Neon updateDossierOrderStatus failed:", err);
+      return null;
+    }
+  }
+
+  return queueDbWrite(async () => {
+    const store = await getDatabase();
+    const target = store.dossiers.find((d) => d.id === orderId);
+    if (!target) return null;
+    target.status = status;
+    await fs.writeFile(DB_FILE, JSON.stringify(store, null, 2), "utf8");
+    return target;
   });
 }
 
@@ -1042,6 +1124,8 @@ export async function getStudentPortalData(userId: string): Promise<StudentPorta
   let diary: StudentDiaryEntry[] = [];
   let goals: StudentPlannerGoal[] = [];
   let simulations: StudentSimResult[] = [];
+  let careerTests: StudentCareerTestRecord[] = [];
+  let dossiers: PaidDossierOrder[] = [];
 
   const sql = getNeonSql();
   if (sql) {
@@ -1094,6 +1178,27 @@ export async function getStudentPortalData(userId: string): Promise<StudentPorta
         badgeEarned: r.badge_earned || undefined,
         completedAt: typeof r.completed_at === "string" ? r.completed_at : new Date(r.completed_at).toISOString(),
       }));
+
+      careerTests = await getStudentCareerTests(userId);
+
+      const dossierRows = await sql`
+        SELECT id, user_id, career_test_id, top_track_title, student_name, parent_phone, amount, currency, status, created_at
+        FROM paid_dossiers
+        WHERE user_id = ${userId}
+        ORDER BY created_at DESC;
+      `;
+      dossiers = dossierRows.map((r: any) => ({
+        id: r.id,
+        userId: r.user_id || undefined,
+        careerTestId: r.career_test_id || undefined,
+        topTrackTitle: r.top_track_title || undefined,
+        studentName: r.student_name,
+        parentPhone: r.parent_phone,
+        amount: Number(r.amount) || 499,
+        currency: r.currency || "INR",
+        status: r.status,
+        createdAt: typeof r.created_at === "string" ? r.created_at : new Date(r.created_at).toISOString(),
+      }));
     } catch (err) {
       console.warn("Neon getStudentPortalData error:", err);
     }
@@ -1103,7 +1208,7 @@ export async function getStudentPortalData(userId: string): Promise<StudentPorta
     userId: user.id,
   });
 
-  return { user, diary, goals, simulations, bookings };
+  return { user, diary, goals, simulations, careerTests, dossiers, bookings };
 }
 
 export async function addStudentDiaryEntry(
@@ -1240,4 +1345,161 @@ export async function addStudentSimResult(
     badgeEarned: data.badgeEarned,
     completedAt: now,
   };
+}
+
+function mapNeonCareerTestRow(r: Record<string, any>): StudentCareerTestRecord {
+  const parseJsonField = <T,>(val: unknown, fallback: T): T => {
+    if (typeof val === "string") {
+      try {
+        return JSON.parse(val) as T;
+      } catch {
+        return fallback;
+      }
+    }
+    if (val && typeof val === "object") {
+      return val as T;
+    }
+    return fallback;
+  };
+
+  return {
+    id: r.id,
+    userId: r.user_id,
+    studentName: r.student_name,
+    grade: r.grade,
+    topTrackId: r.top_track_id,
+    topTrackTitle: r.top_track_title,
+    matchConfidence: Number(r.match_confidence),
+    archetype: r.archetype,
+    recommendedStream: r.recommended_stream,
+    answers: parseJsonField<Record<string, string>>(r.answers_json, {}),
+    dimensionScores: parseJsonField(r.dimension_scores_json, []),
+    rankedTracks: parseJsonField(r.ranked_tracks_json, []),
+    dossierUnlocked: Boolean(r.dossier_unlocked),
+    dossierOrderId: r.dossier_order_id || undefined,
+    completedAt:
+      typeof r.completed_at === "string"
+        ? r.completed_at
+        : new Date(r.completed_at).toISOString(),
+  };
+}
+
+export async function saveStudentCareerTest(
+  userId: string,
+  data: {
+    studentName: string;
+    grade: string;
+    topTrackId: string;
+    topTrackTitle: string;
+    matchConfidence: number;
+    archetype: string;
+    recommendedStream: string;
+    answers: Record<string, string>;
+    dimensionScores: StudentCareerTestRecord["dimensionScores"];
+    rankedTracks: StudentCareerTestRecord["rankedTracks"];
+  }
+): Promise<StudentCareerTestRecord> {
+  const id = `ct_${crypto.randomBytes(4).toString("hex")}`;
+  const now = new Date().toISOString();
+  let dossierUnlocked = false;
+  let dossierOrderId: string | undefined;
+
+  const sql = getNeonSql();
+  if (sql) {
+    try {
+      // Check if the student already holds an active paid dossier unlock order
+      const paidRows = await sql`
+        SELECT id
+        FROM paid_dossiers
+        WHERE user_id = ${userId} AND status IN ('paid', 'pdf_dispatched')
+        ORDER BY created_at DESC
+        LIMIT 1;
+      `;
+      if (paidRows.length > 0) {
+        dossierUnlocked = true;
+        dossierOrderId = paidRows[0].id;
+      }
+
+      await sql`
+        INSERT INTO student_career_tests (
+          id, user_id, student_name, grade, top_track_id, top_track_title,
+          match_confidence, archetype, recommended_stream,
+          answers_json, dimension_scores_json, ranked_tracks_json,
+          dossier_unlocked, dossier_order_id, completed_at
+        ) VALUES (
+          ${id}, ${userId}, ${data.studentName}, ${data.grade},
+          ${data.topTrackId}, ${data.topTrackTitle},
+          ${Math.round(data.matchConfidence)}, ${data.archetype}, ${data.recommendedStream},
+          ${JSON.stringify(data.answers)}::jsonb,
+          ${JSON.stringify(data.dimensionScores)}::jsonb,
+          ${JSON.stringify(data.rankedTracks)}::jsonb,
+          ${dossierUnlocked}, ${dossierOrderId || null}, ${now}
+        );
+      `;
+    } catch (err) {
+      console.warn("Neon saveStudentCareerTest error:", err);
+    }
+  }
+
+  return {
+    id,
+    userId,
+    studentName: data.studentName,
+    grade: data.grade,
+    topTrackId: data.topTrackId,
+    topTrackTitle: data.topTrackTitle,
+    matchConfidence: Math.round(data.matchConfidence),
+    archetype: data.archetype,
+    recommendedStream: data.recommendedStream,
+    answers: data.answers,
+    dimensionScores: data.dimensionScores,
+    rankedTracks: data.rankedTracks,
+    dossierUnlocked,
+    dossierOrderId,
+    completedAt: now,
+  };
+}
+
+export async function getStudentCareerTests(userId: string): Promise<StudentCareerTestRecord[]> {
+  const sql = getNeonSql();
+  if (!sql) return [];
+  try {
+    const rows = await sql`
+      SELECT id, user_id, student_name, grade, top_track_id, top_track_title,
+             match_confidence, archetype, recommended_stream,
+             answers_json, dimension_scores_json, ranked_tracks_json,
+             dossier_unlocked, dossier_order_id, completed_at
+      FROM student_career_tests
+      WHERE user_id = ${userId}
+      ORDER BY completed_at DESC;
+    `;
+    return rows.map(mapNeonCareerTestRow);
+  } catch (err) {
+    console.warn("Neon getStudentCareerTests error:", err);
+    return [];
+  }
+}
+
+export async function getStudentCareerTestById(
+  userId: string,
+  testId: string
+): Promise<StudentCareerTestRecord | null> {
+  const sql = getNeonSql();
+  if (!sql) return null;
+  try {
+    const rows = await sql`
+      SELECT id, user_id, student_name, grade, top_track_id, top_track_title,
+             match_confidence, archetype, recommended_stream,
+             answers_json, dimension_scores_json, ranked_tracks_json,
+             dossier_unlocked, dossier_order_id, completed_at
+      FROM student_career_tests
+      WHERE id = ${testId} AND user_id = ${userId}
+      LIMIT 1;
+    `;
+    if (rows.length === 0) return null;
+    return mapNeonCareerTestRow(rows[0]);
+  } catch (err) {
+    console.warn("Neon getStudentCareerTestById error:", err);
+    return null;
+  }
 }

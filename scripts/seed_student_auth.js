@@ -95,6 +95,33 @@ async function setup() {
     );
   `;
 
+  await sql`
+    CREATE TABLE IF NOT EXISTS student_career_tests (
+      id VARCHAR(64) PRIMARY KEY,
+      user_id VARCHAR(64) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      student_name VARCHAR(120) NOT NULL,
+      grade VARCHAR(40) NOT NULL,
+      top_track_id VARCHAR(50) NOT NULL,
+      top_track_title VARCHAR(140) NOT NULL,
+      match_confidence INTEGER NOT NULL,
+      archetype VARCHAR(100) NOT NULL,
+      recommended_stream VARCHAR(160) NOT NULL,
+      answers_json JSONB NOT NULL,
+      dimension_scores_json JSONB NOT NULL,
+      ranked_tracks_json JSONB NOT NULL,
+      dossier_unlocked BOOLEAN DEFAULT FALSE,
+      dossier_order_id VARCHAR(64),
+      completed_at TIMESTAMPTZ DEFAULT NOW()
+    );
+  `;
+
+  await sql`
+    ALTER TABLE paid_dossiers
+      ADD COLUMN IF NOT EXISTS user_id VARCHAR(64),
+      ADD COLUMN IF NOT EXISTS career_test_id VARCHAR(64),
+      ADD COLUMN IF NOT EXISTS top_track_title VARCHAR(140);
+  `;
+
   console.log("Neon student auth & portal schema ready.");
 }
 

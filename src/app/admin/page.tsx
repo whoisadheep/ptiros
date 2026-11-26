@@ -179,6 +179,29 @@ export default function AdminPortalPage() {
     }
   };
 
+  const handleUpdateDossierStatus = async (
+    orderId: string,
+    newStatus: PaidDossierOrder["status"]
+  ) => {
+    setUpdatingId(orderId);
+    try {
+      const res = await fetch(`/api/admin/dossiers/${orderId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (res.ok) {
+        setDossiers((prev) =>
+          prev.map((d) => (d.id === orderId ? { ...d, status: newStatus } : d))
+        );
+      }
+    } catch (err) {
+      console.error("Error updating dossier order status:", err);
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
   const openWhatsAppToParent = (lead: StudentLead) => {
     const parentGreeting = lead.parentName && lead.parentName !== "Parent/Guardian" ? `${lead.parentName} ji` : "Sir/Ma'am";
     const text =
@@ -703,7 +726,12 @@ export default function AdminPortalPage() {
                     dossiers.map((ord) => (
                       <tr key={ord.id} className="hover:bg-stone-50/70 transition">
                         <td className="px-4 py-3 font-mono font-bold text-stone-800">{ord.id}</td>
-                        <td className="px-4 py-3 font-semibold text-stone-900">{ord.studentName}</td>
+                        <td className="px-4 py-3">
+                          <div className="font-semibold text-stone-900">{ord.studentName}</div>
+                          {ord.topTrackTitle && (
+                            <div className="text-[11px] text-stone-500">{ord.topTrackTitle}</div>
+                          )}
+                        </td>
                         <td className="px-4 py-3 font-mono text-emerald-700 font-semibold">+91 {ord.parentPhone}</td>
                         <td className="px-4 py-3 font-bold text-stone-900">₹{ord.amount}</td>
                         <td className="px-4 py-3">
@@ -718,16 +746,38 @@ export default function AdminPortalPage() {
                           </span>
                         </td>
                         <td className="px-4 py-3 text-right">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const text = `Namaste! Regarding your PTIROS 360° Comprehensive 10-Page Career Dossier for ${ord.studentName} (Order: ${ord.id}): Your report is ready for download!`;
-                              window.open(`https://wa.me/91${ord.parentPhone}?text=${encodeURIComponent(text)}`, "_blank");
-                            }}
-                            className="inline-flex items-center gap-1 rounded-xl bg-orange-600 px-3 py-1 text-xs font-semibold text-white hover:bg-orange-700 transition"
-                          >
-                            <span>Dispatch PDF</span>
-                          </button>
+                          <div className="flex items-center justify-end gap-2">
+                            {ord.status === "payment_pending" && (
+                              <button
+                                type="button"
+                                disabled={updatingId === ord.id}
+                                onClick={() => handleUpdateDossierStatus(ord.id, "paid")}
+                                className="inline-flex items-center gap-1 rounded-xl bg-emerald-700 px-3 py-1 text-xs font-semibold text-white hover:bg-emerald-800 transition cursor-pointer disabled:opacity-60"
+                              >
+                                <span>Approve &amp; Unlock PDF</span>
+                              </button>
+                            )}
+                            {ord.status === "paid" && (
+                              <button
+                                type="button"
+                                disabled={updatingId === ord.id}
+                                onClick={() => handleUpdateDossierStatus(ord.id, "pdf_dispatched")}
+                                className="inline-flex items-center gap-1 rounded-xl bg-stone-800 px-3 py-1 text-xs font-semibold text-white hover:bg-stone-900 transition cursor-pointer disabled:opacity-60"
+                              >
+                                <span>Mark Dispatched</span>
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const text = `Namaste! Regarding your PTIROS 360° Complete 9-Page Career Dossier for ${ord.studentName} (Order: ${ord.id}): Your report is unlocked and ready for download in your Student Portal!`;
+                                window.open(`https://wa.me/91${ord.parentPhone}?text=${encodeURIComponent(text)}`, "_blank");
+                              }}
+                              className="inline-flex items-center gap-1 rounded-xl bg-orange-600 px-3 py-1 text-xs font-semibold text-white hover:bg-orange-700 transition cursor-pointer"
+                            >
+                              <span>WhatsApp</span>
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))

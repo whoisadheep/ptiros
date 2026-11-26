@@ -1,5 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { saveDossierOrder, getDatabase, isAuthorizedAdmin, ADMIN_COOKIE_NAME } from "@/lib/serverDb";
+import {
+  saveDossierOrder,
+  getDatabase,
+  isAuthorizedAdmin,
+  ADMIN_COOKIE_NAME,
+  STUDENT_COOKIE_NAME,
+  verifyStudentSessionToken,
+} from "@/lib/serverDb";
 import { ApiResponse, PaidDossierOrder } from "@/types/database";
 
 export const dynamic = "force-dynamic";
@@ -15,10 +22,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const studentToken = req.cookies.get(STUDENT_COOKIE_NAME)?.value;
+    const authenticatedUserId = verifyStudentSessionToken(studentToken);
+
     const order = await saveDossierOrder({
+      userId: authenticatedUserId || undefined,
+      careerTestId: typeof body.careerTestId === "string" ? body.careerTestId : undefined,
+      topTrackTitle: typeof body.topTrackTitle === "string" ? body.topTrackTitle.slice(0, 140) : undefined,
       studentName: String(body.studentName).slice(0, 100).trim(),
       parentPhone: String(body.parentPhone).trim(),
-      status: body.status || "payment_pending",
+      status: "payment_pending",
     });
 
     return NextResponse.json<ApiResponse<PaidDossierOrder>>(
